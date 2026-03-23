@@ -1,0 +1,53 @@
+{
+  "skill_name": "brainstorming",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "我想给我的项目加个通知系统，用户能收到各种提醒",
+      "expected_output": "Diagnose as Problem unclear, ask focused clarifying questions one at a time, surface assumptions and blind spots, converge to scoped problem statement before proposing solutions.",
+      "files": [],
+      "expectations": [
+        "The response diagnoses the request as ambiguous (problem unclear) rather than immediately proposing a solution",
+        "The response asks at most one focused clarifying question rather than dumping a checklist",
+        "The response surfaces at least one assumption or blind spot (e.g., delivery channel, trigger conditions, who receives notifications)",
+        "The response does NOT jump to architecture or implementation choices before clarifying goals"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "我要做一个完整的用户系统，包括注册登录、权限管理、用户画像分析和社交关系",
+      "expected_output": "Recognize multiple independent subsystems, propose decomposition, ask user to confirm which sub-project to tackle first, avoid brainstorming all subsystems at once.",
+      "files": [],
+      "expectations": [
+        "The response recognizes the request spans multiple independent subsystems",
+        "The response proposes a decomposition listing at least 3 sub-projects (e.g., auth, permissions, profile/analytics, social)",
+        "The response asks the user to confirm which sub-project to start with rather than diving into all of them",
+        "The response does NOT brainstorm or design all subsystems simultaneously"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "我需要给现有的 REST API 加实时推送能力，数据变更时客户端能立即收到更新",
+      "expected_output": "Diagnose as Solution unclear, compare 2-3 viable approaches (WebSocket, SSE, polling), lead with recommendation and trade-offs, ask user to confirm approach before proceeding.",
+      "files": [],
+      "expectations": [
+        "The response diagnoses this as a solution-clarity problem (approach comparison needed) rather than a goal-clarity problem",
+        "The response compares at least 2 viable technical options (e.g., WebSocket, SSE, long-polling)",
+        "The response leads with a concrete recommendation and explains trade-offs",
+        "The response asks the user to confirm the chosen approach before moving to design"
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "我要做一个支持十万人同时在线的协同文档",
+      "expected_output": "Diagnose as Problem unclear despite scale language, clarify workload shape (read-heavy vs write-heavy), budget/constraints, tech preferences before suggesting architecture. Avoid jumping to CRDT/OT/database choices prematurely.",
+      "files": [],
+      "expectations": [
+        "The response does NOT immediately jump to architecture choices like CRDT, OT, or specific databases",
+        "The response asks about workload shape (read vs write patterns, concurrency expectations)",
+        "The response asks about constraints such as budget, team preferences, or deployment environment",
+        "The response treats the 100k concurrent users figure as a constraint to clarify, not as a spec to immediately design around"
+      ]
+    }
+  ]
+}
