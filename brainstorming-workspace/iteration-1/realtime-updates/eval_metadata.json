@@ -1,0 +1,11 @@
+{
+  "eval_id": 3,
+  "eval_name": "realtime-updates",
+  "prompt": "我需要给现有的 REST API 加实时推送能力，数据变更时客户端能立即收到更新",
+  "assertions": [
+    "The response diagnoses this as a solution-clarity problem (approach comparison needed) rather than a goal-clarity problem",
+    "The response compares at least 2 viable technical options (e.g., WebSocket, SSE, long-polling)",
+    "The response leads with a concrete recommendation and explains trade-offs",
+    "The response asks the user to confirm the chosen approach before moving to design"
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "eval_id": 4,
+  "eval_name": "scale-collab-docs",
+  "with_skill": {
+    "score": 1.0,
+    "assertions": [
+      {"id": 1, "result": "PASS", "justification": "The response does not mention CRDT, OT, or any specific databases; it only asks clarifying questions about usage patterns."},
+      {"id": 2, "result": "PASS", "justification": "The response explicitly asks about workload shape by presenting three distinct read/write concurrency scenarios (few writers many readers, distributed editing, true mass concurrent editing)."},
+      {"id": 3, "result": "PASS", "justification": "The response asks whether the 100k figure comes from business goals, product planning, or a rough estimate, implicitly probing constraints around scope and planning horizon."},
+      {"id": 4, "result": "PASS", "justification": "The response explicitly questions whether the 100k concurrent users figure is a firm requirement or an estimate, and whether to design for it from day one or grow into it."}
+    ]
+  },
+  "without_skill": {
+    "score": 0.0,
+    "assertions": [
+      {"id": 1, "result": "FAIL", "justification": "The response immediately dives into CRDT, OT, Yjs, specific databases (PostgreSQL, TiDB, Redis), and full architecture diagrams without any clarifying questions."},
+      {"id": 2, "result": "FAIL", "justification": "The response never asks about read vs write patterns or concurrency expectations; it assumes a full architecture spec and proceeds to design around it."},
+      {"id": 3, "result": "FAIL", "justification": "No questions are asked about budget, team preferences, or deployment environment; the response jumps directly to prescriptive technology choices."},
+      {"id": 4, "result": "FAIL", "justification": "The 100k concurrent users figure is treated as a hard spec to immediately design around, with concrete node counts and scaling math provided without any clarification."}
+    ]
+  },
+  "delta": 1.0,
+  "summary": "The skill-guided response scored 4/4 by asking clarifying questions before any architecture decisions, while the baseline scored 0/4 by immediately designing a full system around the unverified 100k figure."
+}

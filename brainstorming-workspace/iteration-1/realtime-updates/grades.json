@@ -1,0 +1,24 @@
+{
+  "eval_id": 3,
+  "eval_name": "realtime-updates",
+  "with_skill": {
+    "score": 1.0,
+    "assertions": [
+      {"id": 1, "result": "PASS", "justification": "The response explicitly labels the problem '问题诊断：Solution Unclear' and states the goal is clear while the technical path is open, diagnosing it as a solution-clarity problem."},
+      {"id": 2, "result": "PASS", "justification": "The response compares three options in dedicated sections: SSE (方案A), WebSocket (方案B), and Long Polling (方案C), each with a structured trade-off table."},
+      {"id": 3, "result": "PASS", "justification": "The response leads with SSE as the explicit recommendation (方案A推荐) in the comparison table and again in the '推荐方案' section, with clear trade-off explanations for each option."},
+      {"id": 4, "result": "PASS", "justification": "The response asks the user to confirm subscription granularity (global broadcast, per-resource, per-user, or mixed) before proceeding to design, explicitly stating this affects connection management complexity."}
+    ]
+  },
+  "without_skill": {
+    "score": 0.5,
+    "assertions": [
+      {"id": 1, "result": "FAIL", "justification": "The response does not diagnose the problem type at all; it jumps directly into listing implementation options without framing whether this is a goal-clarity or solution-clarity problem."},
+      {"id": 2, "result": "PASS", "justification": "The response compares four options: SSE, WebSocket, Long Polling, and Message Queue + WebSocket, covering at least two viable technical approaches."},
+      {"id": 3, "result": "PASS", "justification": "The '推荐选择' section provides conditional recommendations for each scenario with brief rationale, though the lead recommendation is conditional rather than a single concrete upfront choice."},
+      {"id": 4, "result": "FAIL", "justification": "The response ends with a generic offer to tailor advice if the user shares their stack and scenario, but does not explicitly ask the user to confirm a chosen approach before moving to design."}
+    ]
+  },
+  "delta": 0.5,
+  "summary": "The skill-guided response scored perfectly by diagnosing the problem type, making a clear upfront recommendation with structured trade-offs, and explicitly gating next steps on user confirmation, while the baseline response provided useful comparisons but skipped problem diagnosis and confirmation gating."
+}

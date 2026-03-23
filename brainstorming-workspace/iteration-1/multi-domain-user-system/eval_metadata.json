@@ -1,0 +1,11 @@
+{
+  "eval_id": 2,
+  "eval_name": "multi-domain-user-system",
+  "prompt": "我要做一个完整的用户系统，包括注册登录、权限管理、用户画像分析和社交关系",
+  "assertions": [
+    "The response recognizes the request spans multiple independent subsystems",
+    "The response proposes a decomposition listing at least 3 sub-projects (e.g., auth, permissions, profile/analytics, social)",
+    "The response asks the user to confirm which sub-project to start with rather than diving into all of them",
+    "The response does NOT brainstorm or design all subsystems simultaneously"
+  ]
+}

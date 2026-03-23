@@ -1,0 +1,24 @@
+{
+  "eval_id": 1,
+  "eval_name": "fuzzy-notifications",
+  "with_skill": {
+    "score": 1.0,
+    "assertions": [
+      {"id": 1, "result": "PASS", "justification": "The response explicitly labels the request as '边界不清晰 (Boundaries unclear)' and frames the problem as needing clarification before any solution is proposed."},
+      {"id": 2, "result": "PASS", "justification": "Exactly one focused question is asked (delivery channel); the secondary note about user preference control is framed as an aside ('顺带'), not an additional question in a checklist."},
+      {"id": 3, "result": "PASS", "justification": "The response surfaces delivery channel as the primary blind spot and explicitly calls out user notification preference control as a second assumption that would affect system complexity."},
+      {"id": 4, "result": "PASS", "justification": "No architecture diagrams, database schemas, or implementation code appear anywhere in the response; it stops entirely at clarifying questions."}
+    ]
+  },
+  "without_skill": {
+    "score": 0.25,
+    "assertions": [
+      {"id": 1, "result": "FAIL", "justification": "The response immediately pivots to a full solution framework ('帮你梳理思路和实现方案') without diagnosing or labeling the request as ambiguous."},
+      {"id": 2, "result": "FAIL", "justification": "Section one alone lists four clarifying sub-questions as a checklist, and the closing paragraph adds three more questions, far exceeding one focused question."},
+      {"id": 3, "result": "PASS", "justification": "Delivery channel, trigger scenarios, real-time requirements, and user scale are all surfaced as considerations in section one."},
+      {"id": 4, "result": "FAIL", "justification": "The response includes a full architecture diagram, database DDL, Node.js service code, SSE implementation, and a phased rollout plan before any goals are clarified."}
+    ]
+  },
+  "delta": 0.75,
+  "summary": "The skill-guided response scored a perfect 1.0 by correctly diagnosing ambiguity and asking a single focused question, while the baseline scored 0.25 by immediately producing full architecture and implementation details without clarifying the problem."
+}

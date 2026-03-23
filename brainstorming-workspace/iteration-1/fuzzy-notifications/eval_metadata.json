@@ -1,0 +1,11 @@
+{
+  "eval_id": 1,
+  "eval_name": "fuzzy-notifications",
+  "prompt": "我想给我的项目加个通知系统，用户能收到各种提醒",
+  "assertions": [
+    "The response diagnoses the request as ambiguous (problem unclear) rather than immediately proposing a solution",
+    "The response asks at most one focused clarifying question rather than dumping a checklist",
+    "The response surfaces at least one assumption or blind spot (e.g., delivery channel, trigger conditions, who receives notifications)",
+    "The response does NOT jump to architecture or implementation choices before clarifying goals"
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "eval_id": 2,
+  "eval_name": "multi-domain-user-system",
+  "with_skill": {
+    "score": 1.0,
+    "assertions": [
+      {"id": 1, "result": "PASS", "justification": "The response explicitly states the request spans 4 relatively independent subsystems with clear dependency relationships."},
+      {"id": 2, "result": "PASS", "justification": "The response lists exactly 4 sub-projects in a table: Auth, RBAC/ABAC, User Profiling, and Social Graph."},
+      {"id": 3, "result": "PASS", "justification": "The response ends with an explicit question asking the user which subsystem to start with, offering options A, B, and C."},
+      {"id": 4, "result": "PASS", "justification": "The response only outlines subsystems at a high level and does not brainstorm or design any of them in detail simultaneously."}
+    ]
+  },
+  "without_skill": {
+    "score": 0.5,
+    "assertions": [
+      {"id": 1, "result": "PASS", "justification": "The response explicitly names all four modules as separate services (Auth, RBAC, Profile, Social) and diagrams them as independent microservices behind an API gateway."},
+      {"id": 2, "result": "PASS", "justification": "The response lists four sub-projects: Auth, RBAC, Profile, and Social, exceeding the minimum of 3."},
+      {"id": 3, "result": "FAIL", "justification": "The response never asks the user which sub-project to start with; it immediately proceeds to design all modules in full detail."},
+      {"id": 4, "result": "FAIL", "justification": "The response simultaneously brainstorms and designs all four subsystems at once, including SQL schemas, architecture diagrams, and implementation details for each."}
+    ]
+  },
+  "delta": 0.5,
+  "summary": "The skill-guided response correctly scoped and decomposed the request then deferred to the user for prioritization, while the baseline immediately designed all four subsystems in full detail without asking which to start with."
+}

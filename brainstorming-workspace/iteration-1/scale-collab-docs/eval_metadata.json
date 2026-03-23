@@ -1,0 +1,11 @@
+{
+  "eval_id": 4,
+  "eval_name": "scale-collab-docs",
+  "prompt": "我要做一个支持十万人同时在线的协同文档",
+  "assertions": [
+    "The response does NOT immediately jump to architecture choices like CRDT, OT, or specific databases",
+    "The response asks about workload shape (read vs write patterns, concurrency expectations)",
+    "The response asks about constraints such as budget, team preferences, or deployment environment",
+    "The response treats the 100k concurrent users figure as a constraint to clarify, not as a spec to immediately design around"
+  ]
+}
