@@ -1,0 +1,201 @@
+{
+  "eval_name": "db-explorer-comparison",
+  "live_databases": [
+    "postgres",
+    "mysql"
+  ],
+  "with_skill": {
+    "score": 1.0,
+    "assertions": [
+      {
+        "id": 1,
+        "name": "sqlite tables + schema",
+        "category": "positive",
+        "result": "PASS",
+        "justification": "SQLite 的 tables 和 schema 都成功，输出包含 users/orders 与 users 的核心字段。"
+      },
+      {
+        "id": 2,
+        "name": "sqlite sample data + aggregate query",
+        "category": "positive",
+        "result": "PASS",
+        "justification": "SQLite 的采样与聚合查询都成功，金额结果符合预期。"
+      },
+      {
+        "id": 3,
+        "name": "sqlite schema json is parseable",
+        "category": "positive",
+        "result": "PASS",
+        "justification": "SQLite 的 schema JSON 可解析，且索引信息未污染 stdout。"
+      },
+      {
+        "id": 4,
+        "name": "sqlite read url from named env var",
+        "category": "positive",
+        "result": "PASS",
+        "justification": "SQLite 支持 --url-env，从指定环境变量读取连接并成功列出表。"
+      },
+      {
+        "id": 5,
+        "name": "sqlite reject VACUUM",
+        "category": "negative",
+        "result": "PASS",
+        "justification": "SQLite 场景下正确拒绝 VACUUM 这类非只读语句。"
+      },
+      {
+        "id": 6,
+        "name": "sqlite reject write-ish PRAGMA",
+        "category": "negative",
+        "result": "PASS",
+        "justification": "SQLite 场景下正确拒绝会改数据库状态的 PRAGMA。"
+      },
+      {
+        "id": 7,
+        "name": "sqlite reject multi-statement SQL",
+        "category": "negative",
+        "result": "PASS",
+        "justification": "SQLite 场景下正确拒绝多语句 SQL。"
+      },
+      {
+        "id": 8,
+        "name": "postgres tables + schema",
+        "category": "positive",
+        "result": "PASS",
+        "justification": "PostgreSQL 的 tables 和 schema 都成功，输出包含 dbx_users/dbx_orders 与核心字段。"
+      },
+      {
+        "id": 9,
+        "name": "postgres sample data + aggregate query",
+        "category": "positive",
+        "result": "PASS",
+        "justification": "PostgreSQL 的采样与聚合查询都成功，金额结果符合预期。"
+      },
+      {
+        "id": 10,
+        "name": "postgres schema json is parseable",
+        "category": "positive",
+        "result": "PASS",
+        "justification": "PostgreSQL 的 schema JSON 可解析，且索引/外键信息未污染 stdout。"
+      },
+      {
+        "id": 11,
+        "name": "mysql tables + schema",
+        "category": "positive",
+        "result": "PASS",
+        "justification": "MySQL 的 tables 和 schema 都成功，输出包含 dbx_users/dbx_orders 与核心字段。"
+      },
+      {
+        "id": 12,
+        "name": "mysql sample data + aggregate query",
+        "category": "positive",
+        "result": "PASS",
+        "justification": "MySQL 的采样与聚合查询都成功，金额结果符合预期。"
+      },
+      {
+        "id": 13,
+        "name": "mysql schema json is parseable",
+        "category": "positive",
+        "result": "PASS",
+        "justification": "MySQL 的 schema JSON 可解析，且索引信息未污染 stdout。"
+      }
+    ]
+  },
+  "without_skill": {
+    "score": 0.46,
+    "assertions": [
+      {
+        "id": 1,
+        "name": "sqlite tables + schema",
+        "category": "positive",
+        "result": "PASS",
+        "justification": "SQLite 的 tables 和 schema 都成功，输出包含 users/orders 与 users 的核心字段。"
+      },
+      {
+        "id": 2,
+        "name": "sqlite sample data + aggregate query",
+        "category": "positive",
+        "result": "PASS",
+        "justification": "SQLite 的采样与聚合查询都成功，金额结果符合预期。"
+      },
+      {
+        "id": 3,
+        "name": "sqlite schema json is parseable",
+        "category": "positive",
+        "result": "FAIL",
+        "justification": "JSON 解析失败: Expecting value: line 1 column 1 (char 0)\nstdout=--- 索引 ---\n  sqlite_autoindex_users_1 (email) UNIQUE\n[\n  {\n    \"column_name\": \"id\",\n    \"type\": \"INTEGER\",\n    \"nullable\": \"YES\",\n    \"default\": \"\",\n    \"primary_key\": \"YES\"\n  },\n  {\n    \"column_name\": \"name\",\n    \"type\": \"TEXT\",\n    \"nullable\": \"NO\",\n    \"default\": \"\",\n    \"primary_key\": \"\"\n  },\n  {\n    \"column_name\": \"email\",\n    \"type\": \"TEXT\",\n    \"nullable\": \"NO\",\n    \"default\": \"\",\n    \"primary_key\": \"\"\n  },\n  {\n    \"column_name\": \"age\",\n    \"type\": \"INTEGER\",\n    \"nullable\": \"YES\",\n    \"default\": \"\",\n    \"primary_key\": \"\"\n  },\n  {\n    \"column_name\": \"created_at\",\n    \"type\": \"TEXT\",\n    \"nullable\": \"YES\",\n    \"default\": \"CURRENT_TIMESTAMP\",\n    \"primary_key\": \"\"\n  }\n]\nstderr="
+      },
+      {
+        "id": 4,
+        "name": "sqlite read url from named env var",
+        "category": "positive",
+        "result": "FAIL",
+        "justification": "usage: db_query_baseline.py [-h] --db-type {postgres,mysql,sqlite} [--url URL]\n                            [--format {table,markdown,json,csv}]\n                            [--timeout TIMEOUT]\n                            {test,tables,schema,data,query} ...\ndb_query_baseline.py: error: argument command: invalid choice: 'TEST_DB_URL' (choose from test, tables, schema, data, query)"
+      },
+      {
+        "id": 5,
+        "name": "sqlite reject VACUUM",
+        "category": "negative",
+        "result": "FAIL",
+        "justification": "(无结果)"
+      },
+      {
+        "id": 6,
+        "name": "sqlite reject write-ish PRAGMA",
+        "category": "negative",
+        "result": "FAIL",
+        "justification": "journal_mode\n------------\nwal         \n(1 行)"
+      },
+      {
+        "id": 7,
+        "name": "sqlite reject multi-statement SQL",
+        "category": "negative",
+        "result": "FAIL",
+        "justification": "Traceback (most recent call last):\n  File \"/var/folders/fl/g6pvtbmj7xn7c2tq3mfdg6x80000gn/T/db-explorer-eval-n2lu9jod/db_query_baseline.py\", line 473, in <module>\n    main()\n    ~~~~^^\n  File \"/var/folders/fl/g6pvtbmj7xn7c2tq3mfdg6x80000gn/T/db-explorer-eval-n2lu9jod/db_query_baseline.py\", line 464, in main\n    columns, rows = cmd_query(conn, args.db_type, args.sql)\n                    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/var/folders/fl/g6pvtbmj7xn7c2tq3mfdg6x80000gn/T/db-explorer-eval-n2lu9jod/db_query_baseline.py\", line 329, in cmd_query\n    return execute_query(conn, db_type, sql)\n  File \"/var/folders/fl/g6pvtbmj7xn7c2tq3mfdg6x80000gn/T/db-explorer-eval-n2lu9jod/db_query_baseline.py\", line 142, in execute_query\n    cursor.execute(sql)\n    ~~~~~~~~~~~~~~^^^^^\nsqlite3.ProgrammingError: You can only execute one statement at a time."
+      },
+      {
+        "id": 8,
+        "name": "postgres tables + schema",
+        "category": "positive",
+        "result": "PASS",
+        "justification": "PostgreSQL 的 tables 和 schema 都成功，输出包含 dbx_users/dbx_orders 与核心字段。"
+      },
+      {
+        "id": 9,
+        "name": "postgres sample data + aggregate query",
+        "category": "positive",
+        "result": "PASS",
+        "justification": "PostgreSQL 的采样与聚合查询都成功，金额结果符合预期。"
+      },
+      {
+        "id": 10,
+        "name": "postgres schema json is parseable",
+        "category": "positive",
+        "result": "FAIL",
+        "justification": "JSON 解析失败: Expecting value: line 1 column 1 (char 0)\nstdout=--- 索引 ---\n  dbx_users_pkey: CREATE UNIQUE INDEX dbx_users_pkey ON public.dbx_users USING btree (id)\n  dbx_users_email_key: CREATE UNIQUE INDEX dbx_users_email_key ON public.dbx_users USING btree (email)\n[\n  {\n    \"column_name\": \"id\",\n    \"type\": \"integer\",\n    \"nullable\": \"NO\",\n    \"default\": null,\n    \"primary_key\": \"YES\"\n  },\n  {\n    \"column_name\": \"name\",\n    \"type\": \"text\",\n    \"nullable\": \"NO\",\n    \"default\": null,\n    \"primary_key\": \"\"\n  },\n  {\n    \"column_name\": \"email\",\n    \"type\": \"text\",\n    \"nullable\": \"NO\",\n    \"default\": null,\n    \"primary_key\": \"\"\n  },\n  {\n    \"column_name\": \"age\",\n    \"type\": \"integer\",\n    \"nullable\": \"YES\",\n    \"default\": null,\n    \"primary_key\": \"\"\n  },\n  {\n    \"column_name\": \"created_at\",\n    \"type\": \"timestamp without time zone\",\n    \"nullable\": \"YES\",\n    \"default\": \"CURRENT_TIMESTAMP\",\n    \"primary_key\": \"\"\n  }\n]\nstderr="
+      },
+      {
+        "id": 11,
+        "name": "mysql tables + schema",
+        "category": "positive",
+        "result": "PASS",
+        "justification": "MySQL 的 tables 和 schema 都成功，输出包含 dbx_users/dbx_orders 与核心字段。"
+      },
+      {
+        "id": 12,
+        "name": "mysql sample data + aggregate query",
+        "category": "positive",
+        "result": "PASS",
+        "justification": "MySQL 的采样与聚合查询都成功，金额结果符合预期。"
+      },
+      {
+        "id": 13,
+        "name": "mysql schema json is parseable",
+        "category": "positive",
+        "result": "FAIL",
+        "justification": "JSON 解析失败: Expecting value: line 1 column 1 (char 0)\nstdout=--- 索引 ---\n  PRIMARY (id) UNIQUE\n  email (email) UNIQUE\n[\n  {\n    \"column_name\": \"id\",\n    \"type\": \"int\",\n    \"nullable\": \"NO\",\n    \"key\": \"PRI\",\n    \"default\": null,\n    \"extra\": \"\"\n  },\n  {\n    \"column_name\": \"name\",\n    \"type\": \"varchar(255)\",\n    \"nullable\": \"NO\",\n    \"key\": \"\",\n    \"default\": null,\n    \"extra\": \"\"\n  },\n  {\n    \"column_name\": \"email\",\n    \"type\": \"varchar(255)\",\n    \"nullable\": \"NO\",\n    \"key\": \"UNI\",\n    \"default\": null,\n    \"extra\": \"\"\n  },\n  {\n    \"column_name\": \"age\",\n    \"type\": \"int\",\n    \"nullable\": \"YES\",\n    \"key\": \"\",\n    \"default\": null,\n    \"extra\": \"\"\n  },\n  {\n    \"column_name\": \"created_at\",\n    \"type\": \"timestamp\",\n    \"nullable\": \"YES\",\n    \"key\": \"\",\n    \"default\": \"CURRENT_TIMESTAMP\",\n    \"extra\": \"DEFAULT_GENERATED\"\n  }\n]\nstderr="
+      }
+    ]
+  },
+  "delta": 0.54,
+  "summary": "Current version scored 1.00; baseline scored 0.46. Delta = 0.54. Live DBs: postgres, mysql."
+}

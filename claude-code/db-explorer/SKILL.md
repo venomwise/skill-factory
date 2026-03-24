@@ -1,134 +1,243 @@
 ---
 name: db-explorer
 description: >
-  查询和探索数据库的表结构、字段信息和表数据。支持 PostgreSQL、MySQL、SQLite。
-  当用户提到数据库查询、查看表结构、查看表数据、检查字段类型、列出数据库中的表、
-  查看建表语句、采样数据、调试数据问题、了解数据库 schema 时，都应该使用这个 skill。
-  即使用户只是说"看看这个表长什么样"或"帮我查一下这个数据"也要触发。
+  只读探索 PostgreSQL、MySQL、SQLite 数据库。适用于列出表、查看表结构和字段类型、
+  检查主键/索引/外键、采样表数据、执行只读 SQL（SELECT/WITH/SHOW/DESCRIBE/EXPLAIN/元数据 PRAGMA）、
+  验证代码中的 model 与数据库 schema 是否一致、排查数据问题。
+  仅在用户明确处于数据库/SQL/schema/record/column 语境时触发。
+  不要为 HTML/Markdown/UI table 等非数据库“表格”场景触发。
 ---
 
 # DB Explorer
 
-快速探索数据库：列出表、查看表结构、采样数据、执行自定义查询。
-面向开发调试场景——帮助开发者在编码过程中快速理解数据库的结构和数据。
+使用 `scripts/db_query.py` 做确定性的只读数据库探索。
+目标是：快速拿到可信的表、字段、约束和样例数据，而不是自由发挥数据库操作。
 
-## When to use
+## Use this skill when
 
-- 查看数据库中有哪些表
-- 查看某张表的字段名、类型、约束（主键、外键、索引等）
-- 快速采样表中的数据（前 N 行）
-- 执行自定义 SQL 查询并格式化输出
-- 开发过程中需要确认表结构与代码中 model 定义是否一致
-- 调试数据问题（检查某些记录的实际值）
+- 用户想看数据库里有哪些表
+- 用户想看某张表的字段、类型、默认值、主键、索引、外键
+- 用户想抽样看几条数据
+- 用户想执行只读 SQL 查询
+- 用户想确认数据库 schema 和代码中的 model / ORM 定义是否一致
+- 用户在排查“这条记录实际长什么样”“某字段到底存的是什么”
 
-## When NOT to use
+## Do not use
 
-- 数据迁移或 schema 变更操作（ALTER TABLE、DROP 等）——这个 skill 是只读的
-- 大规模数据导出（超过几百行的数据处理）
-- 生产环境的敏感数据查询——请确认安全策略
+- 任何写操作、DDL、迁移、修复数据、回填数据
+- 导出大批量数据或做重型数据处理
+- 用户说的“表”明显不是数据库表
+- 你无法确认连接目标是否安全，且查询可能触及敏感生产数据
 
-## Inputs
+## Capability contract
 
-用户需要提供以下信息（通过对话收集）：
+这个 skill 当前依赖 `scripts/db_query.py`，实际支持的能力只有：
 
-1. **数据库类型**: PostgreSQL / MySQL / SQLite
-2. **连接信息**（以下任一方式）:
-   - 连接 URL（如 `postgresql://user:pass@host:port/dbname`）
-   - 环境变量名（如 `DATABASE_URL`）
-   - SQLite 文件路径（如 `./data/app.db`）
-   - 分别提供 host、port、user、password、database
-3. **查询意图**: 想看什么——表列表？某张表的结构？某张表的数据？自定义 SQL？
+- `test`: 测试连接
+- `tables`: 列出表
+- `schema <table>`: 查看表结构
+- `data <table> --limit N`: 采样表数据
+- `query "<sql>"`: 执行只读 SQL
+- `--url-env <ENV_VAR>`: 直接从指定环境变量读取连接信息
 
-## Outputs
+支持的输出格式：
 
-根据查询类型，输出格式会自动适配：
+- `table`（默认）
+- `markdown`
+- `json`
+- `csv`
 
-- **表列表**: 简洁的表名列表，包含行数统计（如果可获取）
-- **表结构**: 字段名、类型、是否可空、默认值、约束信息，以易读的表格呈现
-- **数据采样**: 格式化的表格数据（默认 10 行，可指定）
-- **自定义查询**: 按结果集大小选择最合适的展示方式
+## Runtime prerequisites
 
-当数据量小时用 Markdown 表格，数据量大时用对齐的文本表格或建议导出为文件。
+- SQLite 使用 Python 标准库 `sqlite3`，不需要额外安装驱动
+- PostgreSQL 依赖当前 Python 环境中的 `psycopg2`
+- MySQL 依赖当前 Python 环境中的 `mysql-connector-python`
+
+执行原则：
+
+- 优先使用项目已经存在的虚拟环境
+- 如果项目没有可用虚拟环境，再创建一个隔离虚拟环境后安装依赖
+- `pip install` 和运行脚本必须使用**同一个 Python 环境**
+
+推荐命令：
+
+```bash
+python -m venv .venv
+. .venv/bin/activate
+python -m pip install -r <skill-path>/requirements.txt
+python <skill-path>/scripts/db_query.py --db-type postgres --url "<url>" test
+```
+
+如果用户只查 SQLite，不要要求安装 PostgreSQL/MySQL 驱动。
+
+不要声称支持脚本没有直接实现的固定能力。  
+例如，“查看建表语句”只能在你**明确写出并执行了某个数据库可用的只读查询**时再说；否则默认提供 `schema`，不要承诺 `SHOW CREATE TABLE` 一类能力在所有数据库都可用。
+对于 SQLite 的 `PRAGMA`，仅把只读元数据查询视为允许范围，不要把会改状态的 `PRAGMA` 当成安全操作。
+
+## Required inputs
+
+只收集阻塞执行的最少信息；能推断就推断，不要机械追问。
+
+需要的信息：
+
+1. **数据库类型**
+   - `postgres`
+   - `mysql`
+   - `sqlite`
+2. **连接来源**
+   - 连接 URL
+   - 已存在的环境变量值
+   - 用户提供的环境变量名
+   - SQLite 文件路径
+3. **查询目标**
+   - 表列表 / 表结构 / 表数据 / 自定义 SQL / schema 与代码对比
+
+推断规则：
+
+- 用户给了 `.db` / `.sqlite` / `.sqlite3` 文件路径时，默认按 `sqlite` 处理，除非上下文明确不是
+- 用户已经明确说“看 `users` 表结构”，不要再问“你想查什么”
+- 用户给了环境变量名时，先读取该变量值，再用 `--url` 传给脚本；不要把 secret 原样打印出来
+- 如果直接调用脚本，优先使用 `--url-env <ENV_VAR_NAME>`
+- 如果用户没给连接信息，再按需检查项目里的常见配置文件（如 `.env`、`config/database.yml`、`settings.py`、`application.properties`）
 
 ## Workflow
 
-### 1. 收集连接信息
+### 1. 收集并确认连接信息
 
-如果用户没有明确提供连接信息，通过对话确认：
+- 优先复用用户已提供的信息
+- 只在确实无法执行时，问一个最关键的补充问题
+- 展示连接摘要时遮掩密码：`postgresql://user:***@host:5432/db`
+- 如果是从配置文件或环境变量中找到的连接信息，明确说明来源，但不要泄露密码
 
-- 数据库类型是什么？
-- 连接方式：URL、环境变量、还是文件路径（SQLite）？
-- 如果信息不完整，检查项目中常见的配置文件（`.env`、`config/database.yml`、`settings.py`、`application.properties` 等）是否包含数据库连接信息
+### 2. 先验证连接
 
-对于 SQLite，只需要文件路径。对于 PostgreSQL/MySQL，需要完整的连接参数。
-
-**安全提示**: 永远不要在输出中明文显示密码。如果从配置文件读取了密码，在展示连接信息时用 `***` 遮掩。
-
-### 2. 验证连接
-
-使用 `scripts/db_query.py` 测试连接是否成功：
+先跑连接测试，再做后续查询：
 
 ```bash
 python <skill-path>/scripts/db_query.py --db-type <type> --url "<connection-url>" test
 ```
 
-如果连接失败，分析错误信息并给出针对性建议：
-- 连接被拒绝 → 检查 host/port 是否正确，数据库服务是否运行
-- 认证失败 → 检查用户名密码
-- 数据库不存在 → 列出可用的数据库
+如果连接来自环境变量，也可以：
 
-### 3. 执行查询
+```bash
+python <skill-path>/scripts/db_query.py --db-type <type> --url-env DATABASE_URL test
+```
 
-根据用户意图选择操作：
+如果失败：
 
-**列出所有表:**
+- 原样保留关键错误信息
+- 给出下一步建议
+- 在连接未验证成功前，不要臆测表结构或数据
+
+常见故障处理：
+
+- 连接被拒绝：检查 host / port / 数据库服务
+- 认证失败：检查用户名 / 密码 / 权限
+- SQLite 文件不存在：检查路径是否相对当前工作目录
+- 依赖缺失：说明缺少的 Python 包，并在当前虚拟环境里安装后重试
+
+### 3. 选择最小操作
+
+优先用脚本内建命令，不要先写自定义元数据查询。
+
+**列出表**
+
 ```bash
 python <skill-path>/scripts/db_query.py --db-type <type> --url "<url>" tables
 ```
 
-**查看表结构:**
+**查看表结构**
+
 ```bash
 python <skill-path>/scripts/db_query.py --db-type <type> --url "<url>" schema <table_name>
 ```
 
-**采样数据:**
+**采样表数据**
+
 ```bash
-python <skill-path>/scripts/db_query.py --db-type <type> --url "<url>" data <table_name> --limit <N>
+python <skill-path>/scripts/db_query.py --db-type <type> --url "<url>" data <table_name> --limit 10
 ```
 
-**执行自定义 SQL:**
+**执行只读 SQL**
+
 ```bash
 python <skill-path>/scripts/db_query.py --db-type <type> --url "<url>" query "<sql>"
 ```
 
-所有命令都支持 `--format` 参数选择输出格式：`table`（默认）、`markdown`、`json`、`csv`。
-注意 `--format` 是全局参数，必须放在子命令（tables/schema/data/query）之前：
+格式参数是全局参数，必须放在子命令前：
 
 ```bash
 python <skill-path>/scripts/db_query.py --db-type sqlite --url "./app.db" --format markdown schema users
 ```
 
-### 4. 格式化与呈现
+选择策略：
 
-拿到查询脚本的原始输出后，根据场景组织展示：
+- 看库里有什么：`tables`
+- 看某张表怎么定义：`schema`
+- 先看看数据长什么样：`data --limit 10`
+- 用户给了明确 SQL，或需要 JOIN / 聚合 / 过滤：`query`
 
-- 如果用户只是想快速了解表结构，直接展示表格即可
-- 如果用户在对比代码中的 model 定义，可以将表结构和代码 model 并排对比
-- 如果采样数据量较大（超过 20 行），建议写入文件而非直接输出到终端
-- 对于自定义查询，先展示结果行数，再展示数据
+### 4. 写 SQL 时遵守这些约束
 
-### 5. 后续建议
+- 只写只读 SQL
+- 如果是你代写的“探索性查询”，默认加 `LIMIT 100`，除非用户明确需要更多或语义上不适合加
+- 不要改写用户已经明确给出的 SQL，除非你是在补一个显然安全且用户意图就是“采样看一下”的 `LIMIT`
+- 表名必须来自用户输入或已列出的真实表名，不要猜
 
-查询完成后，根据上下文给出有价值的后续建议：
+### 5. 结果整理与输出
 
-- 如果在查看表结构，提示可以查看关联表或索引
-- 如果在采样数据，提示可以用 WHERE 条件过滤
-- 如果发现表结构和代码不一致，指出差异
+不要直接把终端原始输出一股脑贴给用户；先整理，再展示。
 
-## Safety & guardrails
+默认输出规则：
 
-- **只读操作**: 这个 skill 只执行 SELECT 查询。脚本会拒绝任何包含 INSERT、UPDATE、DELETE、DROP、ALTER、TRUNCATE 的语句
-- **结果限制**: 数据查询默认限制 100 行，避免意外拉取整张大表
-- **密码保护**: 不在输出中展示数据库密码
-- **超时控制**: 查询超时默认 30 秒，防止慢查询阻塞
-- **注入防护**: 脚本使用参数化查询处理用户输入（表名除外——表名通过白名单验证）
+- **表列表**
+  - 表少时直接列出表名
+  - 如果脚本返回了 `row_count`，一起展示
+- **表结构**
+  - 固定关注：字段名、类型、是否可空、默认值、主键
+  - 如果脚本额外打印了索引 / 外键，把它们整理成单独小节
+- **数据采样**
+  - 默认展示前 10 行
+  - 如果列很多，先给 1 句话总结，再给表格
+- **自定义查询**
+  - 先一句话说清查的是什么
+  - 再展示结果
+  - 结果过大时只展示前几行，并明确说明已截断
+
+展示格式建议：
+
+- 小结果集优先 `--format markdown`
+- 宽表或长结果集优先 `table`
+- 需要后处理时用 `json` / `csv`
+
+### 6. 对比代码中的 model（可选）
+
+如果用户是在核对 ORM / model：
+
+1. 先用 `schema` 拿数据库定义
+2. 再打开对应 model 文件
+3. 只报告关键差异：
+   - 字段缺失 / 多出
+   - 类型不一致
+   - nullable 不一致
+   - 默认值或主键约束不一致
+
+不要把整段 model 和整张 schema 大段重复粘贴。
+
+### 7. 收尾建议
+
+查询结束后，只给与当前上下文强相关的下一步建议，例如：
+
+- “要不要继续看这张表的样例数据？”
+- “要不要我再查一下它关联的外键表？”
+- “要不要我把数据库 schema 和代码里的 model 逐项对比一下？”
+
+## Guardrails
+
+- 这是**只读 skill**
+- 不执行 INSERT / UPDATE / DELETE / DROP / ALTER / TRUNCATE / CREATE
+- 不暴露密码或完整 secret
+- 不把脚本的 best-effort 只读校验当作放宽边界的理由
+- `data` 默认用小 limit 做采样；避免无界查询
+- 查询失败时，报告事实和建议，不编造结果
+- 表不存在、字段不存在、权限不足时，明确说出失败点

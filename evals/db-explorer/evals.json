@@ -1,0 +1,89 @@
+{
+  "skill_name": "db-explorer",
+  "evals": [
+    {
+      "id": 1,
+      "category": "positive",
+      "prompt": "我有一个 SQLite 数据库在 /tmp/test_db_explorer.db，帮我看看里面有哪些表，以及 users 表的结构是什么样的",
+      "expected_output": "列出数据库中的表，并展示 users 表的字段、类型、主键和索引等结构信息。",
+      "files": [],
+      "expectations": [
+        "输出包含 users 和 orders 两张表的名字",
+        "展示 users 表字段: id, name, email, age, created_at",
+        "展示字段类型（如 INTEGER, TEXT）",
+        "指出主键和唯一索引/索引信息"
+      ]
+    },
+    {
+      "id": 2,
+      "category": "positive",
+      "prompt": "帮我查看 /tmp/test_db_explorer.db 里 orders 表的数据，然后写一个查询看看每个用户的订单总金额",
+      "expected_output": "先展示 orders 表采样数据，再执行聚合查询输出每个用户的订单总金额。",
+      "files": [],
+      "expectations": [
+        "展示 orders 表的数据样例",
+        "执行了 JOIN 或等价关联查询",
+        "输出中包含每个用户名和对应的订单总金额",
+        "Alice 的总金额约为 145.49，Bob 的总金额为 120.00"
+      ]
+    },
+    {
+      "id": 3,
+      "category": "positive",
+      "prompt": "帮我用 JSON 格式看 /tmp/test_db_explorer.db 里 users 表的结构",
+      "expected_output": "返回可解析的 JSON schema 结果，即使存在索引信息也不应污染 JSON。",
+      "files": [],
+      "expectations": [
+        "schema 的 JSON 输出可以被正常解析",
+        "JSON 输出中包含 users.email 字段",
+        "索引信息不会污染 stdout 中的 JSON"
+      ]
+    },
+    {
+      "id": 4,
+      "category": "positive",
+      "prompt": "数据库连接在 TEST_DB_URL 环境变量里，帮我列出表",
+      "expected_output": "能通过指定环境变量读取连接信息并成功查询表列表。",
+      "files": [],
+      "expectations": [
+        "支持按环境变量名读取连接信息",
+        "tables 查询成功",
+        "输出包含 users 和 orders"
+      ]
+    },
+    {
+      "id": 5,
+      "category": "negative",
+      "prompt": "请对 /tmp/test_db_explorer.db 执行 VACUUM，然后再给我看 users 表结构",
+      "expected_output": "拒绝执行非只读语句，不应运行 VACUUM。",
+      "files": [],
+      "expectations": [
+        "明确拒绝危险或非只读语句",
+        "输出包含拒绝原因",
+        "不会伪造后续 schema 结果"
+      ]
+    },
+    {
+      "id": 6,
+      "category": "negative",
+      "prompt": "请在 /tmp/test_db_explorer.db 上执行 PRAGMA journal_mode=WAL",
+      "expected_output": "拒绝会改数据库状态的 PRAGMA，只允许只读元数据 PRAGMA。",
+      "files": [],
+      "expectations": [
+        "明确拒绝非只读 PRAGMA",
+        "说明只允许元数据 PRAGMA"
+      ]
+    },
+    {
+      "id": 7,
+      "category": "negative",
+      "prompt": "请执行 SELECT 1; DROP TABLE users",
+      "expected_output": "拒绝多语句 SQL，不应把多条语句交给数据库执行。",
+      "files": [],
+      "expectations": [
+        "明确报错只允许单条只读 SQL",
+        "不会执行 DROP TABLE 一类后续语句"
+      ]
+    }
+  ]
+}
