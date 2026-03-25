@@ -125,13 +125,13 @@ def positive_int(value: str) -> int:
 
 def parse_url(url: str) -> dict:
     """从 URL 解析连接参数"""
-    from urllib.parse import urlparse
+    from urllib.parse import urlparse, unquote
     parsed = urlparse(url)
     return {
         "host": parsed.hostname or "localhost",
         "port": parsed.port,
-        "user": parsed.username,
-        "password": parsed.password,
+        "user": unquote(parsed.username) if parsed.username else None,
+        "password": unquote(parsed.password) if parsed.password else None,
         "database": parsed.path.lstrip("/"),
     }
 
