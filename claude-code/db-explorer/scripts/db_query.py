@@ -6,14 +6,17 @@ db_query.py - 轻量级数据库查询工具
 """
 
 import argparse
+import importlib
 import json
 import os
 import re
 import sqlite3
 import sys
-import importlib
 from contextlib import contextmanager
+from typing import Literal, TypeAlias, cast
 
+DBType: TypeAlias = Literal["postgres", "mysql", "sqlite"]
+QueryResult: TypeAlias = tuple[list[str], list[tuple]]
 
 # ---------------------------------------------------------------------------
 # 危险语句检测
@@ -177,13 +180,16 @@ def connect_mysql(url: str):
         password=params["password"],
         database=params["database"],
     )
+    cursor = conn.cursor()
+    cursor.execute("SET SESSION TRANSACTION READ ONLY")
+    cursor.close()
     try:
         yield conn
     finally:
         conn.close()
 
 
-def get_connection(db_type: str, url: str):
+def get_connection(db_type: DBType, url: str):
     """根据数据库类型返回连接上下文管理器"""
     if db_type == "sqlite":
         return connect_sqlite(url)
@@ -191,16 +197,14 @@ def get_connection(db_type: str, url: str):
         return connect_postgres(url)
     elif db_type == "mysql":
         return connect_mysql(url)
-    else:
-        print(f"ERROR: 不支持的数据库类型: {db_type}", file=sys.stderr)
-        sys.exit(1)
+    raise AssertionError(f"不支持的数据库类型: {db_type}")
 
 
 # ---------------------------------------------------------------------------
 # 查询执行
 # ---------------------------------------------------------------------------
 
-def execute_query(conn, db_type: str, sql: str, timeout: int = 30) -> tuple:
+def execute_query(conn, db_type: DBType, sql: str, params: tuple | list | None = None, timeout: int = 30) -> QueryResult:
     """执行查询，返回 (columns, rows)"""
     cursor = conn.cursor()
 
@@ -210,7 +214,10 @@ def execute_query(conn, db_type: str, sql: str, timeout: int = 30) -> tuple:
     elif db_type == "mysql":
         cursor.execute(f"SET SESSION MAX_EXECUTION_TIME = {timeout * 1000}")
 
-    cursor.execute(sql)
+    if params:
+        cursor.execute(sql, params)
+    else:
+        cursor.execute(sql)
     if cursor.description is None:
         return [], []
 
@@ -243,7 +250,7 @@ def cmd_test(conn, db_type: str) -> None:
         sys.exit(1)
 
 
-def cmd_tables(conn, db_type: str) -> tuple:
+def cmd_tables(conn, db_type: DBType) -> QueryResult:
     """列出所有表"""
     if db_type == "sqlite":
         sql = "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name"
@@ -274,7 +281,7 @@ def cmd_tables(conn, db_type: str) -> tuple:
     return ["table_name", "row_count"], result_rows
 
 
-def cmd_schema(conn, db_type: str, table_name: str) -> tuple:
+def cmd_schema(conn, db_type: DBType, table_name: str) -> QueryResult:
     """查看表结构"""
     table_name = validate_table_name(table_name)
     quoted_table = quote_identifier(table_name, db_type)
@@ -303,7 +310,7 @@ def cmd_schema(conn, db_type: str, table_name: str) -> tuple:
         return result_columns, result_rows
 
     elif db_type == "postgres":
-        sql = f"""
+        sql = """
             SELECT
                 c.column_name,
                 c.data_type,
@@ -316,29 +323,29 @@ def cmd_schema(conn, db_type: str, table_name: str) -> tuple:
                 FROM information_schema.table_constraints tc
                 JOIN information_schema.key_column_usage ku
                     ON tc.constraint_name = ku.constraint_name
-                WHERE tc.table_name = '{table_name}'
+                WHERE tc.table_name = %s
                     AND tc.constraint_type = 'PRIMARY KEY'
             ) pk ON c.column_name = pk.column_name
-            WHERE c.table_name = '{table_name}'
+            WHERE c.table_name = %s
                 AND c.table_schema = 'public'
             ORDER BY c.ordinal_position
         """
-        columns, rows = execute_query(conn, db_type, sql)
+        columns, rows = execute_query(conn, db_type, sql, (table_name, table_name))
 
         # 获取索引
-        idx_sql = f"""
+        idx_sql = """
             SELECT indexname, indexdef
             FROM pg_indexes
-            WHERE tablename = '{table_name}' AND schemaname = 'public'
+            WHERE tablename = %s AND schemaname = 'public'
         """
-        _, idx_rows = execute_query(conn, db_type, idx_sql)
+        _, idx_rows = execute_query(conn, db_type, idx_sql, (table_name,))
         if idx_rows:
             print("\n--- 索引 ---", file=sys.stderr)
             for idx_row in idx_rows:
                 print(f"  {idx_row[0]}: {idx_row[1]}", file=sys.stderr)
 
         # 获取外键
-        fk_sql = f"""
+        fk_sql = """
             SELECT
                 kcu.column_name,
                 ccu.table_name AS foreign_table,
@@ -348,10 +355,10 @@ def cmd_schema(conn, db_type: str, table_name: str) -> tuple:
                 ON tc.constraint_name = kcu.constraint_name
             JOIN information_schema.constraint_column_usage ccu
                 ON tc.constraint_name = ccu.constraint_name
-            WHERE tc.table_name = '{table_name}'
+            WHERE tc.table_name = %s
                 AND tc.constraint_type = 'FOREIGN KEY'
         """
-        _, fk_rows = execute_query(conn, db_type, fk_sql)
+        _, fk_rows = execute_query(conn, db_type, fk_sql, (table_name,))
         if fk_rows:
             print("\n--- 外键 ---", file=sys.stderr)
             for fk_row in fk_rows:
@@ -380,8 +387,10 @@ def cmd_schema(conn, db_type: str, table_name: str) -> tuple:
 
         return result_columns, result_rows
 
+    raise AssertionError(f"不支持的数据库类型: {db_type}")
 
-def cmd_data(conn, db_type: str, table_name: str, limit: int = 10) -> tuple:
+
+def cmd_data(conn, db_type: DBType, table_name: str, limit: int = 10) -> QueryResult:
     """采样表数据"""
     table_name = validate_table_name(table_name)
     limit = min(limit, 1000)  # 硬上限
@@ -392,7 +401,7 @@ def cmd_data(conn, db_type: str, table_name: str, limit: int = 10) -> tuple:
     return execute_query(conn, db_type, sql)
 
 
-def cmd_query(conn, db_type: str, sql: str) -> tuple:
+def cmd_query(conn, db_type: DBType, sql: str) -> QueryResult:
     """执行自定义查询"""
     validate_readonly(sql)
     return execute_query(conn, db_type, sql)
@@ -522,22 +531,23 @@ def main():
         parser.print_help()
         sys.exit(1)
 
+    db_type = cast(DBType, args.db_type)
     url = resolve_url(args)
     formatter = FORMATTERS[args.format]
 
-    with get_connection(args.db_type, url) as conn:
+    with get_connection(db_type, url) as conn:
         if args.command == "test":
-            cmd_test(conn, args.db_type)
+            cmd_test(conn, db_type)
             return
 
         if args.command == "tables":
-            columns, rows = cmd_tables(conn, args.db_type)
+            columns, rows = cmd_tables(conn, db_type)
         elif args.command == "schema":
-            columns, rows = cmd_schema(conn, args.db_type, args.table)
+            columns, rows = cmd_schema(conn, db_type, args.table)
         elif args.command == "data":
-            columns, rows = cmd_data(conn, args.db_type, args.table, args.limit)
+            columns, rows = cmd_data(conn, db_type, args.table, args.limit)
         elif args.command == "query":
-            columns, rows = cmd_query(conn, args.db_type, args.sql)
+            columns, rows = cmd_query(conn, db_type, args.sql)
         else:
             parser.print_help()
             sys.exit(1)
