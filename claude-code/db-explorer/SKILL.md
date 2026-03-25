@@ -1,69 +1,70 @@
 ---
 name: db-explorer
 description: >
-  只读探索 PostgreSQL、MySQL、SQLite 数据库。适用于列出表、查看表结构和字段类型、
-  检查主键/索引/外键、采样表数据、执行只读 SQL（SELECT/WITH/SHOW/DESCRIBE/EXPLAIN/元数据 PRAGMA）、
-  验证代码中的 model 与数据库 schema 是否一致、排查数据问题。
-  仅在用户明确处于数据库/SQL/schema/record/column 语境时触发。
-  不要为 HTML/Markdown/UI table 等非数据库“表格”场景触发。
+  Read-only exploration of PostgreSQL, MySQL, and SQLite databases. Use for listing tables,
+  inspecting table structure and column types, checking primary keys / indexes / foreign keys,
+  sampling table data, running read-only SQL (SELECT / WITH / SHOW / DESCRIBE / EXPLAIN / metadata PRAGMAs),
+  verifying that code models match the database schema, and troubleshooting data issues.
+  Only trigger when the user is explicitly in a database / SQL / schema / record / column context.
+  Do NOT trigger for HTML / Markdown / UI tables or other non-database "table" scenarios.
 ---
 
 # DB Explorer
 
-使用 `scripts/db_query.py` 做确定性的只读数据库探索。
-目标是：快速拿到可信的表、字段、约束和样例数据，而不是自由发挥数据库操作。
+Use `scripts/db_query.py` for deterministic, read-only database exploration.
+Goal: quickly retrieve trustworthy table, column, constraint, and sample data — not free-form database operations.
 
 ## Use this skill when
 
-- 用户想看数据库里有哪些表
-- 用户想看某张表的字段、类型、默认值、主键、索引、外键
-- 用户想抽样看几条数据
-- 用户想执行只读 SQL 查询
-- 用户想确认数据库 schema 和代码中的 model / ORM 定义是否一致
-- 用户在排查“这条记录实际长什么样”“某字段到底存的是什么”
+- The user wants to see which tables exist in a database
+- The user wants to inspect a table's columns, types, defaults, primary keys, indexes, or foreign keys
+- The user wants to sample a few rows of data
+- The user wants to run a read-only SQL query
+- The user wants to verify that the database schema matches the ORM / model definitions in code
+- The user is troubleshooting things like "what does this record actually look like" or "what is stored in this column"
 
 ## Do not use
 
-- 任何写操作、DDL、迁移、修复数据、回填数据
-- 导出大批量数据或做重型数据处理
-- 用户说的“表”明显不是数据库表
-- 你无法确认连接目标是否安全，且查询可能触及敏感生产数据
+- Any write operation, DDL, migration, data fix, or backfill
+- Bulk data export or heavy data processing
+- The word "table" clearly refers to something other than a database table
+- You cannot confirm the connection target is safe, and the query may touch sensitive production data
 
 ## Capability contract
 
-这个 skill 当前依赖 `scripts/db_query.py`，实际支持的能力只有：
+This skill depends on `scripts/db_query.py`. The only supported commands are:
 
-- `test`: 测试连接
-- `tables`: 列出表
-- `schema <table>`: 查看表结构
-- `data <table> --limit N`: 采样表数据
-- `query "<sql>"`: 执行只读 SQL
-- `--url-env <ENV_VAR>`: 直接从指定环境变量读取连接信息
+- `test`: test connection
+- `tables`: list tables
+- `schema <table>`: show table structure
+- `data <table> --limit N`: sample table data
+- `query "<sql>"`: run a read-only SQL query
+- `--url-env <ENV_VAR>`: read connection info from the specified environment variable
 
-支持的输出格式：
+Supported output formats:
 
-- `table`（默认）
+- `table` (default)
 - `markdown`
 - `json`
 - `csv`
 
 ## Runtime prerequisites
 
-- SQLite 使用 Python 标准库 `sqlite3`，不需要额外安装驱动
-- PostgreSQL 依赖当前 Python 环境中的 `psycopg2`
-- MySQL 依赖当前 Python 环境中的 `mysql-connector-python`
+- SQLite uses the Python standard library `sqlite3` — no extra driver needed
+- PostgreSQL requires `psycopg2` in the current Python environment
+- MySQL requires `mysql-connector-python` in the current Python environment
 
-执行原则：
+Execution rules:
 
-- 虚拟环境**固定**使用 `<skill-path>/.venv`（即 db-explorer skill 目录下的 `.venv`）
-- 如果 `<skill-path>/.venv` 已经存在且已安装所需驱动，直接复用，跳过创建和安装步骤
-- **不要**在用户项目目录下创建虚拟环境，避免污染用户项目
-- `pip install` 和运行脚本必须使用**同一个 Python 环境**
+- The virtual environment is **fixed** at `<skill-path>/.venv` (inside the db-explorer skill directory)
+- If `<skill-path>/.venv` already exists and the required drivers are installed, reuse it — skip creation and installation
+- Do **not** create a virtual environment inside the user's project directory — avoid polluting their project
+- `pip install` and script execution must use the **same** Python environment
 
-推荐命令：
+Recommended commands:
 
 ```bash
-# 检查 skill 目录下的 venv 是否已存在
+# Check whether the skill-directory venv already exists
 if [ ! -d "<skill-path>/.venv" ]; then
     python -m venv "<skill-path>/.venv"
 fi
@@ -72,19 +73,19 @@ python -m pip install -r <skill-path>/requirements.txt
 python <skill-path>/scripts/db_query.py --db-type postgres --url "<url>" test
 ```
 
-如果用户只查 SQLite，不要要求安装 PostgreSQL/MySQL 驱动。
+If the user is only querying SQLite, do not require PostgreSQL / MySQL drivers.
 
-不要声称支持脚本没有直接实现的固定能力。  
-例如，“查看建表语句”只能在你**明确写出并执行了某个数据库可用的只读查询**时再说；否则默认提供 `schema`，不要承诺 `SHOW CREATE TABLE` 一类能力在所有数据库都可用。
-对于 SQLite 的 `PRAGMA`，仅把只读元数据查询视为允许范围，不要把会改状态的 `PRAGMA` 当成安全操作。
+Do not claim capabilities the script does not directly implement.
+For example, "show create table" is only available if you **explicitly write and execute a read-only query** that the target database supports; do not promise `SHOW CREATE TABLE` works on all databases by default — fall back to `schema`.
+For SQLite `PRAGMA`: only treat read-only metadata PRAGMAs as allowed; do not treat state-changing PRAGMAs as safe.
 
 ## Required inputs
 
-只收集阻塞执行的最少信息；能推断就推断，不要机械追问。
+Collect only the minimum information that blocks execution. Infer what you can — do not ask mechanical follow-up questions.
 
-### 项目数据库配置文件（`.db-explorer.json`）
+### Project database config file (`.db-explorer.json`)
 
-如果项目根目录存在 `.db-explorer.json`，优先从中读取连接信息。格式如下：
+If `.db-explorer.json` exists in the project root, read connection info from it first. Format:
 
 ```json
 {
@@ -106,184 +107,176 @@ python <skill-path>/scripts/db_query.py --db-type postgres --url "<url>" test
 }
 ```
 
-字段说明：
+Field reference:
 
-| 字段 | 必填 | 说明 |
-|------|------|------|
-| `default` | 否 | 默认使用的环境名称，未指定环境时使用此值 |
-| `envs` | 是 | 各环境配置，key 为环境名称 |
-| `envs.<name>.db-type` | 是 | 数据库类型：`postgres` / `mysql` / `sqlite` |
-| `envs.<name>.url` | 二选一 | 直接写连接 URL |
-| `envs.<name>.url-env` | 二选一 | 引用环境变量名（避免明文存储密码） |
+| Field | Required | Description |
+|-------|----------|-------------|
+| `default` | No | Default environment name; used when the user does not specify one |
+| `envs` | Yes | Environment configs; each key is an environment name |
+| `envs.<name>.db-type` | Yes | Database type: `postgres` / `mysql` / `sqlite` |
+| `envs.<name>.url` | One of two | Connection URL (direct) |
+| `envs.<name>.url-env` | One of two | Environment variable name holding the URL (avoids storing passwords in plaintext) |
 
-### 需要的信息
+### Information needed
 
-1. **数据库类型**
-   - `postgres`
-   - `mysql`
-   - `sqlite`
-2. **连接来源**
-   - 连接 URL
-   - 已存在的环境变量值
-   - 用户提供的环境变量名
-   - SQLite 文件路径
-3. **查询目标**
-   - 表列表 / 表结构 / 表数据 / 自定义 SQL / schema 与代码对比
+1. **Database type** — `postgres`, `mysql`, or `sqlite`
+2. **Connection source** — connection URL, existing environment variable, user-supplied env var name, or SQLite file path
+3. **Query target** — table list / table structure / table data / custom SQL / schema-vs-code comparison
 
-推断规则：
+Inference rules:
 
-- **优先检查项目根目录的 `.db-explorer.json`**，如果存在则从中读取数据库类型和连接信息：
-  - 用户指定了环境名（如”查 test 环境”、”连 pro”），使用对应环境配置
-  - 用户未指定环境时，使用 `default` 字段指定的环境；如果没有 `default` 字段，列出所有可用环境让用户选择
-  - 环境配置中有 `url-env` 时，使用 `--url-env` 参数传递给脚本
-- 用户给了 `.db` / `.sqlite` / `.sqlite3` 文件路径时，默认按 `sqlite` 处理，除非上下文明确不是
-- 用户已经明确说”看 `users` 表结构”，不要再问”你想查什么”
-- 用户给了环境变量名时，先读取该变量值，再用 `--url` 传给脚本；不要把 secret 原样打印出来
-- 如果直接调用脚本，优先使用 `--url-env <ENV_VAR_NAME>`
-- 如果不存在 `.db-explorer.json`，提示用户可以在项目根目录创建该文件以简化后续使用；同时仍接受用户直接提供的连接 URL、环境变量名或 SQLite 文件路径
+- **Check `.db-explorer.json` in the project root first.** If it exists, read database type and connection info from it:
+  - If the user specifies an environment name (e.g., "check the test env", "connect to pro"), use that environment's config
+  - If the user does not specify an environment, use the `default` field; if there is no `default`, list all available environments and let the user choose
+  - When the config has `url-env`, pass it to the script via `--url-env`
+- If the user provides a `.db` / `.sqlite` / `.sqlite3` file path, default to `sqlite` unless context clearly says otherwise
+- If the user already said "show me the `users` table structure", do not ask "what do you want to look at"
+- When the user provides an env var name, read its value first, then pass it via `--url`; do not print the secret
+- When calling the script directly, prefer `--url-env <ENV_VAR_NAME>`
+- If `.db-explorer.json` does not exist, suggest the user create one in the project root to simplify future usage; still accept a directly provided URL, env var name, or SQLite file path
 
 ## Workflow
 
-### 1. 收集并确认连接信息
+### 1. Collect and confirm connection info
 
-- 先检查项目根目录是否存在 `.db-explorer.json`
-  - 存在时：从中读取目标环境的配置，在连接摘要中说明"从 `.db-explorer.json` 的 `<env>` 环境读取"
-  - 不存在时：提示用户"项目根目录没有找到 `.db-explorer.json`，建议创建以便后续快速连接"，然后接受用户手动提供的连接信息
-- 优先复用用户已提供的信息
-- 只在确实无法执行时，问一个最关键的补充问题
-- 展示连接摘要时遮掩密码：`postgresql://user:***@host:5432/db`
-- 如果是从配置文件或环境变量中找到的连接信息，明确说明来源，但不要泄露密码
+- Check whether `.db-explorer.json` exists in the project root
+  - If found: read the target environment config; mention "read from `.db-explorer.json` (`<env>` environment)" in the connection summary
+  - If not found: suggest "No `.db-explorer.json` found in the project root — consider creating one for faster future connections", then accept manually provided connection info
+- Prefer reusing information the user has already provided
+- Only ask one critical follow-up question when execution is truly blocked
+- Mask passwords in connection summaries: `postgresql://user:***@host:5432/db`
+- When connection info comes from a config file or env var, state the source but do not reveal the password
 
-### 2. 先验证连接
+### 2. Verify connection first
 
-先跑连接测试，再做后续查询：
+Run a connection test before any subsequent queries:
 
 ```bash
 python <skill-path>/scripts/db_query.py --db-type <type> --url "<connection-url>" test
 ```
 
-如果连接来自环境变量，也可以：
+Or from an environment variable:
 
 ```bash
 python <skill-path>/scripts/db_query.py --db-type <type> --url-env DATABASE_URL test
 ```
 
-如果失败：
+If it fails:
 
-- 原样保留关键错误信息
-- 给出下一步建议
-- 在连接未验证成功前，不要臆测表结构或数据
+- Preserve the key error message as-is
+- Suggest a next step
+- Do not speculate about table structure or data before the connection is verified
 
-常见故障处理：
+Common failure handling:
 
-- 连接被拒绝：检查 host / port / 数据库服务
-- 认证失败：检查用户名 / 密码 / 权限
-- SQLite 文件不存在：检查路径是否相对当前工作目录
-- 依赖缺失：说明缺少的 Python 包，并在当前虚拟环境里安装后重试
-- MySQL C 扩展异常：脚本已默认使用 `use_pure=True`（纯 Python 实现），无需额外处理
+- Connection refused: check host / port / database service status
+- Authentication failure: check username / password / permissions
+- SQLite file not found: check whether the path is relative to the current working directory
+- Missing dependency: name the missing Python package and install it in the current venv, then retry
+- MySQL C extension error: the script already defaults to `use_pure=True` (pure Python); no extra handling needed
 
-### 3. 选择最小操作
+### 3. Choose the minimal operation
 
-优先用脚本内建命令，不要先写自定义元数据查询。
+Prefer built-in script commands over custom metadata queries.
 
-**列出表**
+**List tables**
 
 ```bash
 python <skill-path>/scripts/db_query.py --db-type <type> --url "<url>" tables
 ```
 
-**查看表结构**
+**Show table structure**
 
 ```bash
 python <skill-path>/scripts/db_query.py --db-type <type> --url "<url>" schema <table_name>
 ```
 
-**采样表数据**
+**Sample table data**
 
 ```bash
 python <skill-path>/scripts/db_query.py --db-type <type> --url "<url>" data <table_name> --limit 10
 ```
 
-**执行只读 SQL**
+**Run a read-only SQL query**
 
 ```bash
 python <skill-path>/scripts/db_query.py --db-type <type> --url "<url>" query "<sql>"
 ```
 
-格式参数是全局参数，必须放在子命令前：
+The format flag is a global argument — place it before the subcommand:
 
 ```bash
 python <skill-path>/scripts/db_query.py --db-type sqlite --url "./app.db" --format markdown schema users
 ```
 
-选择策略：
+Selection strategy:
 
-- 看库里有什么：`tables`
-- 看某张表怎么定义：`schema`
-- 先看看数据长什么样：`data --limit 10`
-- 用户给了明确 SQL，或需要 JOIN / 聚合 / 过滤：`query`
+- See what's in the database: `tables`
+- See how a table is defined: `schema`
+- See what the data looks like: `data --limit 10`
+- User gave explicit SQL, or needs JOINs / aggregation / filtering: `query`
 
-### 4. 写 SQL 时遵守这些约束
+### 4. Follow these constraints when writing SQL
 
-- 只写只读 SQL
-- 如果是你代写的“探索性查询”，默认加 `LIMIT 100`，除非用户明确需要更多或语义上不适合加
-- 不要改写用户已经明确给出的 SQL，除非你是在补一个显然安全且用户意图就是“采样看一下”的 `LIMIT`
-- 表名必须来自用户输入或已列出的真实表名，不要猜
+- Only write read-only SQL
+- For exploratory queries you write on behalf of the user, add `LIMIT 100` by default — unless the user explicitly needs more or a LIMIT is semantically inappropriate
+- Do not rewrite SQL the user explicitly provided, unless you are adding an obviously safe `LIMIT` when the user's intent is clearly "just sample a few rows"
+- Table names must come from user input or previously listed real table names — do not guess
 
-### 5. 结果整理与输出
+### 5. Format and present results
 
-不要直接把终端原始输出一股脑贴给用户；先整理，再展示。
+Do not dump raw terminal output to the user. Clean it up first.
 
-默认输出规则：
+Default output rules:
 
-- **表列表**
-  - 表少时直接列出表名
-  - 如果脚本返回了 `row_count`，一起展示
-- **表结构**
-  - 固定关注：字段名、类型、是否可空、默认值、主键
-  - 如果脚本额外打印了索引 / 外键，把它们整理成单独小节
-- **数据采样**
-  - 默认展示前 10 行
-  - 如果列很多，先给 1 句话总结，再给表格
-- **自定义查询**
-  - 先一句话说清查的是什么
-  - 再展示结果
-  - 结果过大时只展示前几行，并明确说明已截断
+- **Table list**
+  - If few tables, list them directly
+  - If the script returned `row_count`, include it
+- **Table structure**
+  - Always include: column name, type, nullable, default, primary key
+  - If the script printed indexes / foreign keys, organize them into separate subsections
+- **Data sample**
+  - Show the first 10 rows by default
+  - If there are many columns, lead with a one-sentence summary before the table
+- **Custom query**
+  - Lead with one sentence explaining what was queried
+  - Then show the result
+  - If the result is large, show only the first few rows and state it was truncated
 
-展示格式建议：
+Format suggestions:
 
-- 小结果集优先 `--format markdown`
-- 宽表或长结果集优先 `table`
-- 需要后处理时用 `json` / `csv`
+- Small result sets: prefer `--format markdown`
+- Wide or long result sets: prefer `table`
+- Needs post-processing: use `json` / `csv`
 
-### 6. 对比代码中的 model（可选）
+### 6. Compare with code models (optional)
 
-如果用户是在核对 ORM / model：
+If the user is cross-checking ORM / model definitions:
 
-1. 先用 `schema` 拿数据库定义
-2. 再打开对应 model 文件
-3. 只报告关键差异：
-   - 字段缺失 / 多出
-   - 类型不一致
-   - nullable 不一致
-   - 默认值或主键约束不一致
+1. Get the database definition with `schema`
+2. Open the corresponding model file
+3. Report only key differences:
+   - Missing or extra fields
+   - Type mismatches
+   - Nullable inconsistencies
+   - Default value or primary key constraint differences
 
-不要把整段 model 和整张 schema 大段重复粘贴。
+Do not paste the entire model and entire schema side by side.
 
-### 7. 收尾建议
+### 7. Follow-up suggestions
 
-查询结束后，只给与当前上下文强相关的下一步建议，例如：
+After a query, only suggest next steps that are directly relevant to the current context, for example:
 
-- “要不要继续看这张表的样例数据？”
-- “要不要我再查一下它关联的外键表？”
-- “要不要我把数据库 schema 和代码里的 model 逐项对比一下？”
+- "Want to see sample data for this table?"
+- "Want me to check the foreign key tables it references?"
+- "Want me to compare the database schema with the model in code?"
 
 ## Guardrails
 
-- 这是**只读 skill**
-- 不执行 INSERT / UPDATE / DELETE / DROP / ALTER / TRUNCATE / CREATE
-- 不暴露密码或完整 secret
-- 不把脚本的 best-effort 只读校验当作放宽边界的理由
-- `data` 默认用小 limit 做采样；避免无界查询
-- 查询失败时，报告事实和建议，不编造结果
-- 表不存在、字段不存在、权限不足时，明确说出失败点
+- This is a **read-only skill**
+- Do not execute INSERT / UPDATE / DELETE / DROP / ALTER / TRUNCATE / CREATE
+- Do not expose passwords or full secrets
+- Do not treat the script's best-effort read-only validation as a reason to relax boundaries
+- `data` defaults to a small limit for sampling; avoid unbounded queries
+- When a query fails, report the facts and suggest next steps — do not fabricate results
+- When a table, column, or permission does not exist, state the failure point clearly
