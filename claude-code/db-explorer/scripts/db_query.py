@@ -173,13 +173,19 @@ def connect_mysql(url: str):
         print("ERROR: 需要安装 mysql-connector-python。请运行: pip install mysql-connector-python", file=sys.stderr)
         sys.exit(1)
     params = parse_url(url)
-    conn = mysql_connector.connect(
-        host=params["host"],
-        port=params["port"] or 3306,
-        user=params["user"],
-        password=params["password"],
-        database=params["database"],
-    )
+    try:
+        conn = mysql_connector.connect(
+            host=params["host"],
+            port=params["port"] or 3306,
+            user=params["user"],
+            password=params["password"],
+            database=params["database"],
+            use_pure=True,
+        )
+    except Exception as e:
+        print(f"ERROR: MySQL 连接失败 (host={params['host']}:{params['port'] or 3306}, "
+              f"db={params['database']}): {e}", file=sys.stderr)
+        sys.exit(1)
     cursor = conn.cursor()
     cursor.execute("SET SESSION TRANSACTION READ ONLY")
     cursor.close()

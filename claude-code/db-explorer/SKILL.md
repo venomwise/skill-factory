@@ -135,6 +135,7 @@ python <skill-path>/scripts/db_query.py --db-type <type> --url-env DATABASE_URL 
 - 认证失败：检查用户名 / 密码 / 权限
 - SQLite 文件不存在：检查路径是否相对当前工作目录
 - 依赖缺失：说明缺少的 Python 包，并在当前虚拟环境里安装后重试
+- MySQL C 扩展异常：脚本已默认使用 `use_pure=True`（纯 Python 实现），无需额外处理
 
 ### 3. 选择最小操作
 
