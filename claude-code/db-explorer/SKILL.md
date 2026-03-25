@@ -55,15 +55,19 @@ description: >
 
 执行原则：
 
-- 优先使用项目已经存在的虚拟环境
-- 如果项目没有可用虚拟环境，再创建一个隔离虚拟环境后安装依赖
+- 虚拟环境**固定**使用 `<skill-path>/.venv`（即 db-explorer skill 目录下的 `.venv`）
+- 如果 `<skill-path>/.venv` 已经存在且已安装所需驱动，直接复用，跳过创建和安装步骤
+- **不要**在用户项目目录下创建虚拟环境，避免污染用户项目
 - `pip install` 和运行脚本必须使用**同一个 Python 环境**
 
 推荐命令：
 
 ```bash
-python -m venv .venv
-. .venv/bin/activate
+# 检查 skill 目录下的 venv 是否已存在
+if [ ! -d "<skill-path>/.venv" ]; then
+    python -m venv "<skill-path>/.venv"
+fi
+. "<skill-path>/.venv/bin/activate"
 python -m pip install -r <skill-path>/requirements.txt
 python <skill-path>/scripts/db_query.py --db-type postgres --url "<url>" test
 ```
@@ -78,7 +82,41 @@ python <skill-path>/scripts/db_query.py --db-type postgres --url "<url>" test
 
 只收集阻塞执行的最少信息；能推断就推断，不要机械追问。
 
-需要的信息：
+### 项目数据库配置文件（`.db-explorer.json`）
+
+如果项目根目录存在 `.db-explorer.json`，优先从中读取连接信息。格式如下：
+
+```json
+{
+  "default": "dev",
+  "envs": {
+    "dev": {
+      "db-type": "postgres",
+      "url": "postgresql://user:pass@dev-host:5432/mydb"
+    },
+    "test": {
+      "db-type": "postgres",
+      "url-env": "TEST_DATABASE_URL"
+    },
+    "pro": {
+      "db-type": "mysql",
+      "url": "mysql://user:pass@pro-host:3306/mydb"
+    }
+  }
+}
+```
+
+字段说明：
+
+| 字段 | 必填 | 说明 |
+|------|------|------|
+| `default` | 否 | 默认使用的环境名称，未指定环境时使用此值 |
+| `envs` | 是 | 各环境配置，key 为环境名称 |
+| `envs.<name>.db-type` | 是 | 数据库类型：`postgres` / `mysql` / `sqlite` |
+| `envs.<name>.url` | 二选一 | 直接写连接 URL |
+| `envs.<name>.url-env` | 二选一 | 引用环境变量名（避免明文存储密码） |
+
+### 需要的信息
 
 1. **数据库类型**
    - `postgres`
@@ -94,16 +132,23 @@ python <skill-path>/scripts/db_query.py --db-type postgres --url "<url>" test
 
 推断规则：
 
+- **优先检查项目根目录的 `.db-explorer.json`**，如果存在则从中读取数据库类型和连接信息：
+  - 用户指定了环境名（如”查 test 环境”、”连 pro”），使用对应环境配置
+  - 用户未指定环境时，使用 `default` 字段指定的环境；如果没有 `default` 字段，列出所有可用环境让用户选择
+  - 环境配置中有 `url-env` 时，使用 `--url-env` 参数传递给脚本
 - 用户给了 `.db` / `.sqlite` / `.sqlite3` 文件路径时，默认按 `sqlite` 处理，除非上下文明确不是
-- 用户已经明确说“看 `users` 表结构”，不要再问“你想查什么”
+- 用户已经明确说”看 `users` 表结构”，不要再问”你想查什么”
 - 用户给了环境变量名时，先读取该变量值，再用 `--url` 传给脚本；不要把 secret 原样打印出来
 - 如果直接调用脚本，优先使用 `--url-env <ENV_VAR_NAME>`
-- 如果用户没给连接信息，再按需检查项目里的常见配置文件（如 `.env`、`config/database.yml`、`settings.py`、`application.properties`）
+- 如果不存在 `.db-explorer.json`，提示用户可以在项目根目录创建该文件以简化后续使用；同时仍接受用户直接提供的连接 URL、环境变量名或 SQLite 文件路径
 
 ## Workflow
 
 ### 1. 收集并确认连接信息
 
+- 先检查项目根目录是否存在 `.db-explorer.json`
+  - 存在时：从中读取目标环境的配置，在连接摘要中说明"从 `.db-explorer.json` 的 `<env>` 环境读取"
+  - 不存在时：提示用户"项目根目录没有找到 `.db-explorer.json`，建议创建以便后续快速连接"，然后接受用户手动提供的连接信息
 - 优先复用用户已提供的信息
 - 只在确实无法执行时，问一个最关键的补充问题
 - 展示连接摘要时遮掩密码：`postgresql://user:***@host:5432/db`
