@@ -26,7 +26,7 @@ description: Turn ideas into validated designs and specs through collaborative d
 
 ## Outputs
 
-- Validated design doc at `.codex/specs/<topic>/design.md`
+- Validated design doc at `specs/<topic>/design.md`
 - Confirmed next step to use `ad-spec-plan`
 
 ## Workflow
@@ -43,17 +43,17 @@ description: Turn ideas into validated designs and specs through collaborative d
    Stop when the user can clearly state what they want, why they want it, and what they explicitly do not want, and when key constraints and success criteria are known or explicitly recorded as assumptions.
 4. Converge and propose. Summarize what brainstorming revealed: the refined problem statement, challenged assumptions, discovered blind spots, and trimmed scope. Then propose 1-3 approaches with trade-offs. Lead with your recommendation. If only one approach is viable, explain why alternatives were ruled out. Ask the user to confirm the problem summary and select an approach before continuing.
 5. Present the design scaled to complexity. For simple projects, present the full design at once and ask for approval. For moderate or complex projects, present by section and ask for approval after each. Cover architecture, components, data flow, error handling, and testing.
-6. Write the design doc to `.codex/specs/<topic>/design.md` using the template in `assets/design-doc-template.md`. Name `<topic>` using kebab-case derived from the project or feature name (e.g., `user-auth`, `payment-integration`). Confirm the path with the user if ambiguous.
+6. Write the design doc to `specs/<topic>/design.md` using the template in `assets/design-doc-template.md`. Name `<topic>` using kebab-case derived from the project or feature name (e.g., `user-auth`, `payment-integration`). Confirm the path with the user if ambiguous.
 7. User review gate. Ask the user to review the written doc. On feedback:
    - Wording or detail changes: edit the doc and re-confirm.
    - Scope or approach changes: return to step 4.
    - Missing context: return to step 3.
    Proceed only after the user approves the written document.
-8. Invoke `ad-spec-plan` as the only next step. Pass the following context: project name (`<topic>`), target directory (`.codex/specs/<topic>/`), scope summary (Summary + Non-Goals + Discovery / Scope Decisions if present), constraints (Context + Discovery / Key Discoveries when they contain confirmed constraints, risks, or assumptions), and primary users and goals (Primary Users / Roles + Goals). If a Discovery section exists, treat it as input context for requirements and task planning, especially for confirmed assumptions, surfaced risks, and explicit scope decisions. Do not invoke any implementation skill.
+8. Invoke `ad-spec-plan` as the only next step. Pass the following context: project name (`<topic>`), target directory (`specs/<topic>/`), scope summary (Summary + Non-Goals + Discovery / Scope Decisions if present), constraints (Context + Discovery / Key Discoveries when they contain confirmed constraints, risks, or assumptions), and primary users and goals (Primary Users / Roles + Goals). If a Discovery section exists, treat it as input context for requirements and task planning, especially for confirmed assumptions, surfaced risks, and explicit scope decisions. Do not invoke any implementation skill.
 
 ## Verification
 
-- [ ] `.codex/specs/<topic>/design.md` exists and the user approved it
+- [ ] `specs/<topic>/design.md` exists and the user approved it
 - [ ] The design doc includes the template headings from `assets/design-doc-template.md`
 - [ ] The design covers architecture, components, data flow, error handling, and testing
 - [ ] If brainstorming surfaced notable discoveries, they are recorded in the design doc's Discovery section

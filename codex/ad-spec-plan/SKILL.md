@@ -32,7 +32,7 @@ description: Create requirements.md and tasks.md for a project spec. Use when sc
 
 ## Workflow
 
-1. Confirm the target directory and project name. If the user did not specify a path, suggest `.codex/specs/<project-name>/` and confirm.
+1. Confirm the target directory and project name. If the user did not specify a path, suggest `specs/<project-name>/` and confirm.
 2. Draft `requirements.md` using `assets/requirements.template.md`.
    Follow the HTML comments in the template for content depth and coverage guidance.
    HTML comments are authoring instructions - do NOT include them in the final output.

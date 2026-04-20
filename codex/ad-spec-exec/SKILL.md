@@ -1,6 +1,6 @@
 ---
 name: ad-spec-exec
-description: Implement code tasks from .codex/specs/<spec>/tasks.md and track progress by updating checkboxes. Use when implementing a spec plan, resuming spec execution, or checking spec progress.
+description: Implement code tasks from specs/<spec>/tasks.md and track progress by updating checkboxes. Use when implementing a spec plan, resuming spec execution, or checking spec progress.
 # metadata:
 #   short-description: Spec exec (tasks.md)
 ---
@@ -19,9 +19,9 @@ description: Implement code tasks from .codex/specs/<spec>/tasks.md and track pr
 
 ## Inputs
 
-- Spec root: `.codex/specs/`
-- Target: `.codex/specs/<spec>/tasks.md`
-- Acceptance criteria: `.codex/specs/<spec>/requirements.md`
+- Spec root: `specs/`
+- Target: `specs/<spec>/tasks.md`
+- Acceptance criteria: `specs/<spec>/requirements.md`
 
 ## Expected tasks.md format
 
@@ -55,8 +55,8 @@ Key rules:
 2. Ask the user to choose:
    `选择需要执行的规格：1. <spec>`
    If multiple specs exist, list all options in order.
-3. Open `.codex/specs/<spec>/tasks.md` and locate the `## Tasks` section.
-   Also open `.codex/specs/<spec>/requirements.md` (usually linked in Overview) for acceptance criteria.
+3. Open `specs/<spec>/tasks.md` and locate the `## Tasks` section.
+   Also open `specs/<spec>/requirements.md` (usually linked in Overview) for acceptance criteria.
    `_Requirements: N.M_` lines reference acceptance criteria in `requirements.md` and must be met.
 4. Scan progress and resume:
    - Count completed `[✅]` and remaining `[ ]` tasks.
