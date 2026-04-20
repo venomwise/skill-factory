@@ -90,6 +90,11 @@ Key rules:
 10. When all sub-tasks under a Phase are completed, mark the Phase line as `- [✅]`.
     - In MVP mode, a Phase is complete when all non-optional sub-tasks are done.
     - If a Phase has no sub-tasks (e.g., a Checkpoint), mark it only after it is completed.
+11. After all required tasks are complete, perform repository guidance sync:
+    - In MVP mode, treat execution as complete when all non-optional tasks are finished; unchecked optional tasks do not block this step.
+    - Check whether the project root contains `AGENTS.md`.
+    - If `AGENTS.md` exists, review the work completed in this run and update the file to reflect any changed contributor guidance, such as project structure, development commands, verification flow, or repository conventions introduced by the implementation.
+    - Keep the update scoped to guidance affected by the completed work; do not rewrite unrelated sections.
 
 ## Verification
 
@@ -98,6 +103,7 @@ Key rules:
 - Only items under `## Tasks` are modified.
 - Optional tasks remain unchecked when MVP mode is chosen.
 - Phase items are marked only after all their sub-tasks are completed (step 10).
+- After all required tasks are finished, if the project root contains `AGENTS.md`, it has been reviewed and updated to match the completed work. In MVP mode, this check happens after non-optional tasks are done.
 
 ## Safety & guardrails
 

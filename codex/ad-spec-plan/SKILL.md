@@ -38,7 +38,7 @@ description: Create requirements.md and tasks.md for a project spec. Use when sc
    HTML comments are authoring instructions - do NOT include them in the final output.
 3. Draft `tasks.md` using `assets/tasks.template.md` and link to `requirements.md`.
    Include test tasks for each functional phase and add Checkpoint stages at key milestones.
-   Mark optional phases/tasks with `- [ ]*` (asterisk immediately after closing bracket). Test tasks, verification tasks, and nice-to-have features MUST use this marker — never use text labels like "可选" or "Optional:" instead.
+   Mark optional phases/tasks with `- [ ]*` (asterisk immediately after closing bracket). Non-essential steps such as test tasks, verification tasks, summary/documentation wrap-up tasks, and nice-to-have features MUST use this marker — never use text labels like "可选" or "Optional:" instead.
 4. Ensure every task references one or more requirement IDs (for traceability).
 5. If any requirements are ambiguous or missing, ask the user before finalizing.
 
@@ -54,7 +54,7 @@ Before presenting the final output, scan both files and confirm each item:
 - [ ] At least one Checkpoint task exists between major phases.
 - [ ] Phase headings use `- [ ] N. Phase N:` checkbox format, not markdown headings (`###`).
 - [ ] Task descriptions are indented bullet points under the task title line.
-- [ ] Every test task, verification task, and nice-to-have feature uses `- [ ]*` marker. No task uses text labels like "可选", "Optional", or "(Optional)" as a substitute.
+- [ ] Every non-essential step uses `- [ ]*` marker, including test tasks, verification tasks, summary/documentation wrap-up tasks, and nice-to-have features. No task uses text labels like "可选", "Optional", or "(Optional)" as a substitute.
 - [ ] Sub-tasks under an optional Phase inherit optionality and do not need their own `*`.
 - [ ] Requirements references use `N.M` format (e.g., `_Requirements: 1.1, 2.3_`), not `RN` format.
 
