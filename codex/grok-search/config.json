@@ -1,0 +1,15 @@
+{
+    "base_url": "",
+    "model": "grok-4.1-fast",
+    "timeout_seconds": 120,
+    "extra_body": {},
+    "extra_headers": {},
+    "cooldown": {
+        "enabled": true,
+        "state_file": "runtime/cooldowns.json",
+        "default_minutes": 15,
+        "rate_limit_minutes": 20,
+        "quota_minutes": 60,
+        "auth_minutes": 360
+    }
+}
