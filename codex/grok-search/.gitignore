@@ -1,0 +1,11 @@
+# Local configuration (contains API keys)
+config.local.json
+
+# Installation and testing documentation (not part of core skill)
+INSTALL.md
+README.md
+TESTING.md
+
+# Runtime state
+runtime/
+*.log
