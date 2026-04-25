@@ -28,21 +28,23 @@ For those, prefer `grok-search`.
 
 ## Setup
 
-**1. Create virtual environment:**
+**1. The skill is installed at `~/.AI-Skills/exa-search/` (shared across all AI agents)**
+
+**2. Create virtual environment:**
 
 ```bash
-python -m venv codex/exa-search/.venv
+python3 -m venv ~/.AI-Skills/exa-search/.venv
 ```
 
-**2. Install dependencies:**
+**3. Install dependencies:**
 
 ```bash
-codex/exa-search/.venv/bin/pip install -r codex/exa-search/requirements.txt
+~/.AI-Skills/exa-search/.venv/bin/pip install -r ~/.AI-Skills/exa-search/requirements.txt
 ```
 
-**3. Configure API key:**
+**4. Configure API key (recommended - shared across all agents):**
 
-Create `codex/exa-search/config.local.json`:
+Create `~/.config/ai-skills/exa-search.json`:
 
 ```json
 {
@@ -51,6 +53,8 @@ Create `codex/exa-search/config.local.json`:
   ]
 }
 ```
+
+Alternatively, create `~/.AI-Skills/exa-search/config.local.json` for skill-specific configuration.
 
 For multiple keys, environment variables, or advanced configuration, see [CONFIG.md](references/CONFIG.md).
 
@@ -65,35 +69,35 @@ For multiple keys, environment variables, or advanced configuration, see [CONFIG
 
 ## Commands
 
-All commands use the virtual environment Python:
+All commands use the shared virtual environment:
 
 ### Official docs search
 ```bash
-codex/exa-search/.venv/bin/python codex/exa-search/scripts/exa_search.py docs \
+~/.AI-Skills/exa-search/.venv/bin/python ~/.AI-Skills/exa-search/scripts/exa_search.py docs \
   --query "telegram streaming openclaw"
 ```
 
 ### Official docs with text extraction
 ```bash
-codex/exa-search/.venv/bin/python codex/exa-search/scripts/exa_search.py docs \
+~/.AI-Skills/exa-search/.venv/bin/python ~/.AI-Skills/exa-search/scripts/exa_search.py docs \
   --query "model failover openclaw" --text --num 2
 ```
 
 ### General source-first search
 ```bash
-codex/exa-search/.venv/bin/python codex/exa-search/scripts/exa_search.py search \
+~/.AI-Skills/exa-search/.venv/bin/python ~/.AI-Skills/exa-search/scripts/exa_search.py search \
   --query "OpenClaw Telegram streaming" --num 5
 ```
 
 ### Deep extraction / research
 ```bash
-codex/exa-search/.venv/bin/python codex/exa-search/scripts/exa_search.py research \
+~/.AI-Skills/exa-search/.venv/bin/python ~/.AI-Skills/exa-search/scripts/exa_search.py research \
   --query "OpenClaw model failover" --num 3
 ```
 
 ### Find similar pages
 ```bash
-codex/exa-search/.venv/bin/python codex/exa-search/scripts/exa_search.py similar \
+~/.AI-Skills/exa-search/.venv/bin/python ~/.AI-Skills/exa-search/scripts/exa_search.py similar \
   --url "https://docs.openclaw.ai/channels/telegram" --num 5
 ```
 

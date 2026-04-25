@@ -42,9 +42,10 @@ def _skill_root() -> str:
 def _default_config_paths() -> list[str]:
     root = _skill_root()
     home = os.path.expanduser("~")
-    # Merge order: legacy fallback -> shared defaults -> local override.
+    # Merge order: legacy fallback -> XDG standard -> shared defaults -> local override.
     return [
         os.path.join(home, ".codex", "config", "exa-search.json"),
+        os.path.join(home, ".config", "ai-skills", "exa-search.json"),
         os.path.join(root, "config.json"),
         os.path.join(root, "config.local.json"),
     ]

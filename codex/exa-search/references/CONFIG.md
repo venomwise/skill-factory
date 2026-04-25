@@ -9,7 +9,8 @@ The script resolves configuration in this order (first match wins):
 3. `EXA_API_KEYS` environment variable (comma-separated)
 4. `config.local.json` (in skill directory)
 5. `config.json` (in skill directory)
-6. `~/.codex/config/exa-search.json` (global fallback)
+6. `~/.config/ai-skills/exa-search.json` (XDG standard, cross-agent shared)
+7. `~/.codex/config/exa-search.json` (legacy fallback)
 
 ## Single API Key
 
@@ -130,11 +131,24 @@ The script also supports legacy configuration formats for backward compatibility
 
 ## Best Practices
 
-1. **Use `config.local.json`**: Keep API keys in `config.local.json` (gitignored) rather than `config.json`
-2. **Multiple keys for production**: Configure 2-3 keys for automatic failover
-3. **Monitor usage**: Check the `attempts` field in output to see failover activity
-4. **Set appropriate timeout**: Increase `timeout_seconds` for slow networks or large extractions
-5. **Profile naming**: Use descriptive profile IDs like "main", "backup", "high-quota"
+1. **Use `~/.config/ai-skills/exa-search.json` for shared config**: This is the recommended location for API keys that should be shared across all AI agents (pi, codex, Claude Code, etc.)
+2. **Use `config.local.json` for skill-specific overrides**: Keep skill-specific configuration in the skill directory's `config.local.json` (gitignored)
+3. **Multiple keys for production**: Configure 2-3 keys for automatic failover
+4. **Monitor usage**: Check the `attempts` field in output to see failover activity
+5. **Set appropriate timeout**: Increase `timeout_seconds` for slow networks or large extractions
+6. **Profile naming**: Use descriptive profile IDs like "main", "backup", "high-quota"
+
+## Configuration Locations
+
+### Cross-Agent Shared (Recommended)
+`~/.config/ai-skills/exa-search.json` - API keys shared across all AI agents
+
+### Skill-Specific
+- `~/.AI-Skills/exa-search/config.json` - Default configuration (can be committed)
+- `~/.AI-Skills/exa-search/config.local.json` - User overrides (gitignored)
+
+### Legacy
+`~/.codex/config/exa-search.json` - Legacy location for backward compatibility
 
 ## Troubleshooting
 
