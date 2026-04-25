@@ -1,0 +1,231 @@
+{
+  "test_cases": [
+    {
+      "id": "docs-basic",
+      "description": "Basic official documentation search",
+      "command": "docs",
+      "args": {
+        "query": "telegram streaming openclaw",
+        "num": 3
+      },
+      "expected_behavior": [
+        "Returns results from docs.openclaw.ai domain",
+        "Results contain 'telegram' and 'streaming' related content",
+        "Response includes title, url, and score for each result"
+      ]
+    },
+    {
+      "id": "docs-with-text",
+      "description": "Documentation search with text extraction",
+      "command": "docs",
+      "args": {
+        "query": "model failover openclaw",
+        "num": 2,
+        "text": true
+      },
+      "expected_behavior": [
+        "Returns results with extracted text content",
+        "Text field is populated for each result",
+        "Text contains relevant information about model failover"
+      ]
+    },
+    {
+      "id": "search-domain-filter",
+      "description": "Search with domain filtering",
+      "command": "search",
+      "args": {
+        "query": "OpenClaw pricing API parameters",
+        "include_domains": "docs.openclaw.ai,openclaw.ai",
+        "text": true,
+        "num": 3
+      },
+      "expected_behavior": [
+        "All results are from specified domains only",
+        "Results contain pricing or API parameter information",
+        "Text extraction is included"
+      ]
+    },
+    {
+      "id": "research-mode",
+      "description": "Deep extraction research mode",
+      "command": "research",
+      "args": {
+        "query": "Exa AI company overview",
+        "num": 3
+      },
+      "expected_behavior": [
+        "Returns results with full text extraction by default",
+        "Results provide comprehensive company information",
+        "Text content is substantial (not just snippets)"
+      ]
+    },
+    {
+      "id": "similar-pages",
+      "description": "Find similar pages",
+      "command": "similar",
+      "args": {
+        "url": "https://docs.openclaw.ai/channels/telegram",
+        "num": 5
+      },
+      "expected_behavior": [
+        "Returns pages semantically similar to the input URL",
+        "Results are related to Telegram or messaging channels",
+        "Response includes similarity scores"
+      ]
+    },
+    {
+      "id": "date-filter",
+      "description": "Search with freshness filter",
+      "command": "search",
+      "args": {
+        "query": "OpenClaw releases",
+        "start_date": "2026-01-01",
+        "num": 5
+      },
+      "expected_behavior": [
+        "All results are published on or after 2026-01-01",
+        "Results contain release or announcement information",
+        "Published dates are included in response"
+      ]
+    },
+    {
+      "id": "highlights-extraction",
+      "description": "Search with highlights",
+      "command": "docs",
+      "args": {
+        "query": "authentication methods",
+        "highlights": true,
+        "num": 3
+      },
+      "expected_behavior": [
+        "Results include highlights field",
+        "Highlights contain relevant excerpts about authentication",
+        "Highlights are shorter than full text"
+      ]
+    },
+    {
+      "id": "keyword-search",
+      "description": "Keyword-based search",
+      "command": "search",
+      "args": {
+        "query": "telegram streaming API",
+        "type": "keyword",
+        "num": 5
+      },
+      "expected_behavior": [
+        "Uses keyword matching instead of neural search",
+        "Results contain exact keyword matches",
+        "Response indicates resolvedSearchType as 'keyword'"
+      ]
+    },
+    {
+      "id": "category-filter",
+      "description": "Search with category filter",
+      "command": "search",
+      "args": {
+        "query": "machine learning transformers",
+        "category": "research paper",
+        "num": 5
+      },
+      "expected_behavior": [
+        "Results are filtered to research paper category",
+        "Results are academic papers or research articles",
+        "Content is technical and research-oriented"
+      ]
+    },
+    {
+      "id": "exclude-domains",
+      "description": "Search with domain exclusion",
+      "command": "search",
+      "args": {
+        "query": "Python async programming",
+        "exclude_domains": "stackoverflow.com,reddit.com",
+        "num": 5
+      },
+      "expected_behavior": [
+        "No results from stackoverflow.com or reddit.com",
+        "Results are from other sources",
+        "Content is still relevant to Python async programming"
+      ]
+    },
+    {
+      "id": "output-plain",
+      "description": "Plain text output format",
+      "command": "docs",
+      "args": {
+        "query": "telegram streaming",
+        "plain": true
+      },
+      "expected_behavior": [
+        "Output is human-readable plain text",
+        "Not JSON format",
+        "Includes titles, URLs, and basic metadata"
+      ]
+    },
+    {
+      "id": "output-urls-only",
+      "description": "URLs-only output format",
+      "command": "docs",
+      "args": {
+        "query": "telegram streaming",
+        "urls": true
+      },
+      "expected_behavior": [
+        "Output contains only URLs, one per line",
+        "No other metadata or formatting",
+        "URLs are valid and accessible"
+      ]
+    },
+    {
+      "id": "no-autoprompt",
+      "description": "Disable Exa autoprompt",
+      "command": "search",
+      "args": {
+        "query": "exact query string",
+        "no_autoprompt": true,
+        "num": 3
+      },
+      "expected_behavior": [
+        "Query is used exactly as provided",
+        "No automatic query rewriting by Exa",
+        "Results match the literal query"
+      ]
+    },
+    {
+      "id": "failover-handling",
+      "description": "API key failover (requires multiple keys)",
+      "command": "docs",
+      "args": {
+        "query": "test query",
+        "profile": "backup-1"
+      },
+      "expected_behavior": [
+        "Uses specified profile if available",
+        "Falls back to next profile on error",
+        "Response includes attempts array showing failover"
+      ],
+      "requires": "Multiple API keys configured"
+    },
+    {
+      "id": "error-missing-key",
+      "description": "Error handling for missing API key",
+      "command": "docs",
+      "args": {
+        "query": "test query"
+      },
+      "setup": "Remove all API key configurations",
+      "expected_behavior": [
+        "Returns error with code 'missing_api_key'",
+        "Provides helpful error message",
+        "Suggests configuration methods"
+      ]
+    }
+  ],
+  "notes": [
+    "Some tests require valid Exa API key(s) to run",
+    "Failover tests require multiple API keys configured",
+    "Date filter tests may need adjustment based on current date",
+    "Similar pages test requires the reference URL to exist",
+    "Category filter availability depends on Exa API version"
+  ]
+}
