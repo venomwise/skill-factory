@@ -531,6 +531,33 @@ Before sharing a skill, verify:
 - [ ] Tested with real usage scenarios
 - [ ] Team feedback incorporated (if applicable)
 
+## Cross-Agent Skill Architecture
+
+For skills that need to work across multiple AI agents (pi, codex, Claude Code), use the **unified skill directory** pattern.
+
+### Key Principles
+
+**Install location**: `~/.AI-Skills/<skill-name>/` (shared across all agents)
+
+**Configuration**: 
+- API keys → `~/.config/ai-skills/<skill-name>.json` (cross-agent shared)
+- Defaults → `~/.AI-Skills/<skill-name>/config.json` (can be committed)
+- User overrides → `~/.AI-Skills/<skill-name>/config.local.json` (gitignored)
+
+**Agent integration**: Use symbolic links
+```bash
+ln -s ~/.AI-Skills/<skill-name> ~/.pi/agent/skills/<skill-name>
+ln -s ~/.AI-Skills/<skill-name> ~/.codex/skills/<skill-name>
+```
+
+**Benefits**:
+- Install once, use everywhere
+- Unified configuration (API keys in one place)
+- Easy updates (update once, all agents benefit)
+- No duplication
+
+**For complete details**, see [Cross-Agent Architecture](references/cross-agent-architecture.md)
+
 ## Advanced: Skills with Executable Code
 
 For skills that include scripts:
@@ -597,8 +624,8 @@ This catches errors before applying changes.
 ## Additional Resources
 
 For more detailed guidance, see:
+- [Cross-Agent Architecture](references/cross-agent-architecture.md) - Unified skill directory for multi-agent support
 - [Common Patterns](references/patterns.md) - Detailed pattern examples
-- [Anti-Patterns](references/anti-patterns.md) - What to avoid
 - [Examples](references/examples.md) - Real-world skill examples
 
 ## Summary
