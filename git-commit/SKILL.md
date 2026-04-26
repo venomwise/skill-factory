@@ -1,5 +1,5 @@
 ---
-name: ad-git-commit
+name: git-commit
 description: Generate git commit messages and submit commits. Use when preparing commit messages, deciding split commits, or running git commit.
 # metadata:
 #   short-description: Git commit message and submit

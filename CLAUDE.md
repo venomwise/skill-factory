@@ -4,26 +4,32 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository Purpose
 
-This is a **skill factory** — a collection of reusable AI agent skills for Claude Code (`claude-code/`) and Codex (`codex/`). Each skill is a self-contained directory with a `SKILL.md` file that defines how an AI agent should behave when invoked.
+This is a **skill factory** — a collection of reusable AI agent skills. Each skill is a self-contained directory with a `SKILL.md` file that defines how an AI agent should behave when invoked.
 
 ## Structure
 
 ```
 skill-factory/
-├── claude-code/          # Skills for Claude Code (claude.ai/code)
-│   ├── spec-plan/        # Generate requirements.md + tasks.md
-│   └── spec-exec/        # Execute tasks from tasks.md
-└── codex/                # Skills for Codex (OpenAI)
-    ├── ad-brainstorming/ # Brainstorm ideas into design docs
-    ├── ad-git-commit/    # Generate and submit git commits
-    ├── ad-spec-exec/     # Execute spec tasks (Codex variant)
-    └── ad-spec-plan/     # Generate spec (Codex variant)
+├── brainstorming/        # Brainstorm ideas into design docs
+├── db-explorer/          # Database exploration and querying
+├── exa-search/           # Neural web search for documentation
+├── git-commit/           # Generate and submit git commits
+├── grok-search/          # Real-time web research
+├── skill-authoring/      # Guide for creating AI agent skills
+├── spec-exec/            # Execute tasks from tasks.md
+├── spec-plan/            # Generate requirements.md + tasks.md
+├── tech-design-doc/      # Technical design documentation
+└── evals/                # Evaluation cases for skills
+    ├── brainstorming/
+    ├── db-explorer/
+    └── exa-search/
 ```
 
 Each skill directory follows this layout:
 - `SKILL.md` — the skill definition (frontmatter + workflow)
 - `assets/` — templates referenced by the skill
 - `references/` — supporting reference docs
+- `scripts/` — executable helpers (optional)
 
 ## Skill File Format
 
@@ -78,6 +84,7 @@ Full emoji list and examples: `codex/ad-git-commit/references/commit-convention.
 
 ## Adding a New Skill
 
-1. Create `<platform>/<skill-name>/SKILL.md` with frontmatter `name` and `description`.
+1. Create `<skill-name>/SKILL.md` at the root level with frontmatter `name` and `description`.
 2. Add `assets/` templates and `references/` docs if needed.
-3. Mirror across platforms (`claude-code/` and `codex/`) if applicable, adjusting platform-specific syntax (PowerShell vs bash, checkbox markers).
+3. Add `scripts/` for executable helpers if the skill requires automation.
+4. Create corresponding eval cases under `evals/<skill-name>/` for testing.

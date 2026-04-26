@@ -1,5 +1,5 @@
 ---
-name: ad-brainstorming
+name: brainstorming
 description: Turn ideas into validated designs and specs through collaborative dialogue. Use before creating features, components, or behavior changes when requirements need scoping and trade-offs. Not for bug fixes, typo-only changes, or clear single-step execution tasks.
 ---
 
@@ -27,7 +27,7 @@ description: Turn ideas into validated designs and specs through collaborative d
 ## Outputs
 
 - Validated design doc at `specs/<topic>/design.md`
-- Confirmed next step to use `ad-spec-plan`
+- Confirmed next step to use `spec-plan`
 
 ## Workflow
 
@@ -49,7 +49,7 @@ description: Turn ideas into validated designs and specs through collaborative d
    - Scope or approach changes: return to step 4.
    - Missing context: return to step 3.
    Proceed only after the user approves the written document.
-8. Invoke `ad-spec-plan` as the only next step. Pass the following context: project name (`<topic>`), target directory (`specs/<topic>/`), scope summary (Summary + Non-Goals + Discovery / Scope Decisions if present), constraints (Context + Discovery / Key Discoveries when they contain confirmed constraints, risks, or assumptions), and primary users and goals (Primary Users / Roles + Goals). If a Discovery section exists, treat it as input context for requirements and task planning, especially for confirmed assumptions, surfaced risks, and explicit scope decisions. Do not invoke any implementation skill.
+8. Invoke `spec-plan` as the only next step. Pass the following context: project name (`<topic>`), target directory (`specs/<topic>/`), scope summary (Summary + Non-Goals + Discovery / Scope Decisions if present), constraints (Context + Discovery / Key Discoveries when they contain confirmed constraints, risks, or assumptions), and primary users and goals (Primary Users / Roles + Goals). If a Discovery section exists, treat it as input context for requirements and task planning, especially for confirmed assumptions, surfaced risks, and explicit scope decisions. Do not invoke any implementation skill.
 
 ## Verification
 
@@ -57,7 +57,7 @@ description: Turn ideas into validated designs and specs through collaborative d
 - [ ] The design doc includes the template headings from `assets/design-doc-template.md`
 - [ ] The design covers architecture, components, data flow, error handling, and testing
 - [ ] If brainstorming surfaced notable discoveries, they are recorded in the design doc's Discovery section
-- [ ] `ad-spec-plan` has been invoked as the terminal action
+- [ ] `spec-plan` has been invoked as the terminal action
 
 ## Safety & guardrails
 

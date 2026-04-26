@@ -1,5 +1,5 @@
 ---
-name: ad-spec-exec
+name: spec-exec
 description: Implement code tasks from specs/<spec>/tasks.md and track progress by updating checkboxes. Use when implementing a spec plan, resuming spec execution, or checking spec progress.
 # metadata:
 #   short-description: Spec exec (tasks.md)
@@ -115,5 +115,5 @@ Key rules:
 
 ## References
 
-- [Spec Plan Skill](../ad-spec-plan/SKILL.md) — tasks.md 格式规范
-- [Tasks template](../ad-spec-plan/assets/tasks.template.md) — tasks.md 结构模板
+- [Spec Plan Skill](../spec-plan/SKILL.md) — tasks.md 格式规范
+- [Tasks template](../spec-plan/assets/tasks.template.md) — tasks.md 结构模板

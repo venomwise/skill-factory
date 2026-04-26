@@ -1,5 +1,5 @@
 ---
-name: ad-spec-plan
+name: spec-plan
 description: Create requirements.md and tasks.md for a project spec. Use when scoping a feature, module, service, or integration and you need requirements plus an execution plan with status tracking.
 # metadata:
 #   short-description: Spec plan (requirements + tasks)
