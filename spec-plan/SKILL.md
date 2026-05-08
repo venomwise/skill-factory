@@ -34,8 +34,8 @@ description: Create requirements.md and tasks.md for a project spec, with tracea
 
 1. Resolve the target design document.
    - If the user provided `specs/<topic>/design.md`, use it.
-   - If the user did not provide a design path, search the project root for `specs/*/design.md`, list matching spec names, and ask the user to choose which design to use.
-   - If no `specs/*/design.md` exists, stop and recommend running the **`brainstorming`** skill first to produce an approved design at `specs/<topic>/design.md`. Do not generate `requirements.md` or `tasks.md` from assumptions.
+   - If the user did not provide a design path, reply exactly: `请指定 design 文件路径（例如 specs/<topic>/design.md）。` Then end the workflow. Do not search, list, or infer a design.
+   - If the user-provided path does not exist, end the workflow and recommend running the **`brainstorming`** skill first to produce an approved design at `specs/<topic>/design.md`.
 2. Confirm the target directory and project name from the selected `specs/<topic>/design.md`.
 3. Open the selected `design.md`.
 4. Draft `requirements.md` using `assets/requirements.template.md`.
@@ -73,6 +73,7 @@ Before presenting the final output, scan both files and confirm each item:
 ## Safety & guardrails
 
 - Never generate `requirements.md` or `tasks.md` without an approved `design.md`.
+- Never auto-select a `design.md`. The path must come from the user.
 - Do not invent requirements, broaden scope, or reinterpret design intent. Ask for clarification when the design is ambiguous or incomplete.
 - Keep requirements testable and phrased as acceptance criteria.
 - Do not mark tasks as complete unless the work is done.

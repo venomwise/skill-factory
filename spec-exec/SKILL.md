@@ -113,45 +113,44 @@ blocker:
 
 ## Workflow
 
-1. List available specs (PowerShell):
-   `Get-ChildItem .codex/specs -Directory | Select-Object -ExpandProperty Name`
-2. Ask the user to choose:
-   `选择需要执行的规格：1. <spec>`
-   If multiple specs exist, list all options in order.
-3. Open `specs/<spec>/tasks.md` and locate the `## Tasks` section.
+1. Resolve the target tasks file.
+   - If the user provided `specs/<spec>/tasks.md`, use it.
+   - If the user did not provide a tasks path, reply exactly: `请指定 tasks.md 文件路径（例如 specs/<spec>/tasks.md）。` Then end the workflow. Do not search, list, or infer a spec.
+   - If the user-provided path does not exist, end the workflow and recommend running the **`spec-plan`** skill first to produce `specs/<spec>/tasks.md`.
+2. Open `specs/<spec>/tasks.md` and locate the `## Tasks` section.
    Also open `specs/<spec>/requirements.md` (usually linked in Overview) for acceptance criteria.
    `_Requirements: N.M_` lines reference acceptance criteria in `requirements.md` and must be met.
-4. Scan progress and resume:
+3. Scan progress and resume:
    - Count completed `[✅]` and remaining `[ ]` tasks.
    - Identify the first incomplete task and resume from there.
    - If all tasks are complete, report and stop.
-5. Detect optional tasks inside `## Tasks` by searching for checkbox lines containing `[ ]*` (at any indentation level — both Phase and sub-task lines).
-6. If any optional tasks exist, ask:
+4. Detect optional tasks inside `## Tasks` by searching for checkbox lines containing `[ ]*` (at any indentation level — both Phase and sub-task lines).
+5. If any optional tasks exist, ask:
    `当前任务列表将部分任务（如：单元测试、文档编写）标记为可选，以便集中精力优先实现核心功能。A. 保留可选任务 (MVP) B. 执行所有任务`
-7. **Triage** — For each task in `## Tasks` order, determine its disposition:
+6. **Triage** — For each task in `## Tasks` order, determine its disposition:
    > **REMINDER**: After completing each task you MUST update its checkbox in `tasks.md` before starting the next one. Never accumulate multiple completed tasks without writing them back.
    - Skip tasks already marked `- [✅]`.
    - If MVP mode was chosen, skip tasks marked with `- [ ]*`.
    - If an optional Phase (`- [ ]*`) is skipped, skip all nested sub-tasks under that Phase.
    - Identify checkpoint/verification tasks by keywords such as **"Checkpoint"**, **"Verify"**, or **"检查点"**. Handle them per the *Checkpoints* section above.
-   - Otherwise, proceed to step 8 to implement the task.
-8. **Implement & Validate** — For the current task:
+   - Otherwise, proceed to step 7 to implement the task.
+7. **Implement & Validate** — For the current task:
    - Read the indented description lines beneath the title and use `_Requirements: ..._` lines as explicit guidance.
    - Review referenced files/modules before changes to understand current behavior and constraints.
    - Implement the task in the codebase following project conventions.
    - Validate the result per the *Evidence-based validation* section. If validation fails, follow *Blocker escalation* (type: validation_failure).
    - When marking a checkpoint or validation-only task complete, briefly record the validation evidence (command run + key result) in your reply, so the audit trail survives interruption.
-9. **Mark completion** — **CRITICAL: Update `tasks.md` NOW, before doing anything else.**
+8. **Mark completion** — **CRITICAL: Update `tasks.md` NOW, before doing anything else.**
    > This is the most important step in the loop. You MUST write the checkbox change to `tasks.md` for the task you just completed BEFORE moving on to the next task. Failing to do so means progress is lost on interruption.
    - Normal task: change `- [ ]` to `- [✅]`
    - Optional task: change `- [ ]*` to `- [✅]*`
    - Do not mark tasks that failed, were interrupted, or were skipped.
    - **ONE task, ONE write.** Never accumulate multiple completed tasks into a single `tasks.md` update.
-   - Then return to step 7 for the next task.
-10. When all sub-tasks under a Phase are completed, mark the Phase line as `- [✅]`.
+   - Then return to step 6 for the next task.
+9. When all sub-tasks under a Phase are completed, mark the Phase line as `- [✅]`.
     - In MVP mode, a Phase is complete when all non-optional sub-tasks are done.
     - If a Phase has no sub-tasks (e.g., a Checkpoint), mark it only after it is completed.
-11. After all required tasks are complete, perform repository guidance sync:
+10. After all required tasks are complete, perform repository guidance sync:
     - In MVP mode, treat execution as complete when all non-optional tasks are finished; unchecked optional tasks do not block this step.
     - Check whether the project root contains `AGENTS.md`.
     - If `AGENTS.md` exists, review the work completed in this run and update the file to reflect any changed contributor guidance, such as project structure, development commands, verification flow, or repository conventions introduced by the implementation.
@@ -159,17 +158,18 @@ blocker:
 
 ## Verification
 
-- Before marking a task as `[✅]`, perform the validation described in step 8 or confirm the code is runnable.
+- Before marking a task as `[✅]`, perform the validation described in step 7 or confirm the code is runnable.
 - Validation tasks (e.g., checkpoints, verify tasks, or manual smoke tests) must be executed.
 - Checkpoint tasks are completed by evidence-based validation, not by user confirmation.
 - Do not ask the user to confirm successful checkpoints unless execution is blocked.
 - Only items under `## Tasks` are modified.
 - Optional tasks remain unchecked when MVP mode is chosen.
-- Phase items are marked only after all their sub-tasks are completed (step 10).
+- Phase items are marked only after all their sub-tasks are completed (step 9).
 - After all required tasks are finished, if the project root contains `AGENTS.md`, it has been reviewed and updated to match the completed work. In MVP mode, this check happens after non-optional tasks are done.
 
 ## Safety & guardrails
 
+- Never auto-select a `tasks.md`. The path must come from the user.
 - Never mark tasks as done unless execution completed successfully.
 - Do not alter task numbering, titles, or descriptions.
 - Do not use user interaction as a substitute for reading `tasks.md` and referenced requirements.
