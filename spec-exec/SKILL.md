@@ -1,6 +1,6 @@
 ---
 name: spec-exec
-description: Implement code tasks from specs/<spec>/tasks.md and track progress by updating checkboxes. Use when implementing a spec plan, resuming spec execution, or checking spec progress.
+description: Implement code tasks from specs/<topic>/tasks.md and track progress by updating checkboxes. Use when implementing a spec plan, resuming spec execution, or checking spec progress.
 # metadata:
 #   short-description: Spec exec (tasks.md)
 ---
@@ -20,8 +20,8 @@ description: Implement code tasks from specs/<spec>/tasks.md and track progress 
 ## Inputs
 
 - Spec root: `specs/`
-- Target: `specs/<spec>/tasks.md`
-- Acceptance criteria: `specs/<spec>/requirements.md`
+- Target: `specs/<topic>/tasks.md`
+- Acceptance criteria: `specs/<topic>/requirements.md`
 
 ## Expected tasks.md format
 
@@ -54,7 +54,7 @@ During spec execution, act as an autonomous implementation agent.
 
 Treat `tasks.md` as the execution plan and `requirements.md` as the acceptance source of truth. If the current task and referenced requirements are clear and executable, proceed without asking the user for confirmation.
 
-When `requirements.md` is ambiguous or silent on a needed detail, consult `specs/<spec>/design.md` (if present) as background context. Never use `design.md` as a substitute for an acceptance criterion in `requirements.md`; if the criterion itself is missing, escalate per *Blocker escalation* (type: underspecified task).
+When `requirements.md` is ambiguous or silent on a needed detail, consult `specs/<topic>/design.md` (if present) as background context. Never use `design.md` as a substitute for an acceptance criterion in `requirements.md`; if the criterion itself is missing, escalate per *Blocker escalation* (type: underspecified task).
 
 One-time setup choices (e.g., MVP vs. Full mode in Workflow step 6) are not routine confirmations and may be asked once at the start of a run.
 
@@ -114,11 +114,11 @@ blocker:
 ## Workflow
 
 1. Resolve the target tasks file.
-   - If the user provided `specs/<spec>/tasks.md`, use it.
-   - If the user did not provide a tasks path, reply exactly: `请指定 tasks.md 文件路径（例如 specs/<spec>/tasks.md）。` Then end the workflow. Do not search, list, or infer a spec.
-   - If the user-provided path does not exist, end the workflow and recommend running the **`spec-plan`** skill first to produce `specs/<spec>/tasks.md`.
-2. Open `specs/<spec>/tasks.md` and locate the `## Tasks` section.
-   Also open `specs/<spec>/requirements.md` (usually linked in Overview) for acceptance criteria.
+   - If the user provided `specs/<topic>/tasks.md`, use it.
+   - If the user did not provide a tasks path, reply exactly: `请指定 tasks.md 文件路径（例如 specs/<topic>/tasks.md）。` Then end the workflow. Do not search, list, or infer a spec.
+   - If the user-provided path does not exist, end the workflow and recommend running the **`spec-plan`** skill first to produce `specs/<topic>/tasks.md`.
+2. Open `specs/<topic>/tasks.md` and locate the `## Tasks` section.
+   Also open `specs/<topic>/requirements.md` (usually linked in Overview) for acceptance criteria.
    `_Requirements: N.M_` lines reference acceptance criteria in `requirements.md` and must be met.
 3. Scan progress and resume:
    - Count completed `[✅]` and remaining `[ ]` tasks.
