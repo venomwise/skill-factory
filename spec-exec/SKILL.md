@@ -48,6 +48,69 @@ Key rules:
   - Normal task: `- [✅]`
   - Optional task: `- [✅]*`
 
+## Execution stance
+
+During spec execution, act as an autonomous implementation agent.
+
+Treat `tasks.md` as the execution plan and `requirements.md` as the acceptance source of truth. If the current task and referenced requirements are clear and executable, proceed without asking the user for confirmation.
+
+When `requirements.md` is ambiguous or silent on a needed detail, consult `specs/<spec>/design.md` (if present) as background context. Never use `design.md` as a substitute for an acceptance criterion in `requirements.md`; if the criterion itself is missing, escalate per *Blocker escalation* (type: underspecified task).
+
+One-time setup choices (e.g., MVP vs. Full mode in Workflow step 6) are not routine confirmations and may be asked once at the start of a run.
+
+## Checkpoints
+
+Checkpoint tasks are validation tasks, not user approval gates.
+
+For a checkpoint, verify that the requirements referenced by the completed tasks in its scope are correctly implemented. Use `tasks.md` to identify the relevant requirement IDs and `requirements.md` as the acceptance source.
+
+If validation passes, mark the checkpoint complete and continue. Stop only if validation fails, required resources are unavailable, or the spec is inconsistent.
+
+## Evidence-based validation
+
+Before marking a task or checkpoint complete, validate it using concrete evidence whenever possible:
+
+- Run explicit validation commands listed in the task.
+- Run relevant tests, type checks, linters, or smoke tests if available.
+- Inspect modified files to ensure the requested behavior exists.
+- Compare implementation against referenced acceptance criteria.
+- If a validation command cannot be run, explain why and use the strongest available alternative check.
+
+Do not mark a task complete based only on an unsupported assumption.
+
+## Blocker escalation
+
+Do not ask the user for routine confirmation, implementation preferences, or permission to continue.
+
+Stop and ask the user only if execution is genuinely blocked, such as:
+
+- `tasks.md` and `requirements.md` conflict with each other.
+- The next task is underspecified and cannot be resolved from `tasks.md` and `requirements.md`.
+- Validation against referenced requirements fails and the failure cannot be safely fixed within the current task.
+- Completing the task would require changing approved requirements.
+- The task requires destructive or irreversible operations, such as deleting user data, rewriting history, dropping database tables, or removing large unrelated code.
+- Required credentials, services, files, or environment dependencies are unavailable.
+
+When blocked, do not ask a vague question like "Should I continue?"
+
+Instead, report using this structured template:
+
+```yaml
+blocker:
+  task: "<N.M> <title>"
+  type: <conflict | underspecified | validation_failure | scope_change | destructive_op | missing_dependency>
+  context:
+    task_excerpt: "<relevant lines from tasks.md>"
+    requirements: "<referenced requirement IDs and their criteria>"
+  tried:
+    - "<what you already attempted>"
+  risk: "<why proceeding would violate the spec>"
+  options:
+    - "<option A the user can pick>"
+    - "<option B the user can pick>"
+  needed_from_user: "<minimum decision or input>"
+```
+
 ## Workflow
 
 1. List available specs (PowerShell):
@@ -70,16 +133,14 @@ Key rules:
    - Skip tasks already marked `- [✅]`.
    - If MVP mode was chosen, skip tasks marked with `- [ ]*`.
    - If an optional Phase (`- [ ]*`) is skipped, skip all nested sub-tasks under that Phase.
-   - Identify checkpoints by the keyword **"Checkpoint"** or **"检查点"** in the task title. If the task is a checkpoint, pause and summarize progress, then ask the user to confirm before continuing.
+   - Identify checkpoint/verification tasks by keywords such as **"Checkpoint"**, **"Verify"**, or **"检查点"**. Handle them per the *Checkpoints* section above.
    - Otherwise, proceed to step 8 to implement the task.
 8. **Implement & Validate** — For the current task:
    - Read the indented description lines beneath the title and use `_Requirements: ..._` lines as explicit guidance.
    - Review referenced files/modules before changes to understand current behavior and constraints.
    - Implement the task in the codebase following project conventions.
-   - Validate the task:
-     - If the task includes explicit validation steps, execute them.
-     - If the task itself is a validation step (e.g., manual smoke test), perform it.
-     - Look up referenced requirement IDs in `requirements.md` and verify the implementation satisfies each acceptance criterion.
+   - Validate the result per the *Evidence-based validation* section. If validation fails, follow *Blocker escalation* (type: validation_failure).
+   - When marking a checkpoint or validation-only task complete, briefly record the validation evidence (command run + key result) in your reply, so the audit trail survives interruption.
 9. **Mark completion** — **CRITICAL: Update `tasks.md` NOW, before doing anything else.**
    > This is the most important step in the loop. You MUST write the checkbox change to `tasks.md` for the task you just completed BEFORE moving on to the next task. Failing to do so means progress is lost on interruption.
    - Normal task: change `- [ ]` to `- [✅]`
@@ -99,7 +160,9 @@ Key rules:
 ## Verification
 
 - Before marking a task as `[✅]`, perform the validation described in step 8 or confirm the code is runnable.
-- Validation tasks (e.g., manual smoke tests) must be executed.
+- Validation tasks (e.g., checkpoints, verify tasks, or manual smoke tests) must be executed.
+- Checkpoint tasks are completed by evidence-based validation, not by user confirmation.
+- Do not ask the user to confirm successful checkpoints unless execution is blocked.
 - Only items under `## Tasks` are modified.
 - Optional tasks remain unchecked when MVP mode is chosen.
 - Phase items are marked only after all their sub-tasks are completed (step 10).
@@ -109,9 +172,12 @@ Key rules:
 
 - Never mark tasks as done unless execution completed successfully.
 - Do not alter task numbering, titles, or descriptions.
-- Stop and ask the user if execution is blocked or unclear.
-- If a task fails, keep it as `- [ ]`, explain the failure, and ask whether to fix it first or proceed to the next task.
-- If a failed task produces artifacts required by later tasks, warn the user that skipping may cause cascading failures.
+- Do not use user interaction as a substitute for reading `tasks.md` and referenced requirements.
+- Do not introduce requirement changes during execution. If a requirement change seems necessary, stop and report it as a blocker.
+- Do not ask for permission to continue after successful validation.
+- Stop and ask the user only if execution is blocked by a blocker defined above.
+- If a task fails, keep it as `- [ ]` and escalate via the *Blocker escalation* template (type: validation_failure), offering at minimum these options: (a) fix in place now, (b) defer and continue to the next task, (c) abort the run.
+- If a failed task produces artifacts required by later tasks, include this cascade risk in the blocker `risk` field so the user can choose accordingly.
 
 ## References
 

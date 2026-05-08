@@ -42,6 +42,11 @@ This implementation plan is driven by the requirements in [requirements.md](requ
    WRONG:    _Requirements: R1, R2_
 
 5. Each phase should contain implementation tasks + verification/test task(s)
+
+6. Checkpoint tasks must list concrete validation steps (commands to run,
+   files to inspect, requirement IDs to confirm). They are validation tasks
+   for the execution agent, NOT user approval gates. Do NOT write
+   "ask the user to confirm" or "wait for user approval".
 -->
 
 - [ ] 1. Phase 1: Example Phase (replace)
@@ -71,7 +76,10 @@ This implementation plan is driven by the requirements in [requirements.md](requ
     - _Requirements: 2.1_
 
 - [ ] 3. Checkpoint - Verify <scope>
-  - Ensure all tests pass, ask the user if questions arise.
+  - Run relevant tests or validation commands
+  - Identify requirement IDs covered by this checkpoint scope
+  - Confirm completed work satisfies referenced acceptance criteria in requirements.md
+  - Stop only if requirement validation fails, the spec is inconsistent, required resources are unavailable, or execution would require changing approved requirements
 
 - [ ]* 4. Optional Phase: <Phase Title>
   - [ ] 4.1 <Task Title>
