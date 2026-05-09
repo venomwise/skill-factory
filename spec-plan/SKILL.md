@@ -29,6 +29,7 @@ description: Create requirements.md and tasks.md for a project spec, with tracea
 
 - `requirements.md`
 - `tasks.md`
+- Final response includes a recommended next step for the user to run `spec-exec` on the generated `specs/<topic>/tasks.md`; do not start implementation automatically.
 
 ## Workflow
 
