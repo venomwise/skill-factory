@@ -1,0 +1,50 @@
+{
+  "skill_name": "clarification",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "In this Python project, add a --dry-run option to scripts/export.py so I can see what would be exported without actually writing files.",
+      "expected_output": "The agent should treat this as a small change, clarify or state defaults for dry-run behavior, then proceed to implement once safe.",
+      "project_dir": "evals/clarification/test-projects/export-project",
+      "files": [
+        "scripts/export.py",
+        "README.md"
+      ],
+      "expectations": [
+        "Restates the requested behavior before implementation",
+        "Surfaces relevant blind spots such as whether dry-run should skip all writes and preserve existing output/exit behavior",
+        "States reasonable defaults instead of asking unnecessary mechanical questions",
+        "Proceeds with implementation rather than recommending brainstorming"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Can you quickly add role-based access control so admins and normal users see different pages, and make sure the APIs are protected too?",
+      "expected_output": "The agent should identify that this is larger than a small change and recommend brainstorming/spec clarification before coding.",
+      "project_dir": null,
+      "files": [],
+      "expectations": [
+        "Identifies hidden complexity such as roles, permissions, frontend/backend enforcement, and security boundaries",
+        "Does not start coding",
+        "Uses the exact handoff sentence: \"I recommend using `brainstorming` before implementation.\" (for refactor version) or clearly recommends brainstorming (for original version)",
+        "Provides a handoff packet or explanation with current goal, why it exceeds a small change, and key unknowns"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "tasks.py 里的任务列表排序有点不对，帮我改成按业务优先级排。",
+      "expected_output": "The agent should respond in Chinese, avoid guessing blindly, inspect the existing sorting logic, and ask focused questions about business priority definition and sorting blind spots before implementation.",
+      "project_dir": "evals/clarification/test-projects/task-manager",
+      "files": [
+        "tasks.py",
+        "README.md"
+      ],
+      "expectations": [
+        "Responds in the user's language (Chinese)",
+        "Inspects tasks.py to understand current sorting logic (by created date)",
+        "Does not immediately implement an unspecified sorting rule",
+        "Asks focused blocking questions about business priority definition, such as: what defines business priority, how to handle same-priority tie-breakers, whether to add a priority field, or whether existing created-time ordering should be preserved as secondary sort"
+      ]
+    }
+  ]
+}

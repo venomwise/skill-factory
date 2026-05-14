@@ -1,0 +1,15 @@
+{
+  "eval_id": 3,
+  "prompt": "tasks.py 里的任务列表排序有点不对，帮我改成按业务优先级排。",
+  "project_dir": "evals/clarification/test-projects/task-manager",
+  "files": [
+    "tasks.py",
+    "README.md"
+  ],
+  "assertions": [
+    "Responds in the user's language (Chinese)",
+    "Inspects tasks.py to understand current sorting logic (by created date)",
+    "Does not immediately implement an unspecified sorting rule",
+    "Asks focused blocking questions about business priority definition, such as: what defines business priority, how to handle same-priority tie-breakers, whether to add a priority field, or whether existing created-time ordering should be preserved as secondary sort"
+  ]
+}

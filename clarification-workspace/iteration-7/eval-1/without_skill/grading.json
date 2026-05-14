@@ -1,0 +1,12 @@
+{
+  "passed": [
+    false,
+    false,
+    true,
+    true
+  ],
+  "pass_rate": 0.5,
+  "passed_count": 2,
+  "total_count": 4,
+  "notes": "Similar to with_skill - implements directly without clarification"
+}

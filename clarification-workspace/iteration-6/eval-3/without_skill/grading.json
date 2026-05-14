@@ -1,0 +1,12 @@
+{
+  "passed": [
+    true,
+    true,
+    false,
+    false
+  ],
+  "pass_rate": 0.5,
+  "passed_count": 2,
+  "total_count": 4,
+  "notes": "Similar to with_skill - asks for location but no sorting-specific questions"
+}

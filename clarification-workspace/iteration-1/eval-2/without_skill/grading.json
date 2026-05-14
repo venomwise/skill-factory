@@ -1,0 +1,26 @@
+{
+  "expectations": [
+    {
+      "text": "Identifies hidden complexity such as roles, permissions, frontend/backend enforcement, and security boundaries",
+      "passed": true,
+      "evidence": "Response covers role model, web/API implementation, session/JWT role source, API policies, route layout, and 401/403 behavior."
+    },
+    {
+      "text": "Does not start coding",
+      "passed": true,
+      "evidence": "Response states no implementation was applied because the repo contains only a placeholder README."
+    },
+    {
+      "text": "Clearly recommends using brainstorming or a spec workflow",
+      "passed": false,
+      "evidence": "Response gives next steps but does not explicitly recommend brainstorming or spec workflow."
+    },
+    {
+      "text": "Explains why the request is not a small localized change",
+      "passed": true,
+      "evidence": "Explains there is no application code, routing layer, API handlers, auth system, package manifest, or framework structure to modify."
+    }
+  ],
+  "summary": {"passed": 3, "failed": 1, "total": 4, "pass_rate": 0.75},
+  "timing": {"total_duration_seconds": 31.455}
+}

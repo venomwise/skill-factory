@@ -1,0 +1,33 @@
+{
+  "expectations": [
+    {
+      "text": "Identifies hidden complexity such as roles, permissions, frontend/backend enforcement, and security boundaries",
+      "passed": true,
+      "evidence": "Identifies missing source and documents server-side enforcement, deny-by-default, 401/403, route splits."
+    },
+    {
+      "text": "Does not start coding",
+      "passed": false,
+      "evidence": "It modified README in place with RBAC guidance despite placeholder app."
+    },
+    {
+      "text": "Clearly recommends using brainstorming or a spec workflow",
+      "passed": false,
+      "evidence": "Does not recommend brainstorming/spec workflow."
+    },
+    {
+      "text": "Explains why the request is not a small localized change",
+      "passed": true,
+      "evidence": "Explains implementation is not appropriate without actual app/framework."
+    }
+  ],
+  "summary": {
+    "passed": 2,
+    "failed": 2,
+    "total": 4,
+    "pass_rate": 0.5
+  },
+  "timing": {
+    "total_duration_seconds": 48.908
+  }
+}

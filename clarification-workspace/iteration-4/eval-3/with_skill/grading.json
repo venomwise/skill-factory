@@ -1,0 +1,33 @@
+{
+  "expectations": [
+    {
+      "text": "Responds in the user's language",
+      "passed": true,
+      "evidence": "Response is in Chinese."
+    },
+    {
+      "text": "Does not immediately implement an unspecified sorting rule",
+      "passed": false,
+      "evidence": "It still implemented in the same turn after assumptions rather than asking sorting blind-spot questions first."
+    },
+    {
+      "text": "Plans to inspect existing sorting logic or priority fields before asking broad questions",
+      "passed": true,
+      "evidence": "It inspected README and source before acting."
+    },
+    {
+      "text": "Asks focused blocking questions about sorting blind spots such as same-priority tie-breakers, unknown priorities, or whether existing created-time ordering should be preserved before coding",
+      "passed": false,
+      "evidence": "Does not ask about same-priority tie-breaker/fallback/preserved behavior before coding; it assumes them."
+    }
+  ],
+  "summary": {
+    "passed": 2,
+    "failed": 2,
+    "total": 4,
+    "pass_rate": 0.5
+  },
+  "timing": {
+    "total_duration_seconds": 58.596
+  }
+}

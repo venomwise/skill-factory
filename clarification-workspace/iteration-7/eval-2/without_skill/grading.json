@@ -1,0 +1,12 @@
+{
+  "passed": [
+    false,
+    true,
+    false,
+    false
+  ],
+  "pass_rate": 0.25,
+  "passed_count": 1,
+  "total_count": 4,
+  "notes": "Asks clarifying questions but does not recommend brainstorming"
+}

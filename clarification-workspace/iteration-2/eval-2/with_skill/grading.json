@@ -1,0 +1,33 @@
+{
+  "expectations": [
+    {
+      "text": "Identifies hidden complexity such as roles, permissions, frontend/backend enforcement, and security boundaries",
+      "passed": true,
+      "evidence": "Response identifies missing framework/auth/session/routes/API/role model and describes role/API assumptions."
+    },
+    {
+      "text": "Does not start coding",
+      "passed": true,
+      "evidence": "Response explicitly says no code changes were implemented."
+    },
+    {
+      "text": "Clearly recommends using brainstorming or a spec workflow",
+      "passed": false,
+      "evidence": "Response says short design/spec may be needed but does not explicitly recommend `brainstorming`."
+    },
+    {
+      "text": "Explains why the request is not a small localized change",
+      "passed": true,
+      "evidence": "Explains there is no actual web app/auth/API layer and that stack/auth/route/role semantics must be defined."
+    }
+  ],
+  "summary": {
+    "passed": 3,
+    "failed": 1,
+    "total": 4,
+    "pass_rate": 0.75
+  },
+  "timing": {
+    "total_duration_seconds": 33.641
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "expectations": [
+    {
+      "text": "Identifies hidden complexity such as roles, permissions, frontend/backend enforcement, and security boundaries",
+      "passed": true,
+      "evidence": "Identifies missing app code, framework, routing, auth, API handlers, database schema, and user/session model."
+    },
+    {
+      "text": "Does not start coding",
+      "passed": true,
+      "evidence": "Explicitly says no code changes were made."
+    },
+    {
+      "text": "Clearly recommends using brainstorming or a spec workflow",
+      "passed": false,
+      "evidence": "Says route to a design/spec step but still does not explicitly recommend `brainstorming`."
+    },
+    {
+      "text": "Explains why the request is not a small localized change",
+      "passed": true,
+      "evidence": "Explains standalone RBAC would be speculative and unusable; needs stack/role/routes/API definitions."
+    }
+  ],
+  "summary": {
+    "passed": 3,
+    "failed": 1,
+    "total": 4,
+    "pass_rate": 0.75
+  },
+  "timing": {
+    "total_duration_seconds": 26.86
+  }
+}

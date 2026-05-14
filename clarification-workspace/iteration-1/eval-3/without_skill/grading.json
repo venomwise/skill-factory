@@ -1,0 +1,26 @@
+{
+  "expectations": [
+    {
+      "text": "Responds in the user's language",
+      "passed": true,
+      "evidence": "Response is in Chinese."
+    },
+    {
+      "text": "Does not immediately implement an unspecified sorting rule",
+      "passed": true,
+      "evidence": "Response says it inspected README/code and found PRIORITY_ORDER before implementing."
+    },
+    {
+      "text": "Plans to inspect existing sorting logic or priority fields before asking broad questions",
+      "passed": true,
+      "evidence": "The agent used README and source context rather than asking broad questions."
+    },
+    {
+      "text": "Asks focused blocking questions or states a reasonable assumption if project context reveals the priority rule",
+      "passed": true,
+      "evidence": "States assumptions for priority order, same-priority newest-first behavior, and unknown priority placement."
+    }
+  ],
+  "summary": {"passed": 4, "failed": 0, "total": 4, "pass_rate": 1.0},
+  "timing": {"total_duration_seconds": 69.539}
+}

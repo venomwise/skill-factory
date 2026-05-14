@@ -1,0 +1,41 @@
+/home/venom/workspace/ai/skill-factory/clarification-workspace/iteration-3/eval-2/without_skill/project/README.md
+--- /home/venom/workspace/ai/skill-factory/clarification-workspace/iteration-3/eval-2/without_skill/project/README.md
+# RBAC fixture
+
+A placeholder web application. No role model has been defined yet.
+
+## RBAC routing recommendation
+
+This repository does not currently contain application source code, routes, API handlers, an authentication layer, or a user/role model. Because there is no executable web app to safely modify, RBAC cannot be implemented in code here without inventing a framework and architecture.
+
+When the application code exists, implement role-based access control with these defaults:
+
+- Define two roles: `admin` and `user`.
+- Store the authenticated user's role in a trusted server-side session or signed token claim.
+- Do not trust role values sent from the browser outside the authenticated identity/session.
+- Protect both UI routes and API routes on the server.
+- Use deny-by-default authorization for unknown or missing roles.
+
+Recommended route split:
+
+| Area | Roles allowed | Behavior |
+| --- | --- | --- |
+| `/admin/**` | `admin` | Render admin pages; otherwise return 403 or redirect to a safe page. |
+| `/app/**`, `/dashboard/**`, or normal user pages | `admin`, `user` | Render normal authenticated pages. |
+| Public pages | unauthenticated, `admin`, `user` | Render marketing/login/help pages. |
+| Admin APIs, e.g. `/api/admin/**` | `admin` | Return 401 if unauthenticated, 403 if authenticated without role. |
+| User APIs, e.g. `/api/user/**` | `admin`, `user` | Return 401 if unauthenticated, 403 if role is not allowed. |
+
+Recommended middleware/policy shape:
+
+```ts
+type Role = 'admin' | 'user';
+
+function requireRole(user: { role?: Role } | null, allowed: Role[]) {
+  if (!user) return { ok: false, status: 401 };
+  if (!user.role || !allowed.includes(user.role)) return { ok: false, status: 403 };
+  return { ok: true, status: 200 };
+}
+```
+
+Apply the same `requireRole` policy in page loaders/server components and API handlers so that hiding links in the UI is not the only protection.

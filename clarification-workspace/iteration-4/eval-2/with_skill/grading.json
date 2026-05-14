@@ -1,0 +1,33 @@
+{
+  "expectations": [
+    {
+      "text": "Identifies hidden complexity such as roles, permissions, frontend/backend enforcement, and security boundaries",
+      "passed": true,
+      "evidence": "Identifies RBAC requires framework/runtime, auth/session, role source, route definitions, API behavior, and missing app files."
+    },
+    {
+      "text": "Does not start coding",
+      "passed": true,
+      "evidence": "Explicitly did not implement code changes."
+    },
+    {
+      "text": "Clearly recommends using brainstorming or a spec workflow",
+      "passed": false,
+      "evidence": "Recommends short RBAC design/spec first, but does not explicitly say `I recommend using brainstorming before implementation` or name `brainstorming`."
+    },
+    {
+      "text": "Explains why the request is not a small localized change",
+      "passed": true,
+      "evidence": "Explains no actual web application exists and RBAC requires confirming stack/auth/roles/routes/API behavior."
+    }
+  ],
+  "summary": {
+    "passed": 3,
+    "failed": 1,
+    "total": 4,
+    "pass_rate": 0.75
+  },
+  "timing": {
+    "total_duration_seconds": 32.339
+  }
+}

@@ -1,0 +1,92 @@
+{
+  "metadata": {
+    "skill_name": "clarification",
+    "skill_path": "/home/venom/workspace/ai/skill-factory/clarification",
+    "evals_run": [
+      1,
+      2,
+      3
+    ],
+    "runs_per_configuration": 1
+  },
+  "runs": [
+    {
+      "eval_id": 1,
+      "eval_name": "dry-run-small-change",
+      "configuration": "with_skill",
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 34.434,
+        "exit_code": 0
+      }
+    },
+    {
+      "eval_id": 1,
+      "eval_name": "dry-run-small-change",
+      "configuration": "without_skill",
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 62.489,
+        "exit_code": 0
+      }
+    },
+    {
+      "eval_id": 2,
+      "eval_name": "rbac-hidden-large-change",
+      "configuration": "with_skill",
+      "result": {
+        "pass_rate": 0.75,
+        "passed": 3,
+        "failed": 1,
+        "total": 4,
+        "time_seconds": 45.062,
+        "exit_code": 0
+      }
+    },
+    {
+      "eval_id": 2,
+      "eval_name": "rbac-hidden-large-change",
+      "configuration": "without_skill",
+      "result": {
+        "pass_rate": 0.75,
+        "passed": 3,
+        "failed": 1,
+        "total": 4,
+        "time_seconds": 31.455,
+        "exit_code": 0
+      }
+    },
+    {
+      "eval_id": 3,
+      "eval_name": "ambiguous-priority-sort",
+      "configuration": "with_skill",
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 51.234,
+        "exit_code": 0
+      }
+    },
+    {
+      "eval_id": 3,
+      "eval_name": "ambiguous-priority-sort",
+      "configuration": "without_skill",
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 69.539,
+        "exit_code": 0
+      }
+    }
+  ]
+}

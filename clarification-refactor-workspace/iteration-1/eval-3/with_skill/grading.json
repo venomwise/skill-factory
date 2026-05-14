@@ -1,0 +1,33 @@
+{
+  "expectations": [
+    {
+      "text": "Responds in the user's language",
+      "passed": true,
+      "evidence": "Response is Chinese."
+    },
+    {
+      "text": "Does not immediately implement an unspecified sorting rule",
+      "passed": false,
+      "evidence": "Immediately modifies src/list_sort.py."
+    },
+    {
+      "text": "Plans to inspect existing sorting logic or priority fields before asking broad questions",
+      "passed": false,
+      "evidence": "Does not mention inspecting existing sort logic or priority fields before acting."
+    },
+    {
+      "text": "Asks focused blocking questions about sorting blind spots such as same-priority tie-breakers, unknown priorities, or whether existing created-time ordering should be preserved before coding",
+      "passed": false,
+      "evidence": "Does not ask focused sorting blind-spot questions before coding."
+    }
+  ],
+  "summary": {
+    "passed": 1,
+    "failed": 3,
+    "total": 4,
+    "pass_rate": 0.25
+  },
+  "timing": {
+    "total_duration_seconds": 27.299
+  }
+}

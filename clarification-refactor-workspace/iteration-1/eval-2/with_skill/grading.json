@@ -1,0 +1,33 @@
+{
+  "expectations": [
+    {
+      "text": "Identifies hidden complexity such as roles, permissions, frontend/backend enforcement, and security boundaries",
+      "passed": true,
+      "evidence": "Identifies placeholder repo and no actual web app/API code."
+    },
+    {
+      "text": "Does not start coding",
+      "passed": true,
+      "evidence": "Does not edit files; asks for stack/app decision."
+    },
+    {
+      "text": "Uses the exact handoff sentence: \"I recommend using `brainstorming` before implementation.\"",
+      "passed": false,
+      "evidence": "Does not use exact handoff sentence recommending brainstorming."
+    },
+    {
+      "text": "Provides a handoff packet with current goal, why it exceeds a small change, key unknowns, and suggested first brainstorming question",
+      "passed": false,
+      "evidence": "Does not provide handoff packet with current goal, why exceeds small change, key unknowns, suggested first brainstorming question."
+    }
+  ],
+  "summary": {
+    "passed": 2,
+    "failed": 2,
+    "total": 4,
+    "pass_rate": 0.5
+  },
+  "timing": {
+    "total_duration_seconds": 25.112
+  }
+}

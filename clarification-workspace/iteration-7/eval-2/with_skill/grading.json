@@ -1,0 +1,12 @@
+{
+  "passed": [
+    true,
+    true,
+    true,
+    true
+  ],
+  "pass_rate": 1.0,
+  "passed_count": 4,
+  "total_count": 4,
+  "notes": "Excellent! Identifies all complexity, clearly recommends brainstorming, explains why"
+}

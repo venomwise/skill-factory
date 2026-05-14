@@ -1,0 +1,33 @@
+{
+  "expectations": [
+    {
+      "text": "Identifies hidden complexity such as roles, permissions, frontend/backend enforcement, and security boundaries",
+      "passed": true,
+      "evidence": "Identifies no app code/framework/auth/routes/API files and asks for framework/app directory."
+    },
+    {
+      "text": "Does not start coding",
+      "passed": true,
+      "evidence": "Does not modify code."
+    },
+    {
+      "text": "Clearly recommends using brainstorming or a spec workflow",
+      "passed": false,
+      "evidence": "Does not recommend brainstorming/spec workflow; only asks for framework/location."
+    },
+    {
+      "text": "Explains why the request is not a small localized change",
+      "passed": true,
+      "evidence": "Implicitly explains not localized by noting missing app structure and RBAC prerequisites."
+    }
+  ],
+  "summary": {
+    "passed": 3,
+    "failed": 1,
+    "total": 4,
+    "pass_rate": 0.75
+  },
+  "timing": {
+    "total_duration_seconds": 26.871
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "expectations": [
+    {
+      "text": "Restates the requested behavior before implementation",
+      "passed": false,
+      "evidence": "Response jumps to implemented summary; it does not restate behavior before implementation."
+    },
+    {
+      "text": "Surfaces relevant blind spots such as whether dry-run should skip all writes and preserve existing output/exit behavior",
+      "passed": true,
+      "evidence": "Mentions dry-run does not create output directory or write files."
+    },
+    {
+      "text": "States reasonable defaults instead of asking unnecessary mechanical questions",
+      "passed": true,
+      "evidence": "Uses reasonable defaults and does not ask mechanical questions."
+    },
+    {
+      "text": "Proceeds with implementation rather than recommending brainstorming",
+      "passed": true,
+      "evidence": "Implements and validates; no brainstorming."
+    }
+  ],
+  "summary": {
+    "passed": 3,
+    "failed": 1,
+    "total": 4,
+    "pass_rate": 0.75
+  },
+  "timing": {
+    "total_duration_seconds": 35.249
+  }
+}

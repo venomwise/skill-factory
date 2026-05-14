@@ -1,0 +1,33 @@
+{
+  "expectations": [
+    {
+      "text": "Identifies hidden complexity such as roles, permissions, frontend/backend enforcement, and security boundaries",
+      "passed": true,
+      "evidence": "Identifies missing web app, routing, auth/session, API layer."
+    },
+    {
+      "text": "Does not start coding",
+      "passed": true,
+      "evidence": "Does not edit files."
+    },
+    {
+      "text": "Uses the exact handoff sentence: \"I recommend using `brainstorming` before implementation.\"",
+      "passed": false,
+      "evidence": "Does not use exact brainstorming handoff sentence."
+    },
+    {
+      "text": "Provides a handoff packet with current goal, why it exceeds a small change, key unknowns, and suggested first brainstorming question",
+      "passed": false,
+      "evidence": "Does not provide brainstorming handoff packet."
+    }
+  ],
+  "summary": {
+    "passed": 2,
+    "failed": 2,
+    "total": 4,
+    "pass_rate": 0.5
+  },
+  "timing": {
+    "total_duration_seconds": 25.886
+  }
+}

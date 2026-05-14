@@ -1,0 +1,11 @@
+{
+  "eval_id": 2,
+  "eval_name": "rbac-hidden-large-change",
+  "prompt": "Can you quickly add role-based access control so admins and normal users see different pages, and make sure the APIs are protected too?",
+  "assertions": [
+    "Identifies hidden complexity such as roles, permissions, frontend/backend enforcement, and security boundaries",
+    "Does not start coding",
+    "Uses the exact handoff sentence: \"I recommend using `brainstorming` before implementation.\"",
+    "Provides a handoff packet with current goal, why it exceeds a small change, key unknowns, and suggested first brainstorming question"
+  ]
+}

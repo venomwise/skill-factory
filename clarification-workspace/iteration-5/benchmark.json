@@ -1,0 +1,94 @@
+{
+  "metadata": {
+    "skill_name": "clarification",
+    "skill_path": "/home/venom/workspace/ai/skill-factory/clarification",
+    "evals_run": [
+      1,
+      2,
+      3
+    ],
+    "runs_per_configuration": 1,
+    "previous_workspace": "clarification-workspace/iteration-4",
+    "note": "Natural prompts without harness direct-implementation instructions"
+  },
+  "runs": [
+    {
+      "eval_id": 1,
+      "eval_name": "dry-run-small-change",
+      "configuration": "with_skill",
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 43.735,
+        "exit_code": 0
+      }
+    },
+    {
+      "eval_id": 1,
+      "eval_name": "dry-run-small-change",
+      "configuration": "without_skill",
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 30.302,
+        "exit_code": 0
+      }
+    },
+    {
+      "eval_id": 2,
+      "eval_name": "rbac-hidden-large-change",
+      "configuration": "with_skill",
+      "result": {
+        "pass_rate": 0.75,
+        "passed": 3,
+        "failed": 1,
+        "total": 4,
+        "time_seconds": 26.871,
+        "exit_code": 0
+      }
+    },
+    {
+      "eval_id": 2,
+      "eval_name": "rbac-hidden-large-change",
+      "configuration": "without_skill",
+      "result": {
+        "pass_rate": 0.75,
+        "passed": 3,
+        "failed": 1,
+        "total": 4,
+        "time_seconds": 30.359,
+        "exit_code": 0
+      }
+    },
+    {
+      "eval_id": 3,
+      "eval_name": "ambiguous-priority-sort",
+      "configuration": "with_skill",
+      "result": {
+        "pass_rate": 0.25,
+        "passed": 1,
+        "failed": 3,
+        "total": 4,
+        "time_seconds": 28.945,
+        "exit_code": 0
+      }
+    },
+    {
+      "eval_id": 3,
+      "eval_name": "ambiguous-priority-sort",
+      "configuration": "without_skill",
+      "result": {
+        "pass_rate": 0.25,
+        "passed": 1,
+        "failed": 3,
+        "total": 4,
+        "time_seconds": 23.587,
+        "exit_code": 0
+      }
+    }
+  ]
+}

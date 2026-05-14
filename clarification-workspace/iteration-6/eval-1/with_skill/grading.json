@@ -1,0 +1,12 @@
+{
+  "passed": [
+    false,
+    false,
+    false,
+    false
+  ],
+  "pass_rate": 0.0,
+  "passed_count": 0,
+  "total_count": 4,
+  "notes": "Asks for clarification about file location but does not restate the dry-run behavior or proceed with reasonable defaults"
+}

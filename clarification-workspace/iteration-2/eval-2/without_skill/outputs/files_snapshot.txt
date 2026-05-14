@@ -1,0 +1,207 @@
+/home/venom/workspace/ai/skill-factory/clarification-workspace/iteration-2/eval-2/without_skill/project/README.md
+--- /home/venom/workspace/ai/skill-factory/clarification-workspace/iteration-2/eval-2/without_skill/project/README.md
+# RBAC fixture
+
+A placeholder web application. No concrete framework, authentication provider, or persisted role model has been defined yet, so this repository now contains a small framework-agnostic RBAC helper that can be wired into the eventual app.
+
+## Default role model
+
+- `admin`: can access admin pages/APIs and normal user pages/APIs.
+- `user`: can access only normal user pages/APIs.
+- Unknown or missing roles are denied.
+- Protected routes are deny-by-default unless they have an explicit access rule.
+
+## Added files
+
+- `src/rbac.js` — role constants, page/API access rules, authorization helpers, and Express/Connect-compatible middleware.
+
+## Page routing recommendation
+
+Use separate routes/layouts for normal and admin experiences:
+
+- Normal user pages: `/dashboard`, `/account`
+- Admin pages: `/admin`, `/admin/*`
+
+At page-render or route-guard time, call:
+
+```js
+const { authorizePage } = require('./src/rbac');
+
+if (!authorizePage(request.path, request.user)) {
+  // redirect unauthenticated users to login; show 403 for authenticated users
+}
+```
+
+## API protection recommendation
+
+Apply RBAC after authentication has populated `req.user`, for example:
+
+```js
+const { API_ACCESS, requireRouteAccess } = require('./src/rbac');
+
+app.use(authenticateRequest);
+app.use('/api', requireRouteAccess(API_ACCESS));
+```
+
+Or protect individual endpoints:
+
+```js
+const { ROLES, requireRole } = require('./src/rbac');
+
+app.get('/api/admin/reports', requireRole([ROLES.ADMIN]), handler);
+app.get('/api/me', requireRole([ROLES.USER, ROLES.ADMIN]), handler);
+```
+
+## Current default route rules
+
+Pages:
+
+- `/`, `/dashboard`, `/account`: `user`, `admin`
+- `/admin`, `/admin/*`: `admin`
+
+APIs:
+
+- `/api/me`, `/api/user/*`: `user`, `admin`
+- `/api/admin`, `/api/admin/*`: `admin`
+/home/venom/workspace/ai/skill-factory/clarification-workspace/iteration-2/eval-2/without_skill/project/src/rbac.js
+--- /home/venom/workspace/ai/skill-factory/clarification-workspace/iteration-2/eval-2/without_skill/project/src/rbac.js
+'use strict';
+
+/**
+ * Small, framework-agnostic RBAC helpers.
+ *
+ * Default model:
+ * - admin: can access admin and user areas
+ * - user: can access only normal user areas
+ *
+ * These helpers can be used from server-rendered page routes, SPA route guards,
+ * and Express/Connect-compatible API middleware.
+ */
+
+const ROLES = Object.freeze({
+  ADMIN: 'admin',
+  USER: 'user',
+});
+
+const ROLE_HIERARCHY = Object.freeze({
+  [ROLES.USER]: 1,
+  [ROLES.ADMIN]: 2,
+});
+
+const PAGE_ACCESS = Object.freeze([
+  { path: '/', roles: [ROLES.USER, ROLES.ADMIN] },
+  { path: '/dashboard', roles: [ROLES.USER, ROLES.ADMIN] },
+  { path: '/account', roles: [ROLES.USER, ROLES.ADMIN] },
+  { path: '/admin', roles: [ROLES.ADMIN] },
+  { path: '/admin/*', roles: [ROLES.ADMIN] },
+]);
+
+const API_ACCESS = Object.freeze([
+  { method: '*', path: '/api/me', roles: [ROLES.USER, ROLES.ADMIN] },
+  { method: '*', path: '/api/user/*', roles: [ROLES.USER, ROLES.ADMIN] },
+  { method: '*', path: '/api/admin', roles: [ROLES.ADMIN] },
+  { method: '*', path: '/api/admin/*', roles: [ROLES.ADMIN] },
+]);
+
+function normalizePath(path) {
+  if (!path) return '/';
+  const [pathname] = String(path).split('?');
+  if (pathname.length > 1 && pathname.endsWith('/')) return pathname.slice(0, -1);
+  return pathname || '/';
+}
+
+function pathMatches(pattern, path) {
+  const normalizedPattern = normalizePath(pattern);
+  const normalizedPath = normalizePath(path);
+
+  if (normalizedPattern.endsWith('/*')) {
+    const prefix = normalizedPattern.slice(0, -2);
+    return normalizedPath === prefix || normalizedPath.startsWith(`${prefix}/`);
+  }
+
+  return normalizedPattern === normalizedPath;
+}
+
+function getUserRole(user) {
+  return user && typeof user.role === 'string' ? user.role : undefined;
+}
+
+function canAccess(userOrRole, allowedRoles) {
+  const role = typeof userOrRole === 'string' ? userOrRole : getUserRole(userOrRole);
+  return Boolean(role && Array.isArray(allowedRoles) && allowedRoles.includes(role));
+}
+
+function hasMinimumRole(userOrRole, minimumRole) {
+  const role = typeof userOrRole === 'string' ? userOrRole : getUserRole(userOrRole);
+  return Boolean(role && ROLE_HIERARCHY[role] >= ROLE_HIERARCHY[minimumRole]);
+}
+
+function findAccessRule(rules, path, method = '*') {
+  const upperMethod = String(method || '*').toUpperCase();
+  return rules.find((rule) => {
+    const ruleMethod = String(rule.method || '*').toUpperCase();
+    return (ruleMethod === '*' || ruleMethod === upperMethod) && pathMatches(rule.path, path);
+  });
+}
+
+function requiredRolesForPath(rules, path, method = '*') {
+  const rule = findAccessRule(rules, path, method);
+  return rule ? rule.roles : undefined;
+}
+
+function authorizePath(rules, path, user, method = '*') {
+  const roles = requiredRolesForPath(rules, path, method);
+
+  // Deny by default when a protected route has no explicit rule.
+  if (!roles) return false;
+
+  return canAccess(user, roles);
+}
+
+function authorizePage(path, user) {
+  return authorizePath(PAGE_ACCESS, path, user);
+}
+
+function authorizeApi(path, user, method = '*') {
+  return authorizePath(API_ACCESS, path, user, method);
+}
+
+function requireRole(allowedRoles) {
+  return function rbacMiddleware(req, res, next) {
+    if (canAccess(req.user, allowedRoles)) return next();
+
+    const status = req.user ? 403 : 401;
+    return res.status(status).json({ error: status === 401 ? 'unauthorized' : 'forbidden' });
+  };
+}
+
+function requireRouteAccess(rules) {
+  return function rbacRouteMiddleware(req, res, next) {
+    const path = req.path || req.url;
+    const method = req.method || '*';
+
+    if (authorizePath(rules, path, req.user, method)) return next();
+
+    const status = req.user ? 403 : 401;
+    return res.status(status).json({ error: status === 401 ? 'unauthorized' : 'forbidden' });
+  };
+}
+
+module.exports = {
+  ROLES,
+  ROLE_HIERARCHY,
+  PAGE_ACCESS,
+  API_ACCESS,
+  normalizePath,
+  pathMatches,
+  getUserRole,
+  canAccess,
+  hasMinimumRole,
+  findAccessRule,
+  requiredRolesForPath,
+  authorizePath,
+  authorizePage,
+  authorizeApi,
+  requireRole,
+  requireRouteAccess,
+};

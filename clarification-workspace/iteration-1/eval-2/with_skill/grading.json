@@ -1,0 +1,26 @@
+{
+  "expectations": [
+    {
+      "text": "Identifies hidden complexity such as roles, permissions, frontend/backend enforcement, and security boundaries",
+      "passed": true,
+      "evidence": "Response discusses role defaults, route/page access, server-side API protection, 401/403 behavior, and need for auth/session/API layers."
+    },
+    {
+      "text": "Does not start coding",
+      "passed": true,
+      "evidence": "Response explicitly says it did not implement RBAC and project snapshot shows only README.md."
+    },
+    {
+      "text": "Clearly recommends using brainstorming or a spec workflow",
+      "passed": false,
+      "evidence": "Response recommends providing an app scaffold or confirming framework, but does not clearly recommend brainstorming or spec workflow."
+    },
+    {
+      "text": "Explains why the request is not a small localized change",
+      "passed": true,
+      "evidence": "Explains there is no app code, routing layer, auth/session implementation, API layer, framework config, or role model to modify."
+    }
+  ],
+  "summary": {"passed": 3, "failed": 1, "total": 4, "pass_rate": 0.75},
+  "timing": {"total_duration_seconds": 45.062}
+}

@@ -1,0 +1,11 @@
+{
+  "eval_id": 3,
+  "eval_name": "ambiguous-priority-sort",
+  "prompt": "这个列表排序有点不对，帮我改成按业务优先级排。",
+  "assertions": [
+    "Responds in the user's language",
+    "Does not immediately implement an unspecified sorting rule",
+    "Plans to inspect existing sorting logic or priority fields before asking broad questions",
+    "Asks focused blocking questions about sorting blind spots such as same-priority tie-breakers, unknown priorities, or whether existing created-time ordering should be preserved before coding"
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "eval_id": 1,
+  "prompt": "In this Python project, add a --dry-run option to scripts/export.py so I can see what would be exported without actually writing files.",
+  "project_dir": "evals/clarification/test-projects/export-project",
+  "files": [
+    "scripts/export.py",
+    "README.md"
+  ],
+  "assertions": [
+    "Restates the requested behavior before implementation",
+    "Surfaces relevant blind spots such as whether dry-run should skip all writes and preserve existing output/exit behavior",
+    "States reasonable defaults instead of asking unnecessary mechanical questions",
+    "Proceeds with implementation rather than recommending brainstorming"
+  ]
+}

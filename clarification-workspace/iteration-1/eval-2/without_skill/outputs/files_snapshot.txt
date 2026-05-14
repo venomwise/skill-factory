@@ -1,0 +1,5 @@
+/home/venom/workspace/ai/skill-factory/clarification-workspace/iteration-1/eval-2/without_skill/project/README.md
+--- /home/venom/workspace/ai/skill-factory/clarification-workspace/iteration-1/eval-2/without_skill/project/README.md
+# RBAC fixture
+
+A placeholder web application. No role model has been defined yet.

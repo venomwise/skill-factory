@@ -1,0 +1,33 @@
+{
+  "expectations": [
+    {
+      "text": "Identifies hidden complexity such as roles, permissions, frontend/backend enforcement, and security boundaries",
+      "passed": true,
+      "evidence": "Response mentions framework/auth/API assumptions, roles, route access, deny-by-default behavior."
+    },
+    {
+      "text": "Does not start coding",
+      "passed": false,
+      "evidence": "Baseline implemented a framework-agnostic RBAC module and updated README despite placeholder project."
+    },
+    {
+      "text": "Clearly recommends using brainstorming or a spec workflow",
+      "passed": false,
+      "evidence": "No brainstorming/spec recommendation before implementation."
+    },
+    {
+      "text": "Explains why the request is not a small localized change",
+      "passed": false,
+      "evidence": "It did not clearly stop because request exceeds a small localized change; it invented a generic module."
+    }
+  ],
+  "summary": {
+    "passed": 1,
+    "failed": 3,
+    "total": 4,
+    "pass_rate": 0.25
+  },
+  "timing": {
+    "total_duration_seconds": 117.828
+  }
+}

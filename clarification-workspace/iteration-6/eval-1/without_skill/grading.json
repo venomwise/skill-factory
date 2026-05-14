@@ -1,0 +1,12 @@
+{
+  "passed": [
+    false,
+    false,
+    false,
+    false
+  ],
+  "pass_rate": 0.0,
+  "passed_count": 0,
+  "total_count": 4,
+  "notes": "Also asks for clarification, similar to with_skill"
+}

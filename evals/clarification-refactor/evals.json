@@ -1,0 +1,41 @@
+{
+  "skill_name": "clarification-refactor",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "In this Python project, add a --dry-run option to scripts/export.py so I can see what would be exported without actually writing files.",
+      "expected_output": "The agent should treat this as a small change, clarify or state defaults for dry-run behavior, then proceed to implement once safe.",
+      "files": [],
+      "expectations": [
+        "Restates the requested behavior before implementation",
+        "Surfaces relevant blind spots such as whether dry-run should skip all writes and preserve existing output/exit behavior",
+        "States reasonable defaults instead of asking unnecessary mechanical questions",
+        "Proceeds with implementation rather than recommending brainstorming"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Can you quickly add role-based access control so admins and normal users see different pages, and make sure the APIs are protected too?",
+      "expected_output": "The agent should identify that this is larger than a small change and recommend brainstorming/spec clarification before coding.",
+      "files": [],
+      "expectations": [
+        "Identifies hidden complexity such as roles, permissions, frontend/backend enforcement, and security boundaries",
+        "Does not start coding",
+        "Uses the exact handoff sentence: \"I recommend using `brainstorming` before implementation.\"",
+        "Provides a handoff packet with current goal, why it exceeds a small change, key unknowns, and suggested first brainstorming question"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "这个列表排序有点不对，帮我改成按业务优先级排。",
+      "expected_output": "The agent should respond in Chinese, avoid guessing blindly, inspect relevant context if available, and ask focused questions about behavior-changing sorting blind spots before implementation.",
+      "files": [],
+      "expectations": [
+        "Responds in the user's language",
+        "Does not immediately implement an unspecified sorting rule",
+        "Plans to inspect existing sorting logic or priority fields before asking broad questions",
+        "Asks focused blocking questions about sorting blind spots such as same-priority tie-breakers, unknown priorities, or whether existing created-time ordering should be preserved before coding"
+      ]
+    }
+  ]
+}
