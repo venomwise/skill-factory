@@ -28,35 +28,40 @@ For those, prefer `grok-search`.
 
 ## Setup
 
-**1. The skill is installed at `~/.AI-Skills/exa-search/` (shared across all AI agents)**
+**1. Download the binary**
 
-**2. Create virtual environment:**
-
-```bash
-python3 -m venv ~/.AI-Skills/exa-search/.venv
-```
-
-**3. Install dependencies:**
+Get the latest release from [GitHub Releases](https://github.com/venomwise/skill-factory/releases) or build from source:
 
 ```bash
-~/.AI-Skills/exa-search/.venv/bin/pip install -r ~/.AI-Skills/exa-search/requirements.txt
+cd exa-search-go
+go build -o exa-search cmd/exa-search/main.go
 ```
 
-**4. Configure API key (recommended - shared across all agents):**
+**2. Configure API key**
 
-Create `~/.config/ai-skills/exa-search.json`:
+The tool auto-creates a config template at `~/.config/ai-skills/exa-search.toml` on first run.
 
-```json
-{
-  "profiles": [
-    { "id": "main", "api_key": "YOUR_EXA_API_KEY" }
-  ]
-}
+Edit the file and add your API key:
+
+```toml
+[[profiles]]
+id = "main"
+api_key = "YOUR_EXA_API_KEY"
 ```
 
-Alternatively, create `~/.AI-Skills/exa-search/config.local.json` for skill-specific configuration.
+Alternatively, use environment variables:
 
-For multiple keys, environment variables, or advanced configuration, see [CONFIG.md](references/CONFIG.md).
+```bash
+export EXA_API_KEY="your-key-here"
+```
+
+Or pass via CLI flag:
+
+```bash
+exa-search --api-key YOUR_KEY search --query "test"
+```
+
+For multiple keys, advanced configuration, and failover setup, see [CONFIG.md](references/CONFIG.md).
 
 ## Workflow
 
@@ -69,40 +74,53 @@ For multiple keys, environment variables, or advanced configuration, see [CONFIG
 
 ## Commands
 
-All commands use the shared virtual environment:
-
 ### Official docs search
 ```bash
-~/.AI-Skills/exa-search/.venv/bin/python ~/.AI-Skills/exa-search/scripts/exa_search.py docs \
-  --query "telegram streaming openclaw"
+exa-search docs --query "telegram streaming openclaw"
 ```
 
 ### Official docs with text extraction
 ```bash
-~/.AI-Skills/exa-search/.venv/bin/python ~/.AI-Skills/exa-search/scripts/exa_search.py docs \
-  --query "model failover openclaw" --text --num 2
+exa-search docs --query "model failover openclaw" --text --num 2
 ```
 
 ### General source-first search
 ```bash
-~/.AI-Skills/exa-search/.venv/bin/python ~/.AI-Skills/exa-search/scripts/exa_search.py search \
-  --query "OpenClaw Telegram streaming" --num 5
+exa-search search --query "OpenClaw Telegram streaming" --num 5
 ```
 
 ### Deep extraction / research
 ```bash
-~/.AI-Skills/exa-search/.venv/bin/python ~/.AI-Skills/exa-search/scripts/exa_search.py research \
-  --query "OpenClaw model failover" --num 3
+exa-search research --query "OpenClaw model failover" --num 3
 ```
 
 ### Find similar pages
 ```bash
-~/.AI-Skills/exa-search/.venv/bin/python ~/.AI-Skills/exa-search/scripts/exa_search.py similar \
-  --url "https://docs.openclaw.ai/channels/telegram" --num 5
+exa-search similar --url "https://docs.openclaw.ai/channels/telegram" --num 5
+```
+
+### Output formats
+
+```bash
+# JSON (default)
+exa-search search --query "test"
+
+# Plain text
+exa-search search --query "test" --plain
+
+# URLs only
+exa-search search --query "test" --urls
+```
+
+### Debug mode
+
+```bash
+exa-search search --query "test" --debug
 ```
 
 ## Additional Resources
 
+- **Source code**: See `exa-search-go/` for the Go implementation
 - **Query examples**: See [query-recipes.md](references/query-recipes.md) for ready-made patterns
 - **Configuration**: See [CONFIG.md](references/CONFIG.md) for advanced setup and failover
 - **Evaluations**: See `evals/exa-search/test_cases.json` for test scenarios
@@ -112,4 +130,5 @@ All commands use the shared virtual environment:
 - `docs` defaults to `includeDomains=docs.openclaw.ai`
 - `research` defaults to text extraction
 - Output is normalized JSON for reliable consumption
-- Script supports automatic failover across multiple API keys
+- Supports automatic failover across multiple API keys
+- Zero runtime dependencies - statically compiled Go binary

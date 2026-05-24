@@ -211,19 +211,19 @@ The implementation is organized into 7 phases executed sequentially: (1) project
   - Confirm requirements 1.1-1.7, 2.1-2.9, 3.1-3.5, 4.1-4.6, 5.1-5.11, 6.1-6.4, 7.1-7.7, 8.1-8.8, 9.1-9.3, 10.1-10.3 are satisfied
   - Stop if any core functionality fails, config loading is broken, API integration returns unexpected errors, or output formatting is incorrect
 
-- [ ]* 7. Phase 7: Distribution Automation
-  - [ ]* 7.1 Create GitHub Actions workflow
+- [✅]* 7. Phase 7: Distribution Automation
+  - [✅]* 7.1 Create GitHub Actions workflow
     - Create `.github/workflows/release.yml` with manual workflow dispatch trigger
     - Add job to run tests on Linux, macOS, Windows
     - Add job to build binaries for linux/amd64, linux/arm64, darwin/amd64, darwin/arm64, windows/amd64
     - Use `go build` with `-ldflags` to inject version, commit, date, Go version
     - _Requirements: 11.1, 11.2, 11.4_
-  - [ ]* 7.2 Add release artifact creation
+  - [✅]* 7.2 Add release artifact creation
     - In workflow, compress each binary into `.tar.gz` (Unix) or `.zip` (Windows)
     - Generate SHA256 checksums for all artifacts
     - Use `actions/create-release` and `actions/upload-release-asset` to publish to GitHub Releases
     - _Requirements: 11.3_
-  - [ ]* 7.3 Update SKILL.md documentation
+  - [✅]* 7.3 Update SKILL.md documentation
     - Replace Python script commands with binary commands (e.g., `exa-search search --query "..."`)
     - Update setup section to point to GitHub Releases download
     - Add installation instructions for each platform
@@ -233,7 +233,7 @@ The implementation is organized into 7 phases executed sequentially: (1) project
     - Write `docs/INSTALL.md` with download links, installation steps, and PATH setup for Linux/macOS/Windows
     - Include verification steps (run `exa-search version`)
     - _Requirements: 11.5_
-  - [ ]* 7.5 Update evals to use Go binary
+  - [✅]* 7.5 Update evals to use Go binary
     - Modify `evals/exa-search/` test scripts to call `exa-search` binary instead of Python script
     - Verify output format compatibility
     - _Requirements: 11.5_
@@ -250,3 +250,17 @@ The implementation is organized into 7 phases executed sequentially: (1) project
 - Debug mode logs to stderr with API key redaction (first 8 chars visible).
 - Version information is injected at build time via `-ldflags`.
 - GitHub Actions workflow is manually triggered for controlled releases.
+
+## Post-Implementation Restructuring
+
+After completing the core implementation (Phases 1-6), the project structure was reorganized to separate the skill definition from the source code:
+
+- **Go source code** moved from `exa-search/` to `exa-search-go/` (independent project)
+- **Skill definition** remains in `exa-search/` (lightweight, documentation-focused)
+- **Module path** updated from placeholder `github.com/your-org/skill-factory` to actual `github.com/venomwise/skill-factory`
+- **Config struct tags** fixed from `toml:` to `mapstructure:` for viper compatibility
+- **Legacy Python files** removed (scripts, venv, requirements.txt)
+- **Documentation** updated across SKILL.md, CONFIG.md, query-recipes.md, and evals/README.md
+- **AGENTS.md** updated with Go build commands
+
+This restructuring aligns with the repository's design principle: skill directories contain execution artifacts and documentation, while source code lives in separate project directories.

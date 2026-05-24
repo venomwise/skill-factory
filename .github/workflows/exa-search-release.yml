@@ -1,0 +1,310 @@
+name: Build and Release exa-search
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g., v1.0.0)'
+        required: true
+        type: string
+  push:
+    tags:
+      - 'exa-search-v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build for ${{ matrix.os }}-${{ matrix.arch }}
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      matrix:
+        include:
+          # Linux
+          - os: linux
+            arch: amd64
+            runner: ubuntu-latest
+            goos: linux
+            goarch: amd64
+          - os: linux
+            arch: arm64
+            runner: ubuntu-latest
+            goos: linux
+            goarch: arm64
+          
+          # macOS
+          - os: darwin
+            arch: amd64
+            runner: macos-latest
+            goos: darwin
+            goarch: amd64
+          - os: darwin
+            arch: arm64
+            runner: macos-latest
+            goos: darwin
+            goarch: arm64
+          
+          # Windows
+          - os: windows
+            arch: amd64
+            runner: windows-latest
+            goos: windows
+            goarch: amd64
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+          cache-dependency-path: exa-search-go/go.sum
+
+      - name: Get version info
+        id: version
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+          else
+            VERSION="${GITHUB_REF#refs/tags/exa-search-}"
+          fi
+          COMMIT="${GITHUB_SHA:0:8}"
+          DATE=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          GO_VERSION=$(go version | awk '{print $3}')
+          
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "commit=${COMMIT}" >> $GITHUB_OUTPUT
+          echo "date=${DATE}" >> $GITHUB_OUTPUT
+          echo "go_version=${GO_VERSION}" >> $GITHUB_OUTPUT
+
+      - name: Build binary
+        shell: bash
+        working-directory: exa-search-go
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+          CGO_ENABLED: 0
+        run: |
+          BINARY_NAME="exa-search"
+          if [ "${{ matrix.goos }}" = "windows" ]; then
+            BINARY_NAME="exa-search.exe"
+          fi
+          
+          go build -trimpath -ldflags "\
+            -s -w \
+            -X main.version=${{ steps.version.outputs.version }} \
+            -X main.commit=${{ steps.version.outputs.commit }} \
+            -X main.date=${{ steps.version.outputs.date }} \
+            -X main.goVersion=${{ steps.version.outputs.go_version }}" \
+            -o "${BINARY_NAME}" \
+            cmd/exa-search/main.go
+          
+          # Verify the binary
+          if [ "${{ matrix.goos }}" != "windows" ]; then
+            chmod +x "${BINARY_NAME}"
+            file "${BINARY_NAME}"
+          fi
+
+      - name: Create archive
+        shell: bash
+        working-directory: exa-search-go
+        run: |
+          ARCHIVE_NAME="exa-search-${{ steps.version.outputs.version }}-${{ matrix.os }}-${{ matrix.arch }}"
+          
+          if [ "${{ matrix.goos }}" = "windows" ]; then
+            7z a "${ARCHIVE_NAME}.zip" exa-search.exe
+            echo "ARCHIVE_FILE=${ARCHIVE_NAME}.zip" >> $GITHUB_ENV
+          else
+            tar czf "${ARCHIVE_NAME}.tar.gz" exa-search
+            echo "ARCHIVE_FILE=${ARCHIVE_NAME}.tar.gz" >> $GITHUB_ENV
+          fi
+
+      - name: Generate checksum
+        shell: bash
+        working-directory: exa-search-go
+        run: |
+          if [ "${{ matrix.goos }}" = "windows" ]; then
+            sha256sum "${ARCHIVE_FILE}" > "${ARCHIVE_FILE}.sha256"
+          else
+            shasum -a 256 "${ARCHIVE_FILE}" > "${ARCHIVE_FILE}.sha256"
+          fi
+          cat "${ARCHIVE_FILE}.sha256"
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: exa-search-${{ matrix.os }}-${{ matrix.arch }}
+          path: |
+            exa-search-go/${{ env.ARCHIVE_FILE }}
+            exa-search-go/${{ env.ARCHIVE_FILE }}.sha256
+          retention-days: 7
+
+  release:
+    name: Create GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/')
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Get version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+          else
+            VERSION="${GITHUB_REF#refs/tags/exa-search-}"
+          fi
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+
+      - name: Prepare release files
+        run: |
+          mkdir -p release
+          find artifacts -type f \( -name "*.tar.gz" -o -name "*.zip" -o -name "*.sha256" \) -exec cp {} release/ \;
+          ls -lh release/
+
+      - name: Generate release notes
+        id: notes
+        run: |
+          cat > release-notes.md << 'EOF'
+          ## Exa Search ${{ steps.version.outputs.version }}
+          
+          Neural web search CLI tool powered by Exa API.
+          
+          ### Features
+          - 🔍 Multiple search modes: general, docs, research, similar pages
+          - 🔄 Multi-profile failover with automatic retry
+          - ⚙️ Flexible configuration: TOML files, environment variables, CLI flags
+          - 📊 Multiple output formats: JSON, plain text, URLs-only
+          - 🚀 Zero dependencies: statically compiled binary
+          
+          ### Installation
+          
+          Download the appropriate binary for your platform:
+          
+          **Linux (x86_64)**
+          ```bash
+          wget https://github.com/${{ github.repository }}/releases/download/exa-search-${{ steps.version.outputs.version }}/exa-search-${{ steps.version.outputs.version }}-linux-amd64.tar.gz
+          tar xzf exa-search-${{ steps.version.outputs.version }}-linux-amd64.tar.gz
+          sudo mv exa-search /usr/local/bin/
+          ```
+          
+          **Linux (ARM64)**
+          ```bash
+          wget https://github.com/${{ github.repository }}/releases/download/exa-search-${{ steps.version.outputs.version }}/exa-search-${{ steps.version.outputs.version }}-linux-arm64.tar.gz
+          tar xzf exa-search-${{ steps.version.outputs.version }}-linux-arm64.tar.gz
+          sudo mv exa-search /usr/local/bin/
+          ```
+          
+          **macOS (Intel)**
+          ```bash
+          wget https://github.com/${{ github.repository }}/releases/download/exa-search-${{ steps.version.outputs.version }}/exa-search-${{ steps.version.outputs.version }}-darwin-amd64.tar.gz
+          tar xzf exa-search-${{ steps.version.outputs.version }}-darwin-amd64.tar.gz
+          sudo mv exa-search /usr/local/bin/
+          ```
+          
+          **macOS (Apple Silicon)**
+          ```bash
+          wget https://github.com/${{ github.repository }}/releases/download/exa-search-${{ steps.version.outputs.version }}/exa-search-${{ steps.version.outputs.version }}-darwin-arm64.tar.gz
+          tar xzf exa-search-${{ steps.version.outputs.version }}-darwin-arm64.tar.gz
+          sudo mv exa-search /usr/local/bin/
+          ```
+          
+          **Windows (x86_64)**
+          
+          Download `exa-search-${{ steps.version.outputs.version }}-windows-amd64.zip` and extract to a directory in your PATH.
+          
+          ### Configuration
+          
+          Create `~/.config/ai-skills/exa-search.toml`:
+          
+          ```toml
+          [[profiles]]
+          id = "main"
+          api_key = "YOUR_EXA_API_KEY"
+          
+          timeout = 30
+          ```
+          
+          Or use environment variable:
+          ```bash
+          export EXA_API_KEY="your-key-here"
+          ```
+          
+          ### Verification
+          
+          Verify the download with SHA256 checksums:
+          ```bash
+          sha256sum -c exa-search-${{ steps.version.outputs.version }}-linux-amd64.tar.gz.sha256
+          ```
+          
+          Check version:
+          ```bash
+          exa-search version
+          ```
+          
+          ### Documentation
+          
+          - [README](https://github.com/${{ github.repository }}/blob/main/exa-search-go/README.md)
+          - [Configuration Guide](https://github.com/${{ github.repository }}/blob/main/exa-search/references/CONFIG.md)
+          - [Query Recipes](https://github.com/${{ github.repository }}/blob/main/exa-search/references/query-recipes.md)
+          
+          ### Checksums
+          
+          All binaries include SHA256 checksums for verification.
+          EOF
+          cat release-notes.md
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: exa-search-${{ steps.version.outputs.version }}
+          name: Exa Search ${{ steps.version.outputs.version }}
+          body_path: release-notes.md
+          draft: false
+          prerelease: false
+          files: release/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  test:
+    name: Test on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+          cache-dependency-path: exa-search-go/go.sum
+
+      - name: Run tests
+        working-directory: exa-search-go
+        run: go test -v ./...
+
+      - name: Build and verify
+        working-directory: exa-search-go
+        shell: bash
+        run: |
+          go build -o exa-search cmd/exa-search/main.go
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            ./exa-search.exe version
+          else
+            ./exa-search version
+          fi

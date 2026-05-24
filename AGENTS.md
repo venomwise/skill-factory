@@ -18,13 +18,29 @@ Use the same Python environment for dependency installation and script execution
 
 ### Go-based skills (exa-search)
 ```bash
-cd exa-search
+cd exa-search-go
 go build -o exa-search cmd/exa-search/main.go
 ./exa-search version
 ./exa-search search --query "test" --api-key <key>
 ```
 
-The `exa-search` binary is a statically-compiled Go application with zero runtime dependencies. Build with `go build` and run the resulting binary directly. Configuration is loaded from `~/.config/ai-skills/exa-search.toml` (auto-created on first run), environment variables (`EXA_API_KEY`, `EXA_API_KEYS`), or CLI flags (`--api-key`).
+The `exa-search` binary is a statically-compiled Go application with zero runtime dependencies. Source code lives in `exa-search-go/` (independent Go project), while the skill definition is in `exa-search/` (lightweight, documentation-focused). Build with `go build` and run the resulting binary directly. Configuration is loaded from `~/.config/ai-skills/exa-search.toml` (auto-created on first run), environment variables (`EXA_API_KEY`, `EXA_API_KEYS`), or CLI flags (`--api-key`).
+
+### Automated Releases (exa-search)
+GitHub Actions workflows automate building and releasing multi-platform binaries:
+
+```bash
+# Trigger a release manually via GitHub Actions UI:
+# 1. Go to Actions → "Build and Release exa-search"
+# 2. Click "Run workflow"
+# 3. Enter version (e.g., v1.0.0)
+
+# Or create a git tag:
+git tag -a exa-search-v1.0.0 -m "Release v1.0.0"
+git push origin exa-search-v1.0.0
+```
+
+The workflow builds for Linux (amd64, arm64), macOS (amd64, arm64), and Windows (amd64), generates SHA256 checksums, and creates a GitHub Release with installation instructions. See `.github/workflows/QUICKSTART.md` for details.
 
 ## Coding Style & Naming Conventions
 Use 4-space indentation in Python and keep functions, variables, and files in `snake_case`. Keep Markdown concise, instructional, and structured with clear headings. Every skill must expose a `SKILL.md` with YAML frontmatter, especially `name` and `description`. Place reusable templates in `assets/`, supporting docs in `references/`, and executable helpers in `scripts/`.

@@ -7,7 +7,7 @@
 Search official documentation (defaults to docs.openclaw.ai):
 
 ```bash
-python .venv/bin/python scripts/exa_search.py docs --query "telegram streaming openclaw"
+exa-search docs --query "telegram streaming openclaw"
 ```
 
 ### Docs with text extraction
@@ -15,9 +15,7 @@ python .venv/bin/python scripts/exa_search.py docs --query "telegram streaming o
 Extract full text from documentation pages:
 
 ```bash
-python .venv/bin/python scripts/exa_search.py docs \
-  --query "model failover openclaw" \
-  --text --num 2
+exa-search docs --query "model failover openclaw" --text --num 2
 ```
 
 ### Specific domain documentation
@@ -25,7 +23,7 @@ python .venv/bin/python scripts/exa_search.py docs \
 Search documentation on specific domains:
 
 ```bash
-python .venv/bin/python scripts/exa_search.py search \
+exa-search search \
   --query "OpenClaw pricing API parameters" \
   --include-domains docs.openclaw.ai,openclaw.ai \
   --text --num 3
@@ -38,9 +36,7 @@ python .venv/bin/python scripts/exa_search.py search \
 Deep extraction mode for product/company research:
 
 ```bash
-python .venv/bin/python scripts/exa_search.py research \
-  --query "Exa AI company overview" \
-  --num 3
+exa-search research --query "Exa AI company overview" --num 3
 ```
 
 ### Find similar pages
@@ -48,9 +44,7 @@ python .venv/bin/python scripts/exa_search.py research \
 Expand from one canonical source page:
 
 ```bash
-python .venv/bin/python scripts/exa_search.py similar \
-  --url "https://docs.openclaw.ai/channels/telegram" \
-  --num 5
+exa-search similar --url "https://docs.openclaw.ai/channels/telegram" --num 5
 ```
 
 **Warning**: `similar` uses semantic similarity, not official-source-only discovery. For official docs, prefer `docs` search with strict domain restriction.
@@ -62,7 +56,7 @@ python .venv/bin/python scripts/exa_search.py similar \
 Filter by publication date:
 
 ```bash
-python .venv/bin/python scripts/exa_search.py search \
+exa-search search \
   --query "OpenClaw releases" \
   --start-date 2026-01-01 \
   --num 5
@@ -80,17 +74,17 @@ Use `--include-domains` when the user mentions:
 Examples:
 ```bash
 # Official docs only
-python .venv/bin/python scripts/exa_search.py search \
+exa-search search \
   --query "OpenClaw API" \
   --include-domains docs.openclaw.ai
 
 # Official site + docs
-python .venv/bin/python scripts/exa_search.py search \
+exa-search search \
   --query "OpenClaw pricing" \
   --include-domains openclaw.ai,docs.openclaw.ai
 
 # GitHub repositories
-python .venv/bin/python scripts/exa_search.py search \
+exa-search search \
   --query "OpenClaw examples" \
   --include-domains github.com
 ```
@@ -100,7 +94,7 @@ python .venv/bin/python scripts/exa_search.py search \
 Filter out unwanted sources:
 
 ```bash
-python .venv/bin/python scripts/exa_search.py search \
+exa-search search \
   --query "Python async programming" \
   --exclude-domains stackoverflow.com,reddit.com \
   --num 5
@@ -113,8 +107,7 @@ python .venv/bin/python scripts/exa_search.py search \
 Structured JSON for programmatic consumption:
 
 ```bash
-python .venv/bin/python scripts/exa_search.py docs \
-  --query "telegram streaming"
+exa-search docs --query "telegram streaming"
 ```
 
 ### Human-readable output
@@ -122,9 +115,7 @@ python .venv/bin/python scripts/exa_search.py docs \
 Plain text format:
 
 ```bash
-python .venv/bin/python scripts/exa_search.py docs \
-  --query "telegram streaming" \
-  --plain
+exa-search docs --query "telegram streaming" --plain
 ```
 
 ### URLs only
@@ -132,9 +123,7 @@ python .venv/bin/python scripts/exa_search.py docs \
 Extract just the URLs:
 
 ```bash
-python .venv/bin/python scripts/exa_search.py docs \
-  --query "telegram streaming" \
-  --urls
+exa-search docs --query "telegram streaming" --urls
 ```
 
 ## Search Types
@@ -144,9 +133,7 @@ python .venv/bin/python scripts/exa_search.py docs \
 Semantic understanding of query intent:
 
 ```bash
-python .venv/bin/python scripts/exa_search.py search \
-  --query "how to implement real-time streaming" \
-  --type neural
+exa-search search --query "how to implement real-time streaming" --type neural
 ```
 
 ### Keyword search
@@ -154,9 +141,7 @@ python .venv/bin/python scripts/exa_search.py search \
 Traditional keyword matching:
 
 ```bash
-python .venv/bin/python scripts/exa_search.py search \
-  --query "telegram streaming API" \
-  --type keyword
+exa-search search --query "telegram streaming API" --type keyword
 ```
 
 ### Magic search
@@ -164,9 +149,7 @@ python .venv/bin/python scripts/exa_search.py search \
 Exa's automatic type selection:
 
 ```bash
-python .venv/bin/python scripts/exa_search.py search \
-  --query "OpenClaw documentation" \
-  --type magic
+exa-search search --query "OpenClaw documentation" --type magic
 ```
 
 ## Common Patterns
@@ -176,9 +159,7 @@ python .venv/bin/python scripts/exa_search.py search \
 Get key excerpts from documentation:
 
 ```bash
-python .venv/bin/python scripts/exa_search.py docs \
-  --query "authentication methods" \
-  --highlights --num 3
+exa-search docs --query "authentication methods" --highlights --num 3
 ```
 
 ### Recent articles only
@@ -186,7 +167,7 @@ python .venv/bin/python scripts/exa_search.py docs \
 Find fresh content:
 
 ```bash
-python .venv/bin/python scripts/exa_search.py search \
+exa-search search \
   --query "AI coding assistants 2026" \
   --start-date 2026-01-01 \
   --num 10
@@ -197,13 +178,27 @@ python .venv/bin/python scripts/exa_search.py search \
 Search within specific content categories:
 
 ```bash
-python .venv/bin/python scripts/exa_search.py search \
+exa-search search \
   --query "machine learning" \
   --category "research paper" \
   --num 5
 ```
 
 Available categories: `company`, `research paper`, `news`, `github`, `tweet`, `movie`, `song`, `personal site`, `pdf`
+
+## Debug Mode
+
+Enable verbose logging to see what's happening:
+
+```bash
+exa-search --debug search --query "test"
+```
+
+Shows:
+- Configuration resolution
+- HTTP requests/responses
+- Failover decisions
+- API key redaction (first 8 chars visible)
 
 ## Tips
 

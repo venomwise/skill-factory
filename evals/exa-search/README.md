@@ -22,19 +22,18 @@ The `test_cases.json` file contains 15 test scenarios covering:
 
 ### Prerequisites
 
-1. Set up the virtual environment:
-```bash
-python -m venv codex/exa-search/.venv
-codex/exa-search/.venv/bin/pip install -r codex/exa-search/requirements.txt
+1. Build or download the exa-search binary (see main README)
+
+2. Configure API key in `~/.config/ai-skills/exa-search.toml`:
+```toml
+[[profiles]]
+id = "main"
+api_key = "YOUR_EXA_API_KEY"
 ```
 
-2. Configure API key in `codex/exa-search/config.local.json`:
-```json
-{
-  "profiles": [
-    { "id": "main", "api_key": "YOUR_EXA_API_KEY" }
-  ]
-}
+Or use environment variable:
+```bash
+export EXA_API_KEY="YOUR_EXA_API_KEY"
 ```
 
 ### Manual Testing
@@ -43,18 +42,52 @@ Run individual test cases manually:
 
 ```bash
 # Test: docs-basic
-codex/exa-search/.venv/bin/python codex/exa-search/scripts/exa_search.py docs \
-  --query "telegram streaming openclaw" --num 3
+exa-search docs --query "telegram streaming openclaw" --num 3
 
 # Test: docs-with-text
-codex/exa-search/.venv/bin/python codex/exa-search/scripts/exa_search.py docs \
-  --query "model failover openclaw" --num 2 --text
+exa-search docs --query "model failover openclaw" --num 2 --text
 
 # Test: search-domain-filter
-codex/exa-search/.venv/bin/python codex/exa-search/scripts/exa_search.py search \
+exa-search search \
   --query "OpenClaw pricing API parameters" \
   --include-domains docs.openclaw.ai,openclaw.ai \
   --text --num 3
+
+# Test: research-mode
+exa-search research --query "Exa AI company overview" --num 3
+
+# Test: similar-pages
+exa-search similar --url "https://docs.openclaw.ai/channels/telegram" --num 5
+
+# Test: date-filter
+exa-search search --query "OpenClaw releases" --start-date 2026-01-01 --num 5
+
+# Test: highlights
+exa-search docs --query "authentication methods" --highlights --num 3
+
+# Test: search-type-keyword
+exa-search search --query "telegram streaming API" --type keyword --num 5
+
+# Test: category-filter
+exa-search search --query "machine learning" --category "research paper" --num 5
+
+# Test: exclude-domains
+exa-search search \
+  --query "Python async programming" \
+  --exclude-domains stackoverflow.com,reddit.com \
+  --num 5
+
+# Test: plain-output
+exa-search docs --query "telegram streaming" --plain
+
+# Test: urls-output
+exa-search docs --query "telegram streaming" --urls
+
+# Test: no-autoprompt
+exa-search search --query "exact query match" --no-autoprompt --num 3
+
+# Test: debug-mode
+exa-search --debug search --query "test" --num 1
 ```
 
 ### Validation Checklist
@@ -89,7 +122,7 @@ For each test case, verify:
 
 ### Edge Cases (tests 13-15)
 - Autoprompt control
-- API key failover
+- Debug mode
 - Error handling
 
 ## Expected Behavior
@@ -100,6 +133,26 @@ Each test case in `test_cases.json` includes:
 - `command`: Which command to run (docs, search, research, similar)
 - `args`: Command arguments
 - `expected_behavior`: List of expected outcomes
+
+## Failover Testing
+
+To test multi-profile failover, configure multiple keys:
+
+```toml
+[[profiles]]
+id = "main"
+api_key = "KEY_1"
+
+[[profiles]]
+id = "backup"
+api_key = "KEY_2"
+```
+
+Then run with debug mode to see failover in action:
+
+```bash
+exa-search --debug search --query "test"
+```
 
 ## Notes
 
