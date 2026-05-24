@@ -302,9 +302,11 @@ jobs:
         working-directory: exa-search-go
         shell: bash
         run: |
-          go build -o exa-search cmd/exa-search/main.go
           if [ "$RUNNER_OS" = "Windows" ]; then
-            ./exa-search.exe version
+            BINARY="exa-search.exe"
           else
-            ./exa-search version
+            BINARY="exa-search"
+          fi
+          go build -o "$BINARY" cmd/exa-search/main.go
+          ./$BINARY version
           fi
