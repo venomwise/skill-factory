@@ -1,0 +1,252 @@
+# Implementation Plan: Exa Search Go Rewrite
+
+## Overview
+
+This implementation plan is driven by the requirements in [requirements.md](requirements.md).
+
+The implementation is organized into 7 phases executed sequentially: (1) project scaffolding and dependency setup, (2) configuration layer with TOML parsing and priority merging, (3) HTTP client with failover logic, (4) output formatting for three modes, (5) CLI command wiring, (6) testing and validation, and (7) distribution automation. This order ensures foundational layers (config, client) are stable before building higher-level components (CLI, output). The project uses Go 1.22+, cobra for CLI, viper for configuration, and standard library HTTP for API communication. All binaries are statically compiled for zero runtime dependencies.
+
+## Tasks
+
+- [ ] 1. Phase 1: Project Scaffolding
+  - [✅] 1.1 Initialize Go module
+    - Run `go mod init github.com/your-org/skill-factory/exa-search` in `exa-search/` directory
+    - Create directory structure: `cmd/exa-search/`, `internal/config/`, `internal/client/`, `internal/output/`
+    - _Requirements: 11.5_
+  - [✅] 1.2 Add dependencies
+    - Run `go get github.com/spf13/cobra@latest`
+    - Run `go get github.com/spf13/viper@latest`
+    - Run `go get github.com/BurntSushi/toml@latest`
+    - _Requirements: 2.7, 3.4_
+  - [✅] 1.3 Create main entry point
+    - Create `cmd/exa-search/main.go` with `main()` function that calls `cmd.Execute()`
+    - _Requirements: 1.1_
+  - [✅] 1.4 Set up version injection variables
+    - Add global variables in `cmd/exa-search/main.go`: `version`, `commit`, `date`, `goVersion`
+    - Prepare for `-ldflags` injection during build
+    - _Requirements: 1.6, 11.2_
+
+- [ ] 2. Phase 2: Configuration Layer
+  - [✅] 2.1 Define configuration structs
+    - Create `internal/config/config.go` with `Config`, `Profile` structs matching TOML schema
+    - Add fields: `Profiles []Profile`, `BaseURL string`, `Timeout int`
+    - Add `Profile` fields: `ID string`, `APIKey string`, `BaseURL string`
+    - _Requirements: 3.1, 3.2, 3.3_
+  - [✅] 2.2 Implement TOML loading
+    - Create `internal/config/loader.go` with `Load(configPath string) (*Config, error)` function
+    - Use viper to read TOML file from `~/.config/ai-skills/exa-search.toml` if no path provided
+    - Parse into `Config` struct and validate required fields
+    - _Requirements: 2.4, 2.5, 2.9_
+  - [✅] 2.3 Implement environment variable support
+    - In `loader.go`, add logic to read `EXA_API_KEY`, `EXA_API_KEYS`, `EXA_BASE_URL`, `EXA_TIMEOUT`
+    - Create implicit profiles from environment variables when present
+    - _Requirements: 2.2, 2.3_
+  - [✅] 2.4 Implement CLI flag overrides
+    - In `loader.go`, add `ApplyFlags(config *Config, apiKey, profile string)` function
+    - Override config with CLI-provided values following priority rules
+    - _Requirements: 2.1, 2.7_
+  - [✅] 2.5 Implement profile filtering
+    - Add `GetProfile(id string) (*Profile, error)` method to filter by `--profile` flag
+    - Return error if specified profile not found
+    - _Requirements: 4.7_
+  - [✅] 2.6 Implement placeholder key detection
+    - Add `isPlaceholder(key string) bool` helper to detect empty or placeholder API keys
+    - Skip profiles with placeholder keys during loading
+    - _Requirements: 3.5_
+  - [✅] 2.7 Implement auto-creation of config template
+    - In `loader.go`, detect if config file doesn't exist on first load
+    - Create `~/.config/ai-skills/exa-search.toml` with commented template
+    - Template should include example profile with placeholder key and field explanations
+    - _Requirements: 2.6, 3.4_
+  - [✅] 2.8 Implement missing API key error
+    - Return structured error when no valid profiles found after loading all sources
+    - Include setup instructions for all three methods (CLI, env, file)
+    - _Requirements: 2.8, 8.1_
+  - [ ]* 2.9 Write unit tests for config layer
+    - Test TOML parsing with valid and invalid syntax
+    - Test environment variable merging
+    - Test CLI flag priority
+    - Test placeholder key detection
+    - Test profile filtering
+    - Test auto-creation logic
+    - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 2.9, 3.1, 3.2, 3.3, 3.4, 3.5_
+
+- [ ] 3. Phase 3: HTTP Client Layer
+  - [✅] 3.1 Define client structs and interfaces
+    - Create `internal/client/client.go` with `Client` struct
+    - Add fields: `profiles []Profile`, `baseURL string`, `timeout time.Duration`, `httpClient *http.Client`
+    - Define `SearchRequest`, `SearchResponse`, `Result` structs matching API schema
+    - _Requirements: 5.1, 5.11, 6.3_
+  - [✅] 3.2 Implement client constructor
+    - Create `New(profiles []Profile, baseURL string, timeout time.Duration) *Client` function
+    - Initialize HTTP client with timeout
+    - _Requirements: 4.1_
+  - [✅] 3.3 Implement search method
+    - Create `Search(ctx context.Context, req SearchRequest) (*SearchResponse, []Attempt, error)` method
+    - Build HTTP POST request to `{baseURL}/search` with JSON payload
+    - Add `x-api-key` header with profile's API key
+    - Parse response into `SearchResponse` struct
+    - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 5.7, 5.8, 5.9, 5.10, 5.11_
+  - [✅] 3.4 Implement findSimilar method
+    - Create `FindSimilar(ctx context.Context, url string, numResults int) (*SearchResponse, []Attempt, error)` method
+    - Build HTTP POST request to `{baseURL}/findSimilar` with JSON payload
+    - Parse response into `SearchResponse` struct
+    - _Requirements: 6.1, 6.2, 6.3_
+  - [✅] 3.5 Implement failover logic
+    - In `Search` and `FindSimilar`, iterate through profiles on failover-eligible errors
+    - Detect HTTP 429, 401, 403 status codes
+    - Detect response body containing "rate limit", "quota", "credits" keywords
+    - Track each attempt with profile ID, status, error detail in `Attempt` struct
+    - Stop on first success or non-failover error
+    - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.8_
+  - [✅] 3.6 Implement result normalization
+    - Create `normalizeResult(raw map[string]interface{}) Result` helper
+    - Extract and map fields: id, title, url, publishedDate, author, score, text, highlights, image, favicon
+    - Handle missing optional fields gracefully
+    - _Requirements: 5.11, 6.3_
+  - [ ]* 3.7 Write unit tests for client layer
+    - Test search request building with all flag combinations
+    - Test findSimilar request building
+    - Test failover logic with mocked HTTP responses (429, 401, 403, 200)
+    - Test result normalization with various API response shapes
+    - Test non-failover error handling (network timeout)
+    - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.8, 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 5.7, 5.8, 5.9, 5.10, 5.11, 6.1, 6.2, 6.3_
+
+- [ ] 4. Phase 4: Output Layer
+  - [✅] 4.1 Define output structs
+    - Create `internal/output/output.go` with `OutputData` and `Attempt` structs
+    - Add fields matching JSON output schema: ok, mode, query, url, profileId, profileSource, attempts, configPath, baseURL, results, error, detail, elapsedMS
+    - _Requirements: 7.4, 7.5_
+  - [✅] 4.2 Implement JSON formatter
+    - Create `RenderJSON(data OutputData) error` function
+    - Marshal `OutputData` to JSON with indentation
+    - Write to stdout
+    - _Requirements: 7.1, 7.4, 7.5_
+  - [✅] 4.3 Implement plain text formatter
+    - Create `RenderPlain(data OutputData) error` function
+    - Format profile info, attempts summary, and results with titles, URLs, scores, authors, dates
+    - Truncate text previews to 1200 characters with indicator
+    - Write to stdout
+    - _Requirements: 7.2, 7.6, 7.7_
+  - [✅] 4.4 Implement URLs-only formatter
+    - Create `RenderURLs(data OutputData) error` function
+    - Extract URLs from results and print one per line
+    - Write to stdout
+    - _Requirements: 7.3_
+  - [✅] 4.5 Implement error message templates
+    - Create `formatError(errorCode, detail string, attempts []Attempt) string` helper
+    - Implement templates for: missing API key, rate limit (single/multiple profiles), network timeout, invalid config
+    - Include actionable guidance and relevant links
+    - _Requirements: 8.1, 8.2, 8.3, 8.4, 8.5_
+  - [ ]* 4.6 Write unit tests for output layer
+    - Test JSON output structure with success and error cases
+    - Test plain text formatting with various result shapes
+    - Test URLs-only output
+    - Test error message templates for all error codes
+    - Test text truncation logic
+    - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5, 7.6, 7.7, 8.1, 8.2, 8.3, 8.4, 8.5_
+
+- [ ] 5. Phase 5: CLI Command Wiring
+  - [✅] 5.1 Implement root command
+    - Create `cmd/root.go` with cobra root command
+    - Add global flags: `--config`, `--api-key`, `--base-url`, `--timeout`, `--profile`, `--debug`
+    - Add output flags: `--plain`, `--urls`, `--json` (default)
+    - Set up persistent pre-run to load configuration
+    - _Requirements: 1.1, 2.1, 2.4, 8.7_
+  - [✅] 5.2 Implement search command
+    - Create `cmd/search.go` with cobra search subcommand
+    - Add flags: `--query` (required), `--num`, `--type`, `--text`, `--highlights`, `--start-date`, `--include-domains`, `--exclude-domains`, `--category`, `--no-autoprompt`
+    - Wire to config loader, client.Search, and output renderer
+    - _Requirements: 1.2, 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 5.7, 5.8, 5.9, 5.10_
+  - [✅] 5.3 Implement docs command
+    - Create `cmd/docs.go` with cobra docs subcommand
+    - Inherit all search flags
+    - Default `--include-domains` to `docs.openclaw.ai` if not provided
+    - Wire to config loader, client.Search, and output renderer
+    - _Requirements: 1.3, 9.1, 9.2, 9.3_
+  - [✅] 5.4 Implement research command
+    - Create `cmd/research.go` with cobra research subcommand
+    - Inherit all search flags
+    - Default `--text` to true if neither `--text` nor `--highlights` provided
+    - Wire to config loader, client.Search, and output renderer
+    - _Requirements: 1.4, 10.1, 10.2, 10.3_
+  - [✅] 5.5 Implement similar command
+    - Create `cmd/similar.go` with cobra similar subcommand
+    - Add flags: `--url` (required), `--num`
+    - Wire to config loader, client.FindSimilar, and output renderer
+    - _Requirements: 1.5, 6.1, 6.2, 6.4_
+  - [✅] 5.6 Implement version command
+    - Create `cmd/version.go` with cobra version subcommand
+    - Display version, commit, build date, Go version from injected variables
+    - Format output as multi-line text
+    - _Requirements: 1.6, 11.2_
+  - [✅] 5.7 Implement debug logging
+    - Create `internal/debug/logger.go` with `Log(format string, args ...interface{})` function
+    - Check global `--debug` flag and write to stderr if enabled
+    - Add logging calls in config loader, client methods, and failover logic
+    - Implement API key redaction (show first 8 chars + `...`)
+    - _Requirements: 8.7, 8.1, 8.2, 8.3, 8.4, 8.5_
+  - [✅] 5.8 Wire error handling
+    - In each command's run function, catch errors from config/client layers
+    - Map errors to appropriate error codes and messages using output layer
+    - Return non-zero exit code on failure
+    - _Requirements: 1.7, 8.1, 8.2, 8.3, 8.4, 8.5, 8.6_
+  - [ ]* 5.9 Write integration tests for CLI
+    - Test each command with valid and invalid flag combinations
+    - Test output format selection (JSON, plain, URLs)
+    - Test error scenarios (missing API key, invalid config, network failure)
+    - Test debug mode output
+    - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 7.1, 7.2, 7.3, 8.6, 8.7_
+
+- [✅] 6. Checkpoint - Verify Core Functionality
+  - Run `go build -o exa-search cmd/exa-search/main.go` to compile binary
+  - Test search command: `./exa-search search --query "test" --api-key <key>`
+  - Test docs command: `./exa-search docs --query "test" --api-key <key>`
+  - Test research command: `./exa-search research --query "test" --api-key <key>`
+  - Test similar command: `./exa-search similar --url "https://example.com" --api-key <key>`
+  - Test version command: `./exa-search version`
+  - Test output formats: `--json`, `--plain`, `--urls`
+  - Test error handling: run without API key, with invalid config, with network timeout
+  - Test debug mode: `--debug` flag
+  - Confirm requirements 1.1-1.7, 2.1-2.9, 3.1-3.5, 4.1-4.6, 5.1-5.11, 6.1-6.4, 7.1-7.7, 8.1-8.8, 9.1-9.3, 10.1-10.3 are satisfied
+  - Stop if any core functionality fails, config loading is broken, API integration returns unexpected errors, or output formatting is incorrect
+
+- [ ]* 7. Phase 7: Distribution Automation
+  - [ ]* 7.1 Create GitHub Actions workflow
+    - Create `.github/workflows/release.yml` with manual workflow dispatch trigger
+    - Add job to run tests on Linux, macOS, Windows
+    - Add job to build binaries for linux/amd64, linux/arm64, darwin/amd64, darwin/arm64, windows/amd64
+    - Use `go build` with `-ldflags` to inject version, commit, date, Go version
+    - _Requirements: 11.1, 11.2, 11.4_
+  - [ ]* 7.2 Add release artifact creation
+    - In workflow, compress each binary into `.tar.gz` (Unix) or `.zip` (Windows)
+    - Generate SHA256 checksums for all artifacts
+    - Use `actions/create-release` and `actions/upload-release-asset` to publish to GitHub Releases
+    - _Requirements: 11.3_
+  - [ ]* 7.3 Update SKILL.md documentation
+    - Replace Python script commands with binary commands (e.g., `exa-search search --query "..."`)
+    - Update setup section to point to GitHub Releases download
+    - Add installation instructions for each platform
+    - Remove Python venv setup instructions
+    - _Requirements: 11.5_
+  - [ ]* 7.4 Create installation guide
+    - Write `docs/INSTALL.md` with download links, installation steps, and PATH setup for Linux/macOS/Windows
+    - Include verification steps (run `exa-search version`)
+    - _Requirements: 11.5_
+  - [ ]* 7.5 Update evals to use Go binary
+    - Modify `evals/exa-search/` test scripts to call `exa-search` binary instead of Python script
+    - Verify output format compatibility
+    - _Requirements: 11.5_
+
+## Notes
+
+- Tasks marked with `*` are optional and can be skipped for an MVP.
+- Each task references one or more requirement IDs for traceability.
+- The implementation uses Go 1.22+ with cobra (CLI), viper (config), and standard library HTTP (API client).
+- All binaries are statically compiled with no runtime dependencies.
+- Configuration uses TOML format at `~/.config/ai-skills/exa-search.toml`.
+- Failover logic automatically retries with next profile on rate limit, auth errors, or quota exhaustion.
+- Three output formats supported: JSON (default), plain text, URLs-only.
+- Debug mode logs to stderr with API key redaction (first 8 chars visible).
+- Version information is injected at build time via `-ldflags`.
+- GitHub Actions workflow is manually triggered for controlled releases.

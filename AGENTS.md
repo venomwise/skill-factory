@@ -6,6 +6,7 @@ This repository is a skill factory for AI coding agents. Each skill has its own 
 ## Build, Test, and Development Commands
 There is no monolithic build step; work is usually skill-specific.
 
+### Python-based skills (db-explorer)
 ```powershell
 python -m venv .\db-explorer\.venv
 .\db-explorer\.venv\Scripts\pip install -r .\db-explorer\requirements.txt
@@ -14,6 +15,16 @@ python .\db-explorer\scripts\db_query.py --db-type sqlite --url .\sample.db tabl
 ```
 
 Use the same Python environment for dependency installation and script execution. `run_comparison.py` is the main regression check for `db-explorer`; it compares the current script against the baseline and refreshes grading output.
+
+### Go-based skills (exa-search)
+```bash
+cd exa-search
+go build -o exa-search cmd/exa-search/main.go
+./exa-search version
+./exa-search search --query "test" --api-key <key>
+```
+
+The `exa-search` binary is a statically-compiled Go application with zero runtime dependencies. Build with `go build` and run the resulting binary directly. Configuration is loaded from `~/.config/ai-skills/exa-search.toml` (auto-created on first run), environment variables (`EXA_API_KEY`, `EXA_API_KEYS`), or CLI flags (`--api-key`).
 
 ## Coding Style & Naming Conventions
 Use 4-space indentation in Python and keep functions, variables, and files in `snake_case`. Keep Markdown concise, instructional, and structured with clear headings. Every skill must expose a `SKILL.md` with YAML frontmatter, especially `name` and `description`. Place reusable templates in `assets/`, supporting docs in `references/`, and executable helpers in `scripts/`.
