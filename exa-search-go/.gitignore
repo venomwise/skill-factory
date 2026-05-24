@@ -1,6 +1,6 @@
-# Binaries
-exa-search
-exa-search.exe
+# Binaries (root level only)
+/exa-search
+/exa-search.exe
 *.exe
 *.dll
 *.so
