@@ -58,10 +58,11 @@ jobs:
         working-directory: exa-search-go
         shell: bash
         run: |
-          go build -o exa-search cmd/exa-search/main.go
           if [ "$RUNNER_OS" = "Windows" ]; then
+            go build -o exa-search.exe cmd/exa-search/main.go
             ./exa-search.exe version
           else
+            go build -o exa-search cmd/exa-search/main.go
             ./exa-search version
           fi
 
