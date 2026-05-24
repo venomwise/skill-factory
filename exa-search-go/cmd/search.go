@@ -166,7 +166,7 @@ func outputError(errorCode, detail string, attempts []client.Attempt, startTime 
 	format := getOutputFormat()
 	if format == "plain" {
 		fmt.Fprintln(os.Stderr, data.Detail)
-		return fmt.Errorf(errorCode)
+		return fmt.Errorf("%s", errorCode)
 	}
 
 	// JSON output for errors
