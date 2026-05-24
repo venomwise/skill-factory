@@ -59,12 +59,12 @@ jobs:
         shell: bash
         run: |
           if [ "$RUNNER_OS" = "Windows" ]; then
-            go build -o exa-search.exe cmd/exa-search/main.go
-            ./exa-search.exe version
+            BINARY="exa-search.exe"
           else
-            go build -o exa-search cmd/exa-search/main.go
-            ./exa-search version
+            BINARY="exa-search"
           fi
+          go build -o "$BINARY" cmd/exa-search/main.go
+          ./$BINARY version
 
       - name: Upload coverage
         if: matrix.os == 'ubuntu-latest' && matrix.go-version == '1.22'
