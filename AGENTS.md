@@ -26,7 +26,7 @@ go build -o exa-search cmd/exa-search/main.go
 # Build grok-search from source
 cd ../grok-search-go
 go test ./...
-go build -o grok-search cmd/grok-search/main.go
+go build -o grok-search ./cmd/grok-search
 ./grok-search version
 ```
 

@@ -95,7 +95,7 @@ jobs:
             -X main.date=${{ steps.version.outputs.date }} \
             -X main.goVersion=${{ steps.version.outputs.go_version }}" \
             -o "${{ matrix.binary }}" \
-            cmd/grok-search/main.go
+            ./cmd/grok-search
 
           if [ "${{ matrix.goos }}" != "windows" ]; then
             chmod +x "${{ matrix.binary }}"

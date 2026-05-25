@@ -66,23 +66,23 @@ jobs:
 
           GOOS=linux GOARCH=amd64 go build -trimpath -ldflags "${LDFLAGS}" \
             -o ../grok-search/bin/grok-search-linux-amd64 \
-            cmd/grok-search/main.go
+            ./cmd/grok-search
 
           GOOS=linux GOARCH=arm64 go build -trimpath -ldflags "${LDFLAGS}" \
             -o ../grok-search/bin/grok-search-linux-arm64 \
-            cmd/grok-search/main.go
+            ./cmd/grok-search
 
           GOOS=darwin GOARCH=amd64 go build -trimpath -ldflags "${LDFLAGS}" \
             -o ../grok-search/bin/grok-search-darwin-amd64 \
-            cmd/grok-search/main.go
+            ./cmd/grok-search
 
           GOOS=darwin GOARCH=arm64 go build -trimpath -ldflags "${LDFLAGS}" \
             -o ../grok-search/bin/grok-search-darwin-arm64 \
-            cmd/grok-search/main.go
+            ./cmd/grok-search
 
           GOOS=windows GOARCH=amd64 go build -trimpath -ldflags "${LDFLAGS}" \
             -o ../grok-search/bin/grok-search-windows-amd64.exe \
-            cmd/grok-search/main.go
+            ./cmd/grok-search
 
       - name: Set executable permissions
         shell: bash

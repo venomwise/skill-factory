@@ -63,7 +63,7 @@ jobs:
           else
             BINARY="grok-search"
           fi
-          go build -o "$BINARY" cmd/grok-search/main.go
+          go build -o "$BINARY" ./cmd/grok-search
           ./$BINARY version
 
       - name: Upload coverage

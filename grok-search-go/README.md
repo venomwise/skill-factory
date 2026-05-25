@@ -15,7 +15,7 @@ A command-line tool for real-time web research using an OpenAI-compatible Grok e
 ### From Source
 
 ```bash
-go build -o grok-search cmd/grok-search/main.go
+go build -o grok-search ./cmd/grok-search
 ```
 
 ### From Releases
@@ -54,7 +54,7 @@ grok-search version
 ```bash
 go test ./...
 go vet ./...
-go build -o grok-search cmd/grok-search/main.go
+go build -o grok-search ./cmd/grok-search
 ```
 
 ## Architecture
