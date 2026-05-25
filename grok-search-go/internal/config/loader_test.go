@@ -47,6 +47,7 @@ func TestLoadDefaultPathCreatesTemplateBeforeMissingAPIKey(t *testing.T) {
 	clearGrokEnv(t)
 	home := t.TempDir()
 	t.Setenv("HOME", home)
+	t.Setenv("USERPROFILE", home)
 
 	_, err := Load(Options{})
 	if err == nil {

@@ -37,6 +37,7 @@ jobs:
 
       - name: Run tests
         working-directory: grok-search-go
+        shell: bash
         run: go test -v -race -coverprofile=coverage.out ./...
 
       - name: Check code formatting

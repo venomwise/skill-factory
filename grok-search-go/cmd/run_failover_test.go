@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -54,7 +55,7 @@ func writeRunConfig(t *testing.T, serverURL, cooldownPath string, keys ...string
 		profiles.WriteString(key)
 		profiles.WriteString("\"\n")
 	}
-	content := "base_url = \"" + serverURL + "\"\nmodel = \"grok-test\"\ntimeout = 5\n" + profiles.String() + "\n[cooldown]\nenabled = true\nstate_file = \"" + cooldownPath + "\"\ndefault_minutes = 15\nrate_limit_minutes = 20\nquota_minutes = 60\nauth_minutes = 360\n"
+	content := "base_url = " + strconv.Quote(serverURL) + "\nmodel = \"grok-test\"\ntimeout = 5\n" + profiles.String() + "\n[cooldown]\nenabled = true\nstate_file = " + strconv.Quote(cooldownPath) + "\ndefault_minutes = 15\nrate_limit_minutes = 20\nquota_minutes = 60\nauth_minutes = 360\n"
 	path := filepath.Join(t.TempDir(), "grok-search.toml")
 	if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
 		t.Fatalf("WriteFile() error = %v", err)
