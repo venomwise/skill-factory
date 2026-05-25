@@ -18,32 +18,129 @@ Use the same Python environment for dependency installation and script execution
 
 ### Go-based skills (exa-search)
 ```bash
+# Use the skill (Python wrapper auto-detects platform)
+python exa-search/scripts/exa_search.py search --query "test" --api-key <key>
+
+# Or build from source
 cd exa-search-go
 go build -o exa-search cmd/exa-search/main.go
 ./exa-search version
-./exa-search search --query "test" --api-key <key>
 ```
 
-The `exa-search` binary is a statically-compiled Go application with zero runtime dependencies. Source code lives in `exa-search-go/` (independent Go project), while the skill definition is in `exa-search/` (lightweight, documentation-focused). Build with `go build` and run the resulting binary directly. Configuration is loaded from `~/.config/ai-skills/exa-search.toml` (auto-created on first run), environment variables (`EXA_API_KEY`, `EXA_API_KEYS`), or CLI flags (`--api-key`).
+The `exa-search` skill uses a hybrid architecture: pre-compiled Go binaries for all platforms (stored in `exa-search/bin/`) with a Python wrapper that auto-detects the platform. Source code lives in `exa-search-go/` (independent Go project), while the skill definition is in `exa-search/` (self-contained with binaries). Configuration is loaded from `~/.config/ai-skills/exa-search.toml` (auto-created on first run), environment variables (`EXA_API_KEY`, `EXA_API_KEYS`), or CLI flags (`--api-key`).
 
 ### Automated Releases (exa-search)
-GitHub Actions workflows automate building and releasing multi-platform binaries:
+GitHub Actions workflows automate building, releasing, and updating the skill:
 
 ```bash
-# Trigger a release manually via GitHub Actions UI:
-# 1. Go to Actions → "Build and Release exa-search"
-# 2. Click "Run workflow"
-# 3. Enter version (e.g., v1.0.0)
-
-# Or create a git tag:
+# Create a git tag to trigger the full pipeline:
 git tag -a exa-search-v1.0.0 -m "Release v1.0.0"
 git push origin exa-search-v1.0.0
+
+# This automatically:
+# 1. Builds binaries for all platforms (Linux, macOS, Windows on amd64/arm64)
+# 2. Creates a GitHub Release with downloadable archives
+# 3. Updates exa-search/bin/ with the new binaries
+# 4. Commits the updated binaries back to the repo
 ```
 
-The workflow builds for Linux (amd64, arm64), macOS (amd64, arm64), and Windows (amd64), generates SHA256 checksums, and creates a GitHub Release with installation instructions. See `.github/workflows/QUICKSTART.md` for details.
+Two workflows work together:
+- `exa-search-release.yml`: Builds binaries and creates GitHub Release
+- `exa-search-update-skill.yml`: Updates `exa-search/bin/` with new binaries
+
+See `.github/workflows/QUICKSTART.md` for details.
 
 ## Coding Style & Naming Conventions
 Use 4-space indentation in Python and keep functions, variables, and files in `snake_case`. Keep Markdown concise, instructional, and structured with clear headings. Every skill must expose a `SKILL.md` with YAML frontmatter, especially `name` and `description`. Place reusable templates in `assets/`, supporting docs in `references/`, and executable helpers in `scripts/`.
+
+## Skill Design Principles
+
+### Conciseness Principle: Every Token Must Justify Its Cost
+
+The context window is shared between system prompt, skill content, and conversation history. Verbose skills reduce available space for actual work.
+
+**Decision Framework:**
+Before including any content in a skill, verify:
+1. Does this convey information the AI cannot infer?
+2. Would removing this prevent the AI from completing the task?
+3. Does this example demonstrate a pattern the AI cannot deduce?
+
+If the answer is "no" to all three, remove it.
+
+**Examples:**
+
+Bad (verbose):
+```
+PDF files are a common document format that contains text and images.
+To extract text from PDFs, you need a specialized library. There are
+many options available in Python, such as PyPDF2, pdfplumber, and others.
+Each has different features and capabilities...
+```
+
+Good (concise):
+```
+Extract text with pdfplumber:
+import pdfplumber
+with pdfplumber.open("file.pdf") as pdf:
+    text = pdf.pages[0].extract_text()
+```
+
+### Direct Execution Principle: Let AI Do What AI Does Best
+
+Don't wrap operations that AI can perform directly. Each abstraction layer adds cognitive load and hides implementation details.
+
+**Decision Framework:**
+Before adding a wrapper script or helper tool, ask:
+1. Can the AI accomplish this with 2-3 direct commands?
+2. Does this wrapper hide information the AI needs to understand?
+3. Is this abstraction for human convenience or AI capability?
+
+If the answers are "yes"/"yes"/"human", don't add the wrapper.
+
+**Examples:**
+
+Bad (unnecessary wrapper):
+```python
+# scripts/detect_platform.py
+def get_platform():
+    system = platform.system()
+    machine = platform.machine()
+    # ... 50 lines of mapping logic ...
+    return binary_name
+
+# Usage: python scripts/detect_platform.py
+```
+
+Good (direct execution):
+```bash
+# AI detects platform directly
+uname -s  # Darwin
+uname -m  # arm64
+
+# AI selects binary
+bin/tool-darwin-arm64 --query "test"
+```
+
+**Why Direct is Better:**
+- AI sees the actual execution path
+- Transparent for debugging
+- Truly zero dependencies
+- Teaches platform awareness
+- Enables adaptation to edge cases
+
+### When to Add Abstraction
+
+Abstraction is appropriate when:
+- The operation requires domain-specific knowledge AI lacks
+- The task involves complex state management
+- Multiple steps must be atomic (transactions)
+- The abstraction genuinely simplifies the mental model
+
+Example of good abstraction:
+```python
+# scripts/db_query.py - handles connection pooling, retries, error translation
+# AI doesn't need to know database driver internals
+```
 
 ## Testing Guidelines
 This repo does not currently enforce a global coverage threshold. Instead, add focused eval data under `evals/<skill>/` and run the relevant script or workflow manually. For database work, prefer deterministic checks through `evals/db-explorer/run_comparison.py`. Name new eval artifacts descriptively, following existing patterns such as `evals.json`, `grades.json`, and `benchmark.md`.

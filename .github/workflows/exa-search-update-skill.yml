@@ -1,0 +1,134 @@
+name: Update exa-search Skill Binaries
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version tag (e.g., v1.0.0)'
+        required: true
+        type: string
+  workflow_run:
+    workflows: ["Build and Release exa-search"]
+    types:
+      - completed
+
+permissions:
+  contents: write
+
+jobs:
+  update-skill:
+    name: Update skill binaries
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+          cache-dependency-path: exa-search-go/go.sum
+
+      - name: Get version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+          else
+            # Get the latest tag
+            VERSION=$(git describe --tags --abbrev=0 | sed 's/exa-search-//')
+          fi
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "Building version: ${VERSION}"
+
+      - name: Create bin directory
+        run: |
+          mkdir -p exa-search/bin
+          rm -f exa-search/bin/exa-search-*
+
+      - name: Build all platforms
+        working-directory: exa-search-go
+        env:
+          CGO_ENABLED: 0
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          COMMIT="${GITHUB_SHA:0:8}"
+          DATE=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          GO_VERSION=$(go version | awk '{print $3}')
+          
+          LDFLAGS="-s -w -X main.version=${VERSION} -X main.commit=${COMMIT} -X main.date=${DATE} -X main.goVersion=${GO_VERSION}"
+          
+          # Linux amd64
+          echo "Building linux-amd64..."
+          GOOS=linux GOARCH=amd64 go build -trimpath -ldflags "${LDFLAGS}" \
+            -o ../exa-search/bin/exa-search-linux-amd64 \
+            cmd/exa-search/main.go
+          
+          # Linux arm64
+          echo "Building linux-arm64..."
+          GOOS=linux GOARCH=arm64 go build -trimpath -ldflags "${LDFLAGS}" \
+            -o ../exa-search/bin/exa-search-linux-arm64 \
+            cmd/exa-search/main.go
+          
+          # macOS amd64
+          echo "Building darwin-amd64..."
+          GOOS=darwin GOARCH=amd64 go build -trimpath -ldflags "${LDFLAGS}" \
+            -o ../exa-search/bin/exa-search-darwin-amd64 \
+            cmd/exa-search/main.go
+          
+          # macOS arm64
+          echo "Building darwin-arm64..."
+          GOOS=darwin GOARCH=arm64 go build -trimpath -ldflags "${LDFLAGS}" \
+            -o ../exa-search/bin/exa-search-darwin-arm64 \
+            cmd/exa-search/main.go
+          
+          # Windows amd64
+          echo "Building windows-amd64..."
+          GOOS=windows GOARCH=amd64 go build -trimpath -ldflags "${LDFLAGS}" \
+            -o ../exa-search/bin/exa-search-windows-amd64.exe \
+            cmd/exa-search/main.go
+
+      - name: Set executable permissions
+        run: |
+          chmod +x exa-search/bin/exa-search-*
+          ls -lh exa-search/bin/
+
+      - name: Generate checksums
+        working-directory: exa-search/bin
+        run: |
+          sha256sum exa-search-* > SHA256SUMS
+          cat SHA256SUMS
+
+      - name: Commit and push changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          git add exa-search/bin/
+          
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "chore(exa-search): update binaries to ${{ steps.version.outputs.version }}"
+            git push
+          fi
+
+      - name: Summary
+        run: |
+          echo "## Skill Binaries Updated ✅" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Version: \`${{ steps.version.outputs.version }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Binaries" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          ls -lh exa-search/bin/ >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Checksums" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          cat exa-search/bin/SHA256SUMS >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY

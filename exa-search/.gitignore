@@ -1,7 +1,30 @@
-.venv/
-config.local.json
+# Python
 __pycache__/
-*.pyc
-*.pyo
-*.pyd
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
 .DS_Store
+Thumbs.db
+
+# Config (user-specific)
+*.toml
+!example.toml
+
+# Logs
+*.log
+
+# DO NOT ignore binaries - they are part of the skill
+# bin/ is intentionally tracked
