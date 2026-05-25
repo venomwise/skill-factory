@@ -2,12 +2,8 @@ name: Test grok-search
 
 on:
   push:
-    branches:
-      - main
-      - develop
-    paths:
-      - 'grok-search-go/**'
-      - '.github/workflows/grok-search-test.yml'
+    tags:
+      - 'grok-search-v*'
   pull_request:
     paths:
       - 'grok-search-go/**'
