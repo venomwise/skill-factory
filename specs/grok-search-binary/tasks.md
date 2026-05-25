@@ -1,0 +1,273 @@
+# Implementation Plan: Grok Search Binary
+
+## Overview
+
+This implementation plan is driven by the requirements in [requirements.md](requirements.md). The work is organized into eight phases: create the Go CLI skeleton, implement configuration/profile resolution, implement request/response handling, add failover and cooldown, implement output formats, package the skill and documentation, add project-scoped GitHub Actions, and validate the completed rewrite. The implementation uses Go with Cobra/Viper-style structure aligned with `exa-search-go`, but keeps Grok-specific commands and prompt modes separate.
+
+## Tasks
+
+- [✅] 1. Phase 1: Create Go CLI project skeleton
+  - [✅] 1.1 Initialize `grok-search-go` module and command entrypoint
+    - Create `grok-search-go/go.mod` with module path matching the repository import convention
+    - Create `grok-search-go/cmd/grok-search/main.go` with version variables and `cmd.Execute()` invocation
+    - Create `grok-search-go/README.md` with build and development commands
+    - _Requirements: 1.1, 1.6_
+  - [✅] 1.2 Implement root command and global flags
+    - Create `grok-search-go/cmd/root.go` with `rootCmd`, `Execute`, `SetVersionInfo`, and global flag variables
+    - Add flags `--config`, `--api-key`, `--base-url`, `--model`, `--timeout`, `--profile`, `--ignore-cooldown`, `--extra-body-json`, `--extra-headers-json`, `--plain`, `--urls`, `--json`, and `--debug`
+    - Ensure debug mode is enabled before command execution when `--debug` is set
+    - _Requirements: 1.1, 2.3, 6.1, 6.2, 6.3_
+  - [✅] 1.3 Implement research mode commands
+    - Create `grok-search-go/cmd/news.go` with `newsCmd` requiring `--query`
+    - Create `grok-search-go/cmd/social.go` with `socialCmd` requiring `--query`
+    - Create `grok-search-go/cmd/research.go` with `researchCmd` requiring `--query`
+    - Create `grok-search-go/cmd/docs_compare.go` with `docsCompareCmd` requiring `--query`
+    - Route all commands to a shared `runResearchMode(mode, query string) error` function stub
+    - _Requirements: 1.2, 1.3, 1.4, 1.5, 1.7_
+  - [✅] 1.4 Implement version and debug helpers
+    - Create `grok-search-go/cmd/version.go` with `versionCmd` printing version, commit, date, and Go version
+    - Create `grok-search-go/internal/debug/logger.go` with `Enable`, `Log`, and redaction-friendly debug helpers
+    - Ensure `grok-search version` does not load API credentials
+    - _Requirements: 1.6_
+  - [✅] 1.5 Implement mode prompt registry
+    - Create `grok-search-go/internal/prompts/prompts.go` with `ForMode(mode string) string`
+    - Port the existing Python mode prompts for `news`, `social`, `research`, and `docs-compare`
+    - Ensure `docs-compare` prompt preserves the required section labels from the existing behavior
+    - _Requirements: 4.3_
+  - [✅]* 1.6 Write CLI skeleton tests
+    - Add command tests for missing `--query` errors on research commands
+    - Add command tests confirming `version` runs without config or API key
+    - Add prompt registry tests for all supported modes
+    - _Requirements: 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 4.3_
+
+- [✅] 2. Phase 2: Implement TOML configuration and profile resolution
+  - [✅] 2.1 Define configuration data structures
+    - Create `grok-search-go/internal/config/config.go` with `Config`, `Profile`, `CooldownConfig`, `ResolvedConfig`, and `ResolvedProfile` types
+    - Include fields for global `base_url`, `model`, `timeout`, `profiles`, `extra_body`, `extra_headers`, and cooldown settings
+    - _Requirements: 2.1, 2.4, 2.5, 3.4, 3.5_
+  - [✅] 2.2 Implement config template creation
+    - Create `grok-search-go/internal/config/template.go` with `EnsureTemplate(path string) error`
+    - Write a TOML template containing default `base_url`, default `model`, a placeholder `[[profiles]]`, `[extra_body]`, `[extra_headers]`, and `[cooldown]`
+    - Ensure missing default config is created before returning `missing_api_key`
+    - _Requirements: 2.1, 2.2, 2.4, 2.5_
+  - [✅] 2.3 Implement config loading and precedence
+    - Create `grok-search-go/internal/config/loader.go` with `Load(opts Options) (*ResolvedConfig, error)`
+    - Resolve default config path `~/.config/ai-skills/grok-search.toml`
+    - Merge CLI flags, environment variables, TOML config, and built-in defaults in the approved precedence order
+    - Support `GROK_CONFIG`, `GROK_BASE_URL`, `GROK_MODEL`, and `GROK_TIMEOUT`
+    - Return `invalid_config` for TOML parse errors
+    - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6_
+  - [✅] 2.4 Implement profile resolution
+    - Add `ResolveProfiles` in `grok-search-go/internal/config/loader.go`
+    - Resolve credentials from `--api-key`, `GROK_API_KEYS`, `GROK_API_KEY`, then TOML `[[profiles]]`
+    - Filter placeholder API keys including `YOUR_GROK_API_KEY`
+    - Apply `--profile` filtering
+    - Apply per-profile `base_url` and `model` overrides
+    - Return `missing_api_key` when no usable profile exists
+    - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8_
+  - [✅] 2.5 Implement JSON override parsing
+    - Add config parsing for `--extra-body-json`, `--extra-headers-json`, `GROK_EXTRA_BODY_JSON`, and `GROK_EXTRA_HEADERS_JSON`
+    - Merge TOML `[extra_body]` and `[extra_headers]` with environment and CLI JSON overrides
+    - Return `invalid_json` when any override is not a JSON object
+    - _Requirements: 2.7, 4.4, 4.5_
+  - [✅]* 2.6 Write configuration tests
+    - Test config path defaults and template creation
+    - Test precedence across CLI, environment, TOML, and built-in defaults
+    - Test profile resolution order and `--profile` filtering
+    - Test placeholder key filtering and missing key errors
+    - Test profile-level `base_url` and `model` overrides
+    - Test invalid TOML and invalid JSON override errors
+    - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8, 10.1_
+
+- [✅] 3. Phase 3: Implement OpenAI-compatible client and response parsing
+  - [✅] 3.1 Define client request and response models
+    - Create `grok-search-go/internal/client/request.go` with request structs for chat completions messages and body construction
+    - Create `grok-search-go/internal/client/response.go` with response structs for choices, messages, usage, and normalized assistant output
+    - _Requirements: 4.1, 4.2, 4.6_
+  - [✅] 3.2 Implement HTTP client
+    - Create `grok-search-go/internal/client/client.go` with `Client` and `DoResearch(ctx, request)` methods
+    - POST to `{base_url}/v1/chat/completions`
+    - Set authorization, content type, user agent, timeout, and merged extra headers
+    - Merge extra body into the request body after setting required defaults
+    - Return structured request failure details on unreachable endpoints or timeouts
+    - _Requirements: 4.1, 4.2, 4.4, 4.5, 4.8_
+  - [✅] 3.3 Implement response content parsing
+    - Add `ParseChatResponse(raw []byte)` for standard JSON chat completions
+    - Add `ParseAssistantContent(content string)` to parse assistant JSON with `content` and `sources`
+    - Add URL extraction fallback for non-JSON assistant content
+    - Preserve non-JSON assistant content in `raw`
+    - _Requirements: 4.6, 6.4, 6.5, 6.6_
+  - [✅] 3.4 Implement SSE-like response parsing
+    - Add `ParseSSELikeResponse(raw []byte)` for `data: ...` chunk responses
+    - Reconstruct assistant content from chunk `delta.content` fields
+    - Ignore malformed chunks without crashing the whole parser when usable chunks exist
+    - _Requirements: 4.7, 10.3_
+  - [✅] 3.5 Wire commands to client pipeline
+    - Implement `runResearchMode(mode, query string) error` in `grok-search-go/cmd/root.go` or a dedicated command helper file
+    - Load resolved config, select prompt, execute the client request through configured profiles, and pass results to output rendering stubs
+    - _Requirements: 1.2, 1.3, 1.4, 1.5, 4.1, 4.2, 4.3_
+  - [✅]* 3.6 Write client and parser tests
+    - Use `httptest.Server` to test successful standard JSON responses
+    - Test request body shape, extra body merging, and extra header propagation
+    - Test assistant JSON content normalization
+    - Test plain assistant text URL extraction and `raw` preservation
+    - Test SSE-like `data:` response reconstruction
+    - Test unreachable endpoint or timeout error behavior
+    - _Requirements: 4.1, 4.2, 4.4, 4.5, 4.6, 4.7, 4.8, 6.4, 6.5, 10.3, 10.4_
+
+- [✅] 4. Phase 4: Implement failover and cooldown behavior
+  - [✅] 4.1 Implement failover classification
+    - Create `grok-search-go/internal/client/failover.go` with `ShouldFailover(status int, detail string) bool`
+    - Detect HTTP 401, 403, and 429
+    - Detect approved text indicators for rate limit, quota, credits, billing, exhausted, unauthorized, forbidden, and token unavailable
+    - _Requirements: 5.1, 5.2_
+  - [✅] 4.2 Implement cooldown configuration and duration mapping
+    - Create `grok-search-go/internal/cooldown/cooldown.go` with duration mapping logic
+    - Map auth errors to 360 minutes, quota/billing to 60 minutes, rate limit to 20 minutes, and other failover errors to 15 minutes
+    - Respect `[cooldown].enabled`
+    - _Requirements: 5.4_
+  - [✅] 4.3 Implement cooldown store
+    - Create `grok-search-go/internal/cooldown/store.go` with load, save, prune, get active, clear, and set operations
+    - Store profile entries with `until`, `untilText`, `seconds`, `reason`, `status`, `setAt`, and `setAtText`
+    - Prune expired entries before profile selection completes
+    - _Requirements: 5.4, 5.5, 5.6_
+  - [✅] 4.4 Integrate failover loop into research execution
+    - Update research execution to try resolved profiles in order
+    - Record attempt details for success, failure, cooldown skip, failover decision, status, and shortened detail
+    - Skip cooling profiles unless `--ignore-cooldown` is set
+    - Return `all_profiles_in_cooldown` when every candidate is cooling
+    - Return `all_profiles_failed` when all usable profiles fail
+    - _Requirements: 5.3, 5.5, 5.7, 5.8, 6.6, 6.7_
+  - [✅]* 4.5 Write failover and cooldown tests
+    - Test status-code and text-based failover classification
+    - Test cooldown duration mapping by error type
+    - Test cooldown state read, write, prune, set, clear, and active checks
+    - Use `httptest.Server` to simulate 429 then backup success
+    - Test all profiles in cooldown and all profiles failed outputs
+    - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 5.7, 5.8, 10.2, 10.4_
+
+- [✅] 5. Phase 5: Implement normalized output and structured errors
+  - [✅] 5.1 Define output models
+    - Create `grok-search-go/internal/output/output.go` with result, source, attempt, usage, and error response structs
+    - Ensure successful JSON fields include `ok`, `mode`, `query`, `profileId`, `profileSource`, `attempts`, `config_path`, `config_paths`, `base_url`, `model`, `content`, `sources`, `raw`, `usage`, and `elapsed_ms` where available
+    - _Requirements: 6.6, 6.7_
+  - [✅] 5.2 Implement JSON renderer
+    - Create `grok-search-go/internal/output/json.go` with `RenderJSON(w io.Writer, value any) error`
+    - Pretty-print JSON by default when no output format flag is supplied
+    - _Requirements: 6.1, 6.6, 6.7_
+  - [✅] 5.3 Implement plain renderer
+    - Create `grok-search-go/internal/output/plain.go` with `RenderPlain(w io.Writer, result Result) error`
+    - Include profile, attempts, content, and sources in human-readable form
+    - Render structured errors readably when `--plain` is set
+    - _Requirements: 6.2, 6.7_
+  - [✅] 5.4 Implement URLs renderer
+    - Create `grok-search-go/internal/output/urls.go` with `RenderURLs(w io.Writer, sources []Source) error`
+    - Print only source URLs, one per line
+    - _Requirements: 6.3_
+  - [✅] 5.5 Implement error helpers and exit codes
+    - Create `grok-search-go/internal/output/errors.go` with typed error response helpers for `missing_api_key`, `invalid_config`, `invalid_json`, `all_profiles_in_cooldown`, `all_profiles_failed`, and request failures
+    - Ensure non-command-line runtime errors render structured output and return non-zero status where required
+    - _Requirements: 2.6, 2.7, 3.7, 4.8, 5.7, 5.8, 6.7_
+  - [✅]* 5.6 Write output tests
+    - Test default pretty JSON output
+    - Test plain output for success and error cases
+    - Test URLs-only output
+    - Test required JSON fields on successful output
+    - Test structured error objects for known runtime failures
+    - _Requirements: 6.1, 6.2, 6.3, 6.6, 6.7_
+
+- [✅]* 6. Checkpoint - Verify Go CLI behavior before packaging
+  - Run `cd grok-search-go && go test ./...`
+  - Run `cd grok-search-go && go vet ./...`
+  - Run `cd grok-search-go && test -z "$(gofmt -l .)"`
+  - Run `cd grok-search-go && go build -o grok-search cmd/grok-search/main.go`
+  - Run `cd grok-search-go && ./grok-search version`
+  - Validate that completed work satisfies requirements 1.1-6.7 and 10.1-10.5
+  - Stop if command behavior, config precedence, failover/cooldown, output shape, or local validation fails
+
+- [✅] 7. Phase 6: Package skill binaries and update skill files
+  - [✅] 7.1 Create binary directory documentation
+    - Create `grok-search/bin/README.md` describing supported platforms, expected filenames, automatic updates, manual builds, and checksum generation
+    - _Requirements: 7.1, 7.2, 7.3_
+  - [✅] 7.2 Add TOML config example and remove JSON examples
+    - Create `grok-search/config.example.toml` with default endpoint, model, profile examples, extra body/header sections, and cooldown settings
+    - Remove `grok-search/config.example.json` from the supported config path
+    - Remove or de-document `grok-search/config.json`
+    - _Requirements: 2.4, 2.5, 7.5, 9.2, 9.5, 9.6_
+  - [✅] 7.3 Remove old Python script from supported usage
+    - Delete `grok-search/scripts/grok_search.py` if no repository references require it
+    - Remove the empty `grok-search/scripts/` directory if applicable
+    - Ensure no official documentation uses `python3 scripts/grok_search.py`
+    - _Requirements: 1.8, 7.6, 9.3, 9.4_
+  - [✅] 7.4 Build local platform binary and checksum seed
+    - Build the current platform binary from `grok-search-go/cmd/grok-search/main.go` into `grok-search/bin/` using the approved filename pattern
+    - Generate or refresh `grok-search/bin/SHA256SUMS` for available local binaries
+    - Leave full multi-platform binary generation to the update workflow if local cross-builds are not produced in this phase
+    - _Requirements: 7.1, 7.2_
+  - [✅] 7.5 Update `grok-search/SKILL.md`
+    - Replace Python setup and quick start instructions with binary setup and platform detection instructions
+    - Document supported platform binary names
+    - Show `news`, `social`, `research`, and `docs-compare` subcommand examples
+    - Keep routing guidance that prefers `exa-search` for official docs, API references, pricing pages, and canonical source retrieval
+    - _Requirements: 7.4, 7.6, 9.1, 9.3, 9.6_
+  - [✅] 7.6 Update configuration reference
+    - Rewrite `grok-search/references/configuration.md` for TOML config, environment variables, precedence, profile overrides, failover, and cooldown
+    - Include the default `https://api.x.ai` base URL and profile-level override examples
+    - _Requirements: 2.1, 2.3, 2.4, 2.5, 3.5, 5.1, 5.2, 5.4, 9.2, 9.6_
+  - [✅] 7.7 Update query recipes and migration guide
+    - Rewrite `grok-search/references/query-recipes.md` so all examples use `bin/grok-search-<platform> <command> --query ...`
+    - Create `grok-search/references/migration-from-python.md` mapping old `--mode` commands to new subcommands
+    - Document JSON-to-TOML config migration examples
+    - _Requirements: 1.8, 7.6, 9.3, 9.4, 9.5_
+
+- [✅] 8. Phase 7: Add project-scoped GitHub Actions
+  - [✅] 8.1 Add Grok test workflow
+    - Create `.github/workflows/grok-search-test.yml`
+    - Trigger on push and pull request path filters for `grok-search-go/**` and `.github/workflows/grok-search-test.yml`
+    - Set up Go using `cache-dependency-path: grok-search-go/go.sum`
+    - Run tests, formatting check, vet, and build in `grok-search-go`
+    - _Requirements: 8.1, 8.4, 8.5, 10.5_
+  - [✅] 8.2 Add Grok release workflow
+    - Create `.github/workflows/grok-search-release.yml`
+    - Trigger on manual dispatch and `grok-search-v*` tags only
+    - Build Linux amd64, Linux arm64, macOS amd64, macOS arm64, and Windows amd64 binaries from `grok-search-go`
+    - Include version metadata through Go linker flags
+    - Create release archives and checksums
+    - _Requirements: 7.1, 7.2, 8.2, 8.4, 8.5, 8.7, 10.6_
+  - [✅] 8.3 Add Grok update-skill workflow
+    - Create `.github/workflows/grok-search-update-skill.yml`
+    - Trigger on manual dispatch and successful `Build and Release grok-search` workflow runs
+    - Build all supported platform binaries into `grok-search/bin/`
+    - Generate `grok-search/bin/SHA256SUMS`
+    - Commit only `grok-search/bin/**` changes
+    - _Requirements: 7.1, 7.2, 8.3, 8.4, 8.5, 8.6, 10.6_
+  - [✅]* 8.4 Validate workflow isolation
+    - Inspect Grok workflows to confirm no trigger uses global `v*` or `*` tag patterns
+    - Inspect Grok workflows to confirm no step writes to `exa-search/bin/**`
+    - Confirm `exa-search-v*` tags do not match Grok release workflow patterns
+    - _Requirements: 8.1, 8.2, 8.3, 8.6, 8.7_
+
+- [✅]* 9. Phase 8: Final validation and traceability
+  - [✅] 9.1 Run full local validation
+    - Run `cd grok-search-go && go test ./...`
+    - Run `cd grok-search-go && go vet ./...`
+    - Run `cd grok-search-go && test -z "$(gofmt -l .)"`
+    - Run `cd grok-search-go && go build -o grok-search cmd/grok-search/main.go`
+    - Run `cd grok-search-go && ./grok-search version`
+    - _Requirements: 10.5_
+  - [✅] 9.2 Validate skill documentation paths
+    - Search `grok-search/` for stale `python3 scripts/grok_search.py` examples
+    - Search `grok-search/` for stale JSON config guidance except migration examples
+    - Confirm `SKILL.md`, `configuration.md`, `query-recipes.md`, and `migration-from-python.md` match the approved binary/TOML design
+    - _Requirements: 1.8, 7.4, 7.5, 7.6, 9.1, 9.2, 9.3, 9.4, 9.5, 9.6_
+  - [✅] 9.3 Validate requirement traceability
+    - Review `specs/grok-search-binary/requirements.md` and this task list
+    - Confirm each implemented requirement has at least one associated task
+    - Confirm no implementation introduced old Python CLI compatibility, JSON config support as official behavior, shared Go libraries, or global release workflows
+    - _Requirements: 1.1, 1.8, 2.1, 2.7, 3.1, 3.8, 4.1, 4.8, 5.1, 5.8, 6.1, 6.7, 7.1, 7.6, 8.1, 8.7, 9.1, 9.6, 10.1, 10.6_
+
+## Notes
+
+- Tasks marked with `*` are optional and can be skipped for an MVP, but test and validation tasks should be completed before release.
+- The implementation should follow `exa-search-go` for structure and workflow patterns while keeping Grok-specific modes, prompts, and request behavior.
+- The approved release convention is project-scoped: use tags such as `grok-search-v1.0.0`, not global `v1.0.0` tags.

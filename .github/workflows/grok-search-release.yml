@@ -1,0 +1,211 @@
+name: Build and Release grok-search
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g., v1.0.0)'
+        required: true
+        type: string
+  push:
+    tags:
+      - 'grok-search-v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build ${{ matrix.os }}-${{ matrix.arch }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - os: linux
+            arch: amd64
+            goos: linux
+            goarch: amd64
+            binary: grok-search
+            archive: tar.gz
+          - os: linux
+            arch: arm64
+            goos: linux
+            goarch: arm64
+            binary: grok-search
+            archive: tar.gz
+          - os: darwin
+            arch: amd64
+            goos: darwin
+            goarch: amd64
+            binary: grok-search
+            archive: tar.gz
+          - os: darwin
+            arch: arm64
+            goos: darwin
+            goarch: arm64
+            binary: grok-search
+            archive: tar.gz
+          - os: windows
+            arch: amd64
+            goos: windows
+            goarch: amd64
+            binary: grok-search.exe
+            archive: zip
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: grok-search-go/go.mod
+          cache-dependency-path: grok-search-go/go.sum
+
+      - name: Get version info
+        id: version
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+          else
+            VERSION="${GITHUB_REF#refs/tags/grok-search-}"
+          fi
+          COMMIT="${GITHUB_SHA:0:8}"
+          DATE=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          GO_VERSION=$(go version | awk '{print $3}')
+
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "commit=${COMMIT}" >> "$GITHUB_OUTPUT"
+          echo "date=${DATE}" >> "$GITHUB_OUTPUT"
+          echo "go_version=${GO_VERSION}" >> "$GITHUB_OUTPUT"
+
+      - name: Build binary
+        working-directory: grok-search-go
+        shell: bash
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+          CGO_ENABLED: 0
+        run: |
+          go build -trimpath -ldflags "\
+            -s -w \
+            -X main.version=${{ steps.version.outputs.version }} \
+            -X main.commit=${{ steps.version.outputs.commit }} \
+            -X main.date=${{ steps.version.outputs.date }} \
+            -X main.goVersion=${{ steps.version.outputs.go_version }}" \
+            -o "${{ matrix.binary }}" \
+            cmd/grok-search/main.go
+
+          if [ "${{ matrix.goos }}" != "windows" ]; then
+            chmod +x "${{ matrix.binary }}"
+          fi
+
+      - name: Create archive
+        working-directory: grok-search-go
+        shell: bash
+        run: |
+          ARCHIVE_NAME="grok-search-${{ steps.version.outputs.version }}-${{ matrix.os }}-${{ matrix.arch }}"
+          if [ "${{ matrix.archive }}" = "zip" ]; then
+            zip "${ARCHIVE_NAME}.zip" "${{ matrix.binary }}"
+            echo "ARCHIVE_FILE=${ARCHIVE_NAME}.zip" >> "$GITHUB_ENV"
+          else
+            tar czf "${ARCHIVE_NAME}.tar.gz" "${{ matrix.binary }}"
+            echo "ARCHIVE_FILE=${ARCHIVE_NAME}.tar.gz" >> "$GITHUB_ENV"
+          fi
+
+      - name: Generate checksum
+        working-directory: grok-search-go
+        shell: bash
+        run: |
+          sha256sum "${ARCHIVE_FILE}" > "${ARCHIVE_FILE}.sha256"
+          cat "${ARCHIVE_FILE}.sha256"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: grok-search-${{ matrix.os }}-${{ matrix.arch }}
+          path: |
+            grok-search-go/${{ env.ARCHIVE_FILE }}
+            grok-search-go/${{ env.ARCHIVE_FILE }}.sha256
+          retention-days: 7
+
+  release:
+    name: Create GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/')
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Get version
+        id: version
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+          else
+            VERSION="${GITHUB_REF#refs/tags/grok-search-}"
+          fi
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+
+      - name: Prepare release files
+        shell: bash
+        run: |
+          mkdir -p release
+          find artifacts -type f \( -name "*.tar.gz" -o -name "*.zip" -o -name "*.sha256" \) -exec cp {} release/ \;
+          ls -lh release/
+
+      - name: Generate release notes
+        shell: bash
+        run: |
+          cat > release-notes.md << 'EOF'
+          ## Grok Search ${{ steps.version.outputs.version }}
+
+          Real-time web research CLI powered by an OpenAI-compatible Grok endpoint.
+
+          ### Features
+          - Live research modes: news, social, research, docs-compare
+          - Multi-profile failover with cooldown support
+          - TOML configuration with environment and CLI overrides
+          - JSON, plain text, and URLs-only output
+          - Zero Python runtime dependency
+
+          ### Configuration
+          Create `~/.config/ai-skills/grok-search.toml`:
+
+          ```toml
+          base_url = "https://api.x.ai"
+          model = "grok-4.1-fast"
+
+          [[profiles]]
+          id = "main"
+          api_key = "YOUR_GROK_API_KEY"
+          ```
+
+          ### Verification
+          Verify downloads with SHA256 checksum files, then run:
+
+          ```bash
+          grok-search version
+          ```
+          EOF
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: grok-search-${{ steps.version.outputs.version }}
+          name: Grok Search ${{ steps.version.outputs.version }}
+          body_path: release-notes.md
+          draft: false
+          prerelease: false
+          files: release/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

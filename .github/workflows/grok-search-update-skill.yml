@@ -1,0 +1,130 @@
+name: Update grok-search Skill Binaries
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version tag (e.g., v1.0.0)'
+        required: true
+        type: string
+  workflow_run:
+    workflows: ["Build and Release grok-search"]
+    types:
+      - completed
+
+permissions:
+  contents: write
+
+jobs:
+  update-skill:
+    name: Update skill binaries
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: grok-search-go/go.mod
+          cache-dependency-path: grok-search-go/go.sum
+
+      - name: Get version
+        id: version
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+          else
+            VERSION=$(git describe --tags --abbrev=0 --match 'grok-search-v*' | sed 's/grok-search-//')
+          fi
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "Building version: ${VERSION}"
+
+      - name: Create bin directory
+        shell: bash
+        run: |
+          mkdir -p grok-search/bin
+          rm -f grok-search/bin/grok-search-*
+
+      - name: Build all platforms
+        working-directory: grok-search-go
+        shell: bash
+        env:
+          CGO_ENABLED: 0
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          COMMIT="${GITHUB_SHA:0:8}"
+          DATE=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          GO_VERSION=$(go version | awk '{print $3}')
+
+          LDFLAGS="-s -w -X main.version=${VERSION} -X main.commit=${COMMIT} -X main.date=${DATE} -X main.goVersion=${GO_VERSION}"
+
+          GOOS=linux GOARCH=amd64 go build -trimpath -ldflags "${LDFLAGS}" \
+            -o ../grok-search/bin/grok-search-linux-amd64 \
+            cmd/grok-search/main.go
+
+          GOOS=linux GOARCH=arm64 go build -trimpath -ldflags "${LDFLAGS}" \
+            -o ../grok-search/bin/grok-search-linux-arm64 \
+            cmd/grok-search/main.go
+
+          GOOS=darwin GOARCH=amd64 go build -trimpath -ldflags "${LDFLAGS}" \
+            -o ../grok-search/bin/grok-search-darwin-amd64 \
+            cmd/grok-search/main.go
+
+          GOOS=darwin GOARCH=arm64 go build -trimpath -ldflags "${LDFLAGS}" \
+            -o ../grok-search/bin/grok-search-darwin-arm64 \
+            cmd/grok-search/main.go
+
+          GOOS=windows GOARCH=amd64 go build -trimpath -ldflags "${LDFLAGS}" \
+            -o ../grok-search/bin/grok-search-windows-amd64.exe \
+            cmd/grok-search/main.go
+
+      - name: Set executable permissions
+        shell: bash
+        run: |
+          chmod +x grok-search/bin/grok-search-* || true
+          ls -lh grok-search/bin/
+
+      - name: Generate checksums
+        working-directory: grok-search/bin
+        shell: bash
+        run: |
+          sha256sum grok-search-* > SHA256SUMS
+          cat SHA256SUMS
+
+      - name: Commit and push changes
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add grok-search/bin/
+
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "chore(grok-search): update binaries to ${{ steps.version.outputs.version }}"
+            git push
+          fi
+
+      - name: Summary
+        shell: bash
+        run: |
+          echo "## Grok Search Skill Binaries Updated ✅" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Version: \`${{ steps.version.outputs.version }}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "### Binaries" >> "$GITHUB_STEP_SUMMARY"
+          echo "\`\`\`" >> "$GITHUB_STEP_SUMMARY"
+          ls -lh grok-search/bin/ >> "$GITHUB_STEP_SUMMARY"
+          echo "\`\`\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "### Checksums" >> "$GITHUB_STEP_SUMMARY"
+          echo "\`\`\`" >> "$GITHUB_STEP_SUMMARY"
+          cat grok-search/bin/SHA256SUMS >> "$GITHUB_STEP_SUMMARY"
+          echo "\`\`\`" >> "$GITHUB_STEP_SUMMARY"

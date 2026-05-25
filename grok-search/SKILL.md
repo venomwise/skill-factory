@@ -26,43 +26,116 @@ For those, prefer `exa-search`.
 
 ## Setup
 
-Requires Python 3 (no external dependencies).
+The skill includes pre-compiled binaries for major platforms in `bin/`. Detect the user's platform and select the matching binary:
 
-**Cross-agent installation**: This skill is installed in `~/.AI-Skills/grok-search/` and linked to both pi and codex.
+- Linux x86_64: `bin/grok-search-linux-amd64`
+- Linux ARM64: `bin/grok-search-linux-arm64`
+- macOS Intel: `bin/grok-search-darwin-amd64`
+- macOS Apple Silicon: `bin/grok-search-darwin-arm64`
+- Windows x86_64: `bin/grok-search-windows-amd64.exe`
 
-**API key configuration** (choose one):
-- Shared across agents: `~/.config/ai-skills/grok-search.json`
-- Skill-specific: `~/.AI-Skills/grok-search/config.local.json`
+Platform detection:
 
-See `config.example.json` for template.
-
-## Workflow
-
-1. Use `--mode news` for fresh updates
-2. Use `--mode social` for X/Twitter and discourse-heavy prompts
-3. Use `--mode research` for broad multi-source synthesis
-4. Use `--mode docs-compare` for official claims plus community interpretation
-5. Use `--plain` for human-readable terminal output
+```bash
+uname -s  # Linux, Darwin, or MINGW64_NT
+uname -m  # x86_64, arm64, aarch64
+```
 
 ## Config
 
-Key resolution order:
-1. `--api-key` → 2. `GROK_API_KEY` → 3. `GROK_API_KEYS` → 4. `~/.config/ai-skills/grok-search.json` → 5. `config.local.json` → 6. `config.json`
+The binary auto-creates a config template at `~/.config/ai-skills/grok-search.toml` on first run.
 
-**Recommended**: Use `~/.config/ai-skills/grok-search.json` for cross-agent shared keys, or `config.local.json` for skill-specific keys.
+Recommended config:
 
-**Multi-key failover and cooldown**: See [references/configuration.md](references/configuration.md)
+```toml
+base_url = "https://api.x.ai"
+model = "grok-4.1-fast"
+timeout = 120
 
-## Quick Start
-
-```bash
-python3 scripts/grok_search.py --mode news --query "Latest updates on X"
+[[profiles]]
+id = "main"
+api_key = "YOUR_GROK_API_KEY"
 ```
 
-**More examples and query patterns**: See [references/query-recipes.md](references/query-recipes.md)
+Profile-specific proxy endpoints are supported:
+
+```toml
+[[profiles]]
+id = "proxy"
+api_key = "YOUR_PROXY_KEY"
+base_url = "https://your-compatible-endpoint.example"
+model = "grok-custom-model"
+```
+
+Configuration priority:
+1. CLI flags
+2. Environment variables: `GROK_API_KEY`, `GROK_API_KEYS`, `GROK_BASE_URL`, `GROK_MODEL`, `GROK_TIMEOUT`
+3. `~/.config/ai-skills/grok-search.toml`
+4. Built-in defaults
+
+See [configuration.md](references/configuration.md) for failover, cooldown, and advanced settings.
+
+## Workflow
+
+1. Use `news` for fresh updates and breaking news.
+2. Use `social` for X/Twitter and discourse-heavy prompts.
+3. Use `research` for broad multi-source synthesis.
+4. Use `docs-compare` for official claims plus community interpretation.
+5. Use `--plain` for human-readable terminal output.
+6. Use `--urls` when only source URLs are needed.
+
+## Commands
+
+### Breaking news / fresh updates
+
+```bash
+bin/grok-search-<platform> news --query "Latest updates on X"
+```
+
+### Social and community discourse
+
+```bash
+bin/grok-search-<platform> social --query "What are people saying about OpenClaw on X?"
+```
+
+### Broad live synthesis
+
+```bash
+bin/grok-search-<platform> research --query "Summarize recent discussion around OpenClaw model failover"
+```
+
+### Official docs vs community interpretation
+
+```bash
+bin/grok-search-<platform> docs-compare --query "Compare official docs and community discussion on Telegram streaming"
+```
+
+### Output formats
+
+```bash
+bin/grok-search-<platform> research --query "OpenClaw Telegram streaming"
+bin/grok-search-<platform> research --query "OpenClaw Telegram streaming" --plain
+bin/grok-search-<platform> research --query "OpenClaw Telegram streaming" --urls
+```
+
+### Debugging
+
+```bash
+bin/grok-search-<platform> --debug research --query "test"
+bin/grok-search-<platform> --profile main research --query "test" --plain
+bin/grok-search-<platform> --ignore-cooldown news --query "OpenClaw updates" --plain
+```
+
+## Additional Resources
+
+- **Source code**: See `grok-search-go/` for the Go implementation.
+- **Configuration**: See [configuration.md](references/configuration.md).
+- **Query examples**: See [query-recipes.md](references/query-recipes.md).
+- **Migration**: See [migration-from-python.md](references/migration-from-python.md).
 
 ## Notes
 
-- Optimized for real-time research and breadth, not canonical-source purity
-- `docs-compare` mode separates official facts from community interpretation
-- For official docs, API references, or pricing pages, use `exa-search` instead
+- Optimized for real-time research and breadth, not canonical-source purity.
+- `docs-compare` separates official facts from community interpretation.
+- For official docs, API references, pricing pages, canonical retrieval, or direct page-text extraction, use `exa-search` instead.
+- Zero Python runtime dependency: use the selected platform binary directly.

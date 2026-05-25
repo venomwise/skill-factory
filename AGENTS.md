@@ -16,39 +16,47 @@ python .\db-explorer\scripts\db_query.py --db-type sqlite --url .\sample.db tabl
 
 Use the same Python environment for dependency installation and script execution. `run_comparison.py` is the main regression check for `db-explorer`; it compares the current script against the baseline and refreshes grading output.
 
-### Go-based skills (exa-search)
+### Go-based skills (exa-search, grok-search)
 ```bash
-# Use the skill (Python wrapper auto-detects platform)
-python exa-search/scripts/exa_search.py search --query "test" --api-key <key>
-
-# Or build from source
+# Build exa-search from source
 cd exa-search-go
 go build -o exa-search cmd/exa-search/main.go
 ./exa-search version
+
+# Build grok-search from source
+cd ../grok-search-go
+go test ./...
+go build -o grok-search cmd/grok-search/main.go
+./grok-search version
 ```
 
-The `exa-search` skill uses a hybrid architecture: pre-compiled Go binaries for all platforms (stored in `exa-search/bin/`) with a Python wrapper that auto-detects the platform. Source code lives in `exa-search-go/` (independent Go project), while the skill definition is in `exa-search/` (self-contained with binaries). Configuration is loaded from `~/.config/ai-skills/exa-search.toml` (auto-created on first run), environment variables (`EXA_API_KEY`, `EXA_API_KEYS`), or CLI flags (`--api-key`).
+The `exa-search` and `grok-search` skills use a hybrid architecture: pre-compiled Go binaries for supported platforms are stored in each skill's `bin/` directory, while source code lives in independent Go projects (`exa-search-go/`, `grok-search-go/`). Skill definitions remain self-contained in `exa-search/` and `grok-search/`. Configuration is loaded from `~/.config/ai-skills/<skill>.toml` (auto-created on first run), environment variables, or CLI flags.
 
-### Automated Releases (exa-search)
-GitHub Actions workflows automate building, releasing, and updating the skill:
+For `grok-search`, invoke the selected platform binary directly, for example `grok-search/bin/grok-search-darwin-arm64 news --query "test"`. It uses TOML config at `~/.config/ai-skills/grok-search.toml`, environment variables (`GROK_API_KEY`, `GROK_API_KEYS`, `GROK_BASE_URL`, `GROK_MODEL`, `GROK_TIMEOUT`), or CLI flags (`--api-key`, `--base-url`, `--model`).
+
+### Automated Releases (Go skills)
+GitHub Actions workflows automate building, releasing, and updating Go-based skills. Use project-scoped release tags so one skill does not rebuild another:
 
 ```bash
-# Create a git tag to trigger the full pipeline:
-git tag -a exa-search-v1.0.0 -m "Release v1.0.0"
+# Exa Search
+git tag -a exa-search-v1.0.0 -m "Release exa-search v1.0.0"
 git push origin exa-search-v1.0.0
 
-# This automatically:
-# 1. Builds binaries for all platforms (Linux, macOS, Windows on amd64/arm64)
-# 2. Creates a GitHub Release with downloadable archives
-# 3. Updates exa-search/bin/ with the new binaries
-# 4. Commits the updated binaries back to the repo
+# Grok Search
+git tag -a grok-search-v1.0.0 -m "Release grok-search v1.0.0"
+git push origin grok-search-v1.0.0
 ```
 
-Two workflows work together:
-- `exa-search-release.yml`: Builds binaries and creates GitHub Release
-- `exa-search-update-skill.yml`: Updates `exa-search/bin/` with new binaries
+Each Go skill owns isolated workflows:
+- `<skill>-test.yml`: Runs only for changes under `<skill>-go/**` or the workflow file.
+- `<skill>-release.yml`: Builds release archives only for `<skill>-v*` tags or manual dispatch.
+- `<skill>-update-skill.yml`: Updates only `<skill>/bin/**` after that skill's release workflow succeeds.
 
-See `.github/workflows/QUICKSTART.md` for details.
+Current Go workflow sets:
+- `exa-search-release.yml` / `exa-search-update-skill.yml`
+- `grok-search-test.yml` / `grok-search-release.yml` / `grok-search-update-skill.yml`
+
+See `.github/workflows/QUICKSTART.md` for release workflow details.
 
 ## Coding Style & Naming Conventions
 Use 4-space indentation in Python and keep functions, variables, and files in `snake_case`. Keep Markdown concise, instructional, and structured with clear headings. Every skill must expose a `SKILL.md` with YAML frontmatter, especially `name` and `description`. Place reusable templates in `assets/`, supporting docs in `references/`, and executable helpers in `scripts/`.
