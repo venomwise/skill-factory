@@ -9,13 +9,6 @@ on:
       - '.github/workflows/db-explorer-test.yml'
       - '.github/workflows/db-explorer-release.yml'
       - '.github/workflows/db-explorer-update-skill.yml'
-  push:
-    branches: [main]
-    paths:
-      - 'db-explorer-go/**'
-      - 'db-explorer/**'
-      - 'evals/db-explorer/**'
-      - '.github/workflows/db-explorer-test.yml'
 
 jobs:
   test:

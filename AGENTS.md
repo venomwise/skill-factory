@@ -48,8 +48,8 @@ git push origin grok-search-v1.0.0
 ```
 
 Each Go skill owns isolated workflows:
-- `<skill>-test.yml`: Runs only for changes under `<skill>-go/**` or the workflow file.
-- `<skill>-release.yml`: Builds release archives only for `<skill>-v*` tags or manual dispatch.
+- `<skill>-test.yml`: Runs only for pull requests that touch that skill's paths or workflow file.
+- `<skill>-release.yml`: Builds release archives for `<skill>-v*` tags; for `db-explorer`, the release workflow serializes test before build/release and does not run on normal branch pushes.
 - `<skill>-update-skill.yml`: Updates only `<skill>/bin/**` after that skill's release workflow succeeds.
 
 Current Go workflow sets:
