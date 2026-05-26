@@ -49,8 +49,35 @@ git push origin grok-search-v1.0.0
 
 Each Go skill owns isolated workflows:
 - `<skill>-test.yml`: Runs only for pull requests that touch that skill's paths or workflow file.
-- `<skill>-release.yml`: Builds release archives for `<skill>-v*` tags; for `db-explorer`, the release workflow serializes test before build/release and does not run on normal branch pushes.
+- `<skill>-release.yml`: Builds release archives for `<skill>-v*` tags; release workflows must serialize `test -> build -> release` and must not run on normal branch pushes.
 - `<skill>-update-skill.yml`: Updates only `<skill>/bin/**` after that skill's release workflow succeeds.
+
+#### GitHub Actions Workflow Requirements
+
+When creating or modifying workflows for Go skills, follow these rules exactly:
+
+1. **Use project-scoped triggers only.** Release tags must be `<skill>-v*` (for example `db-explorer-v0.0.1`). Never use broad `v*` tags.
+2. **Do not trigger test or release workflows on normal branch pushes.** A push to `main` must not start `<skill>-test.yml` or `<skill>-release.yml`.
+3. **Standalone test workflow is PR-only.** `<skill>-test.yml` may use `pull_request` with skill-specific `paths`, but must not include `push: branches: [main]`.
+4. **Release workflow is tag-only unless explicitly approved otherwise.** `<skill>-release.yml` should trigger on:
+   ```yaml
+   on:
+     push:
+       tags:
+         - '<skill>-v*'
+   ```
+5. **Release workflow must include matrix tests before build.** The release workflow must have a `test` job using:
+   ```yaml
+   strategy:
+     matrix:
+       os: [ubuntu-latest, macos-latest, windows-latest]
+   ```
+   The test job must run dependency download, `go test`, formatting check, `go vet`, and build+`version` verification. Formatting checks may be Linux-only.
+6. **Build must depend on test.** The release `build` job must use `needs: test`; the `release` job must use `needs: build`.
+7. **Build all supported binaries with `CGO_ENABLED=0`.** Produce Linux amd64/arm64, macOS amd64/arm64, and Windows amd64 binaries unless the skill explicitly documents a narrower support matrix.
+8. **Update-skill workflow must not run on source pushes.** `<skill>-update-skill.yml` should run on successful release workflow completion and optional manual dispatch only. It must update only that skill's `bin/` directory and checksums.
+9. **Compare before creating.** Before adding a new workflow, read the latest existing workflow for the most similar Go skill and mirror its trigger/build/release structure. Do not invent a new trigger model.
+10. **Validate trigger intent before committing.** Inspect the final YAML and confirm: PR-only test, tag-only release, matrix release tests, `needs` chain, and no accidental `main` push trigger.
 
 Current Go workflow sets:
 - `db-explorer-test.yml` / `db-explorer-release.yml` / `db-explorer-update-skill.yml`
