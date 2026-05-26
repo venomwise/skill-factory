@@ -1,0 +1,232 @@
+# Implementation Plan: db-explorer Go Redesign
+
+## Overview
+
+This implementation plan is driven by the requirements in [requirements.md](requirements.md).
+
+The work is split into seven phases: Go project scaffolding, core CLI/config/output foundations, database connection and safety primitives, SQLite implementation, PostgreSQL/MySQL dialect implementation, skill documentation/evals, and CI/release automation. The order builds stable internal contracts first, then adds database-specific behavior, then updates the skill-facing surfaces and automation. The implementation language is Go, using Cobra for CLI commands, TOML parsing for configuration, `database/sql` drivers for database access, and a pure Go SQLite driver so release builds can keep `CGO_ENABLED=0`.
+
+## Tasks
+
+- [✅] 1. Phase 1: Scaffold the Go binary project
+  - [✅] 1.1 Create the `db-explorer-go/` module and CLI entrypoint
+    - Create `db-explorer-go/go.mod` with module path consistent with the existing repository Go modules.
+    - Add dependencies for Cobra, TOML config parsing, SQLite pure Go driver, PostgreSQL driver, and MySQL driver.
+    - Create `db-explorer-go/cmd/db-explorer/main.go` with version variables and `cmd.Execute()` invocation.
+    - Create `db-explorer-go/cmd/root.go` with `rootCmd`, global flag variables, `Execute()`, and `SetVersionInfo()`.
+    - _Requirements: 1.1, 1.2, 1.5, 2.8_
+  - [✅] 1.2 Add version command and build metadata wiring
+    - Create `db-explorer-go/cmd/version.go` with `newVersionCmd()` or equivalent Cobra command.
+    - Include version, commit, date, and Go version fields in the version output.
+    - Ensure `go build -o db-explorer ./cmd/db-explorer` produces the expected binary name on non-Windows platforms.
+    - _Requirements: 1.2_
+  - [✅] 1.3 Create internal package skeletons and shared types
+    - Create `db-explorer-go/internal/introspect/models.go` with `Schema`, `Relation`, `Column`, `Index`, `ForeignKey`, and `QueryResult` structs.
+    - Create `db-explorer-go/internal/db/db.go` with database type constants and connection interfaces.
+    - Create `db-explorer-go/internal/dialect/dialect.go` with the adapter interface used by command handlers.
+    - Create package directories for `internal/config`, `internal/output`, `internal/safety`, and dialect subpackages.
+    - _Requirements: 1.1, 5.1_
+  - [✅]* 1.4 Write scaffold tests
+    - Add minimal tests under `db-explorer-go/cmd/` to verify root command construction and default flag values.
+    - Add compile-time interface assertions for dialect adapters where useful.
+    - _Requirements: 1.1, 1.2, 2.8, 2.9, 2.10_
+
+- [✅] 2. Phase 2: Implement CLI, config resolution, and JSON output foundations
+  - [✅] 2.1 Implement all top-level CLI commands and flags
+    - Create `db-explorer-go/cmd/test.go`, `schemas.go`, `tables.go`, `views.go`, `schema.go`, `data.go`, and `query.go`.
+    - Add command factories such as `newTestCmd()`, `newSchemasCmd()`, `newTablesCmd()`, `newViewsCmd()`, `newSchemaCmd()`, `newDataCmd()`, and `newQueryCmd()`.
+    - Register commands from `init()` in `cmd/root.go`.
+    - Add `--limit` to `data` and preserve global flags from the design.
+    - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 2.9, 2.10_
+  - [✅] 2.2 Implement TOML config loading and precedence
+    - Create `db-explorer-go/internal/config/config.go` with `Config`, `Profile`, and `ResolvedConnection` structs.
+    - Create `db-explorer-go/internal/config/loader.go` with `LoadConfig()`, `FindProjectConfig()`, `LoadGlobalConfig()`, and `ResolveConnection()`.
+    - Implement precedence: CLI flags, project `.db-explorer.toml`, global config, environment fallback.
+    - Implement `default_profile` handling for project and global config.
+    - _Requirements: 3.1, 3.3, 3.4, 3.5, 3.6, 3.7_
+  - [✅] 2.3 Implement environment and secret handling
+    - Add `ResolveURLEnv()` and `MaskSecrets()` helpers in `db-explorer-go/internal/config/loader.go` or `secrets.go`.
+    - Ensure `--url-env` reads a named environment variable without printing its value.
+    - Return structured config errors for missing profiles, unset environment variables, and missing connections.
+    - _Requirements: 3.2, 3.8, 3.9, 3.10, 7.9_
+  - [✅] 2.4 Implement JSON response envelope and error output
+    - Create `db-explorer-go/internal/output/output.go` with `Envelope`, `Meta`, `ErrorBody`, and `Writer` types.
+    - Implement `WriteSuccess()` and `WriteError()` with `schema_version: "1"`.
+    - Ensure success envelopes omit `error` and failure envelopes include `error.code` plus `error.message`.
+    - Include `meta.duration_ms` and `meta.truncated` where known.
+    - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.7_
+  - [✅] 2.5 Add optional non-JSON format renderers behind `--format`
+    - Create `db-explorer-go/internal/output/table.go`, `markdown.go`, and `csv.go`.
+    - Keep JSON as the default behavior and avoid changing JSON response structs for human formats.
+    - Ensure diagnostics do not corrupt stdout JSON.
+    - _Requirements: 4.8, 4.9_
+  - [✅]* 2.6 Write config and output tests
+    - Test CLI flag precedence over project and global config.
+    - Test project config precedence over global config.
+    - Test `default_profile`, `--url-env`, environment fallback, and missing connection errors.
+    - Test success and error JSON envelopes, `schema_version`, `ok`, error fields, and truncation metadata.
+    - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8, 3.9, 3.10, 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.7, 4.8, 4.9_
+
+- [✅] 3. Checkpoint - Verify CLI/config/output foundation
+  - Run `cd db-explorer-go && go test ./...`.
+  - Run `cd db-explorer-go && go build -o db-explorer ./cmd/db-explorer`.
+  - Run `./db-explorer version` and confirm version output works.
+  - Inspect command help and confirm `test`, `schemas`, `tables`, `views`, `schema`, `data`, and `query` exist.
+  - Confirm requirements 1.1, 1.2, 2.1-2.10, 3.1-3.10, and 4.1-4.9 are either implemented or blocked by a documented reason.
+  - _Requirements: 1.1, 1.2, 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 2.9, 2.10, 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8, 3.9, 3.10, 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.7, 4.8, 4.9_
+
+- [✅] 4. Phase 3: Implement database connection and read-only safety primitives
+  - [✅] 4.1 Implement database connector abstraction
+    - Create `db-explorer-go/internal/db/connect.go` with `Open()` and `Close()` behavior for SQLite, PostgreSQL, and MySQL.
+    - Register or import drivers including the pure Go SQLite driver.
+    - Apply command timeout using context-aware query execution where supported.
+    - Return `UNSUPPORTED_DB`, `CONNECTION_FAILED`, and timeout-aware errors through shared error types.
+    - _Requirements: 1.5, 5.1, 6.7, 7.6, 7.7_
+  - [✅] 4.2 Implement query execution helpers
+    - Create `db-explorer-go/internal/db/query.go` with `QueryRows()` and `QuerySingle()` helpers.
+    - Convert database rows into `introspect.QueryResult` with columns and row values.
+    - Preserve empty result sets as empty rows with column metadata where available.
+    - _Requirements: 6.3, 6.5, 6.7, 7.8_
+  - [✅] 4.3 Implement read-only SQL validation
+    - Create `db-explorer-go/internal/safety/sql.go` with `StripComments()`, `HasMultipleStatements()`, and `ValidateReadOnly()`.
+    - Reject multiple statements, write/DDL keywords, unsupported command prefixes, and unsafe PRAGMA statements.
+    - Allow only approved SQLite metadata PRAGMA names.
+    - _Requirements: 2.7, 7.1, 7.2, 7.3, 7.4, 7.5_
+  - [✅] 4.4 Wire safety and connector errors into command handlers
+    - Update `db-explorer-go/cmd/query.go` to call `safety.ValidateReadOnly()` before database execution.
+    - Update command handlers to map connector, validation, and execution errors to JSON error envelopes.
+    - Ensure masked errors are written to stdout JSON and debug diagnostics do not corrupt stdout.
+    - _Requirements: 4.2, 4.5, 4.9, 6.7, 7.1, 7.2, 7.3, 7.5, 7.7, 7.8, 7.9_
+  - [✅]* 4.5 Write safety and connector tests
+    - Test multi-statement rejection, dangerous keyword rejection, unsupported prefix rejection, safe SELECT/WITH acceptance, safe PRAGMA acceptance, and unsafe PRAGMA rejection.
+    - Test secret masking for connection URLs in errors.
+    - Test unsupported database type and missing connection error mapping.
+    - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5, 7.6, 7.7, 7.8, 7.9_
+
+- [✅] 5. Phase 4: Implement SQLite dialect and end-to-end local behavior
+  - [✅] 5.1 Implement SQLite metadata adapter
+    - Create `db-explorer-go/internal/dialect/sqlite/sqlite.go` with adapter methods for schemas, tables, views, relation schema, indexes, foreign keys, data sampling, and query execution.
+    - Use SQLite metadata sources such as `sqlite_master` and read-only metadata PRAGMA statements.
+    - Return unknown or null row estimate metadata instead of exact unbounded table counts.
+    - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 5.7, 5.8_
+  - [✅] 5.2 Wire SQLite adapter into command handlers
+    - Add adapter selection logic in `db-explorer-go/internal/dialect/registry.go` or equivalent.
+    - Ensure `test`, `schemas`, `tables`, `views`, `schema`, `data`, and `query` run against SQLite using direct `--db sqlite --url` connection flags.
+    - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 5.1, 6.1, 6.2, 6.3_
+  - [✅] 5.3 Implement bounded sampling and truncation metadata
+    - Add default sample limit handling in `db-explorer-go/cmd/data.go`.
+    - Enforce `--limit N` for `data <table>` and set `meta.truncated` when output is capped.
+    - Validate table identifiers before interpolating into database-specific SQL.
+    - _Requirements: 6.1, 6.2, 6.4, 6.6_
+  - [✅]* 5.4 Write SQLite integration tests
+    - Create SQLite test fixture setup under `db-explorer-go/internal/dialect/sqlite/` or `db-explorer-go/testdata/`.
+    - Test tables, views, schemas, schema metadata, indexes, foreign keys, data sampling, read-only query, empty results, and negative SQL safety cases.
+    - Confirm JSON stdout remains parseable for schema and error responses.
+    - _Requirements: 4.1, 4.2, 4.9, 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 5.7, 5.8, 5.9, 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 7.1, 7.2, 7.5_
+
+- [✅] 6. Checkpoint - Verify SQLite MVP behavior
+  - Run `cd db-explorer-go && go test ./...`.
+  - Build the local binary with `cd db-explorer-go && CGO_ENABLED=0 go build -o db-explorer ./cmd/db-explorer`.
+  - Create or use a temporary SQLite database with tables, a view, an index, and a foreign key.
+  - Run `./db-explorer test --db sqlite --url <db>` and verify a success JSON envelope.
+  - Run `./db-explorer tables --db sqlite --url <db>`, `views`, `schemas`, `schema <table>`, `data <table> --limit 2`, and `query "SELECT 1"` and verify parseable JSON.
+  - Run unsafe SQL examples and confirm structured rejection without database mutation.
+  - _Requirements: 1.5, 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 4.1, 4.2, 4.3, 4.9, 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 5.7, 5.8, 5.9, 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 7.1, 7.2, 7.3, 7.4, 7.5_
+
+- [✅] 7. Phase 5: Implement PostgreSQL and MySQL dialect adapters
+  - [✅] 7.1 Implement PostgreSQL metadata adapter
+    - Create `db-explorer-go/internal/dialect/postgres/postgres.go` with adapter methods for schemas, tables, views, relation schema, indexes, foreign keys, row estimates, data sampling, and query execution.
+    - Use PostgreSQL catalog or information schema queries that support non-`public` schemas.
+    - Return row estimates from low-cost catalog metadata where available, not exact unbounded counts.
+    - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 5.7, 5.8, 5.9, 6.1, 6.2, 6.3_
+  - [✅] 7.2 Implement MySQL metadata adapter
+    - Create `db-explorer-go/internal/dialect/mysql/mysql.go` with adapter methods for schemas, tables, views, relation schema, indexes, foreign keys, row estimates, data sampling, and query execution.
+    - Use MySQL `information_schema` metadata and safe identifier quoting.
+    - Return row estimates or unknown metadata without running exact unbounded counts.
+    - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 5.7, 5.8, 5.9, 6.1, 6.2, 6.3_
+  - [✅] 7.3 Wire PostgreSQL and MySQL adapters into registry and commands
+    - Update `db-explorer-go/internal/dialect/registry.go` to select adapters for `postgres` and `mysql`.
+    - Ensure direct `--db postgres --url-env DATABASE_URL` and `--db mysql --url-env MYSQL_URL` flows resolve and execute.
+    - Ensure unsupported database types still return `UNSUPPORTED_DB`.
+    - _Requirements: 3.1, 3.2, 5.1, 7.6_
+  - [✅]* 7.4 Write optional live PostgreSQL integration tests
+    - Add tests gated by `DBX_POSTGRES_URL`.
+    - Create fixture tables/views/indexes/foreign keys in a test schema and verify metadata JSON.
+    - Verify read-only query behavior and safety rejection against PostgreSQL.
+    - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 5.7, 5.8, 5.9, 6.3, 7.1, 7.2_
+  - [✅]* 7.5 Write optional live MySQL integration tests
+    - Add tests gated by `DBX_MYSQL_URL`.
+    - Create fixture tables/views/indexes/foreign keys and verify metadata JSON.
+    - Verify read-only query behavior and safety rejection against MySQL.
+    - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 5.7, 5.8, 5.9, 6.3, 7.1, 7.2_
+
+- [✅] 8. Checkpoint - Verify multi-database support
+  - Run `cd db-explorer-go && go test ./...` without live database environment variables and confirm SQLite tests pass.
+  - If `DBX_POSTGRES_URL` is available, run the PostgreSQL integration tests and verify schema namespace, indexes, foreign keys, row estimates, and query behavior.
+  - If `DBX_MYSQL_URL` is available, run the MySQL integration tests and verify schemas, views, indexes, foreign keys, row estimates, and query behavior.
+  - Confirm metadata errors return structured JSON rather than fabricated empty results.
+  - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 5.7, 5.8, 5.9, 6.1, 6.2, 6.3, 6.7, 7.6, 7.7, 7.8, 7.9_
+
+- [✅] 9. Phase 6: Update skill documentation and evaluations
+  - [✅] 9.1 Rewrite `db-explorer/SKILL.md` for the Go binary contract
+    - Replace Python script and virtualenv instructions with platform detection and direct binary execution instructions.
+    - Document supported commands, global flags, JSON default, config precedence, and read-only guardrails.
+    - State that the skill supports SQLite, PostgreSQL, and MySQL only.
+    - _Requirements: 1.6, 8.1, 8.2_
+  - [✅] 9.2 Add configuration reference documentation
+    - Create `db-explorer/references/configuration.md` describing `.db-explorer.toml`, global config, profiles, `default_profile`, CLI override behavior, and environment fallback.
+    - Include minimal TOML examples for SQLite, PostgreSQL, and MySQL profiles.
+    - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 8.3_
+  - [✅] 9.3 Add migration reference documentation
+    - Create `db-explorer/references/migration-from-python.md` explaining that old `scripts/db_query.py` and `.db-explorer.json` are unsupported.
+    - Show old-to-new command examples for `test`, `tables`, `schema`, `data`, and `query` without promising compatibility.
+    - _Requirements: 8.4_
+  - [✅] 9.4 Update db-explorer eval harness and cases
+    - Modify `evals/db-explorer/run_comparison.py` or replace it with an evaluator that builds or invokes the Go binary.
+    - Update `evals/db-explorer/evals.json` to expect JSON-first behavior and the new command shape.
+    - Preserve negative cases for dangerous SQL, unsafe PRAGMA, and multiple statements.
+    - Add metadata cases for views, indexes, foreign keys, and row estimate semantics where practical.
+    - _Requirements: 8.5, 8.6_
+  - [✅]* 9.5 Run documentation and eval validation
+    - Run the updated db-explorer eval command from repository root.
+    - Inspect `db-explorer/SKILL.md` and references to ensure no Python virtualenv or pip install workflow remains.
+    - Confirm eval outputs parse JSON and cover the safety negative cases.
+    - _Requirements: 1.6, 8.1, 8.2, 8.3, 8.4, 8.5, 8.6_
+
+- [✅] 10. Phase 7: Add CI, release, and skill binary update automation
+  - [✅] 10.1 Add test workflow
+    - Create `.github/workflows/db-explorer-test.yml` scoped to `db-explorer-go/**`, `db-explorer/**`, `evals/db-explorer/**`, and the workflow file.
+    - Run Go dependency download, `go test ./...`, gofmt check, `go vet ./...`, and local build for `db-explorer-go/`.
+    - _Requirements: 8.7_
+  - [✅] 10.2 Add release workflow
+    - Create `.github/workflows/db-explorer-release.yml` triggered by `db-explorer-v*` tags and manual dispatch.
+    - Build archives for Linux amd64/arm64, macOS amd64/arm64, and Windows amd64 using `CGO_ENABLED=0`.
+    - Inject version, commit, date, and Go version metadata via ldflags.
+    - _Requirements: 1.2, 1.5, 8.8_
+  - [✅] 10.3 Add update-skill workflow
+    - Create `.github/workflows/db-explorer-update-skill.yml` following the existing Go skill pattern.
+    - Build platform binaries into `db-explorer/bin/` with names `db-explorer-linux-amd64`, `db-explorer-linux-arm64`, `db-explorer-darwin-amd64`, `db-explorer-darwin-arm64`, and `db-explorer-windows-amd64.exe`.
+    - Generate `db-explorer/bin/SHA256SUMS` and commit changed binaries when needed.
+    - _Requirements: 1.3, 1.4, 1.5, 8.9_
+  - [✅]* 10.4 Validate automation locally where possible
+    - Run the Go test/build commands used by CI.
+    - Build at least the local-platform binary and verify `version` output.
+    - Inspect workflow YAML against existing exa/grok workflows for isolated triggers and paths.
+    - _Requirements: 1.2, 1.3, 1.4, 1.5, 8.7, 8.8, 8.9_
+
+- [✅] 11. Checkpoint - Final spec validation before implementation completion
+  - Run `cd db-explorer-go && go test ./...`.
+  - Run `cd db-explorer-go && go vet ./...`.
+  - Run `cd db-explorer-go && test -z "$(gofmt -l .)"`.
+  - Build the local binary with `CGO_ENABLED=0` and verify `version`.
+  - Run the updated SQLite evals in `evals/db-explorer/`.
+  - Inspect `db-explorer/SKILL.md`, `db-explorer/references/configuration.md`, and `db-explorer/references/migration-from-python.md` for consistency with the new Go binary contract.
+  - Confirm all requirement IDs in `requirements.md` have corresponding implementation or documented blockers.
+  - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 2.9, 2.10, 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8, 3.9, 3.10, 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.7, 4.8, 4.9, 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 5.7, 5.8, 5.9, 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 6.7, 7.1, 7.2, 7.3, 7.4, 7.5, 7.6, 7.7, 7.8, 7.9, 8.1, 8.2, 8.3, 8.4, 8.5, 8.6, 8.7, 8.8, 8.9_
+
+## Notes
+
+- Tasks marked with `*` are optional and can be skipped for an MVP.
+- Each task references one or more requirement IDs for traceability.
+- Do not implement compatibility with the old Python CLI or `.db-explorer.json` unless the approved design and requirements are changed first.
+- Keep JSON stdout clean; debug diagnostics belong outside the structured result path.

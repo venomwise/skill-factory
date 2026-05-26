@@ -1,0 +1,191 @@
+name: Build and Release db-explorer
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g., v1.0.0)'
+        required: true
+        type: string
+  push:
+    tags:
+      - 'db-explorer-v*'
+
+permissions:
+  contents: write
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: db-explorer-go/go.mod
+          cache-dependency-path: db-explorer-go/go.sum
+
+      - name: Run tests
+        working-directory: db-explorer-go
+        run: go test ./...
+
+      - name: Run go vet
+        working-directory: db-explorer-go
+        run: go vet ./...
+
+      - name: Check formatting
+        working-directory: db-explorer-go
+        shell: bash
+        run: test -z "$(gofmt -l .)"
+
+  build:
+    name: Build ${{ matrix.os }}-${{ matrix.arch }}
+    needs: test
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - os: linux
+            arch: amd64
+            goos: linux
+            goarch: amd64
+            binary: db-explorer
+            archive: tar.gz
+          - os: linux
+            arch: arm64
+            goos: linux
+            goarch: arm64
+            binary: db-explorer
+            archive: tar.gz
+          - os: darwin
+            arch: amd64
+            goos: darwin
+            goarch: amd64
+            binary: db-explorer
+            archive: tar.gz
+          - os: darwin
+            arch: arm64
+            goos: darwin
+            goarch: arm64
+            binary: db-explorer
+            archive: tar.gz
+          - os: windows
+            arch: amd64
+            goos: windows
+            goarch: amd64
+            binary: db-explorer.exe
+            archive: zip
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: db-explorer-go/go.mod
+          cache-dependency-path: db-explorer-go/go.sum
+
+      - name: Get version info
+        id: version
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+          else
+            VERSION="${GITHUB_REF#refs/tags/db-explorer-}"
+          fi
+          COMMIT="${GITHUB_SHA:0:8}"
+          DATE=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          GO_VERSION=$(go version | awk '{print $3}')
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "commit=${COMMIT}" >> "$GITHUB_OUTPUT"
+          echo "date=${DATE}" >> "$GITHUB_OUTPUT"
+          echo "go_version=${GO_VERSION}" >> "$GITHUB_OUTPUT"
+
+      - name: Build binary
+        working-directory: db-explorer-go
+        shell: bash
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+          CGO_ENABLED: 0
+        run: |
+          go build -trimpath -ldflags "\
+            -s -w \
+            -X main.version=${{ steps.version.outputs.version }} \
+            -X main.commit=${{ steps.version.outputs.commit }} \
+            -X main.date=${{ steps.version.outputs.date }} \
+            -X main.goVersion=${{ steps.version.outputs.go_version }}" \
+            -o "${{ matrix.binary }}" \
+            ./cmd/db-explorer
+          if [ "${{ matrix.goos }}" != "windows" ]; then
+            chmod +x "${{ matrix.binary }}"
+          fi
+
+      - name: Create archive
+        working-directory: db-explorer-go
+        shell: bash
+        run: |
+          ARCHIVE_NAME="db-explorer-${{ steps.version.outputs.version }}-${{ matrix.os }}-${{ matrix.arch }}"
+          if [ "${{ matrix.archive }}" = "zip" ]; then
+            zip "${ARCHIVE_NAME}.zip" "${{ matrix.binary }}"
+            echo "ARCHIVE_FILE=${ARCHIVE_NAME}.zip" >> "$GITHUB_ENV"
+          else
+            tar czf "${ARCHIVE_NAME}.tar.gz" "${{ matrix.binary }}"
+            echo "ARCHIVE_FILE=${ARCHIVE_NAME}.tar.gz" >> "$GITHUB_ENV"
+          fi
+
+      - name: Generate checksum
+        working-directory: db-explorer-go
+        shell: bash
+        run: sha256sum "${ARCHIVE_FILE}" > "${ARCHIVE_FILE}.sha256"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: db-explorer-${{ matrix.os }}-${{ matrix.arch }}
+          path: |
+            db-explorer-go/${{ env.ARCHIVE_FILE }}
+            db-explorer-go/${{ env.ARCHIVE_FILE }}.sha256
+          retention-days: 7
+
+  release:
+    name: Create GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/')
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Get version
+        id: version
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+          else
+            VERSION="${GITHUB_REF#refs/tags/db-explorer-}"
+          fi
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+
+      - name: Prepare release files
+        shell: bash
+        run: |
+          mkdir -p release
+          find artifacts -type f \( -name "*.tar.gz" -o -name "*.zip" -o -name "*.sha256" \) -exec cp {} release/ \;
+          ls -lh release/
+
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: db-explorer-${{ steps.version.outputs.version }}
+          name: db-explorer ${{ steps.version.outputs.version }}
+          files: release/*
+          generate_release_notes: true

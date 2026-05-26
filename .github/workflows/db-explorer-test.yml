@@ -1,0 +1,79 @@
+name: Test db-explorer
+
+on:
+  pull_request:
+    paths:
+      - 'db-explorer-go/**'
+      - 'db-explorer/**'
+      - 'evals/db-explorer/**'
+      - '.github/workflows/db-explorer-test.yml'
+      - '.github/workflows/db-explorer-release.yml'
+      - '.github/workflows/db-explorer-update-skill.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'db-explorer-go/**'
+      - 'db-explorer/**'
+      - 'evals/db-explorer/**'
+      - '.github/workflows/db-explorer-test.yml'
+
+jobs:
+  test:
+    name: Test on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: db-explorer-go/go.mod
+          cache-dependency-path: db-explorer-go/go.sum
+
+      - name: Download dependencies
+        working-directory: db-explorer-go
+        run: go mod download
+
+      - name: Run tests
+        working-directory: db-explorer-go
+        shell: bash
+        run: go test -v -race -coverprofile=coverage.out ./...
+
+      - name: Check code formatting
+        if: matrix.os == 'ubuntu-latest'
+        working-directory: db-explorer-go
+        shell: bash
+        run: |
+          if [ -n "$(gofmt -l .)" ]; then
+            echo "Go code is not formatted:"
+            gofmt -d .
+            exit 1
+          fi
+
+      - name: Run go vet
+        working-directory: db-explorer-go
+        run: go vet ./...
+
+      - name: Build binary
+        working-directory: db-explorer-go
+        shell: bash
+        env:
+          CGO_ENABLED: 0
+        run: |
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            BINARY="db-explorer.exe"
+          else
+            BINARY="db-explorer"
+          fi
+          go build -o "$BINARY" ./cmd/db-explorer
+          ./$BINARY version
+
+      - name: Run SQLite evals
+        if: matrix.os == 'ubuntu-latest'
+        shell: bash
+        run: python3 evals/db-explorer/run_comparison.py

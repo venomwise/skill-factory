@@ -6,18 +6,16 @@ This repository is a skill factory for AI coding agents. Each skill has its own 
 ## Build, Test, and Development Commands
 There is no monolithic build step; work is usually skill-specific.
 
-### Python-based skills (db-explorer)
-```powershell
-python -m venv .\db-explorer\.venv
-.\db-explorer\.venv\Scripts\pip install -r .\db-explorer\requirements.txt
-.\db-explorer\.venv\Scripts\python .\evals\db-explorer\run_comparison.py
-python .\db-explorer\scripts\db_query.py --db-type sqlite --url .\sample.db tables
-```
-
-Use the same Python environment for dependency installation and script execution. `run_comparison.py` is the main regression check for `db-explorer`; it compares the current script against the baseline and refreshes grading output.
-
-### Go-based skills (exa-search, grok-search)
+### Go-based skills (db-explorer, exa-search, grok-search)
 ```bash
+# Build db-explorer from source
+cd db-explorer-go
+go test ./...
+go build -o db-explorer ./cmd/db-explorer
+./db-explorer version
+cd ..
+python3 evals/db-explorer/run_comparison.py
+
 # Build exa-search from source
 cd exa-search-go
 go build -o exa-search cmd/exa-search/main.go
@@ -30,7 +28,9 @@ go build -o grok-search ./cmd/grok-search
 ./grok-search version
 ```
 
-The `exa-search` and `grok-search` skills use a hybrid architecture: pre-compiled Go binaries for supported platforms are stored in each skill's `bin/` directory, while source code lives in independent Go projects (`exa-search-go/`, `grok-search-go/`). Skill definitions remain self-contained in `exa-search/` and `grok-search/`. Configuration is loaded from `~/.config/ai-skills/<skill>.toml` (auto-created on first run), environment variables, or CLI flags.
+The `db-explorer`, `exa-search`, and `grok-search` skills use a hybrid architecture: pre-compiled Go binaries for supported platforms are stored in each skill's `bin/` directory, while source code lives in independent Go projects (`db-explorer-go/`, `exa-search-go/`, `grok-search-go/`). Skill definitions remain self-contained in their skill directories. Configuration is loaded from `~/.config/ai-skills/<skill>.toml`, project config where supported, environment variables, or CLI flags.
+
+For `db-explorer`, invoke the selected platform binary directly, for example `db-explorer/bin/db-explorer-darwin-arm64 tables --db sqlite --url ./sample.db`. It uses project `.db-explorer.toml`, global `~/.config/ai-skills/db-explorer.toml`, environment variables (`DATABASE_URL`, `DB_URL`, `POSTGRES_URL`, `MYSQL_URL`), or CLI flags (`--db`, `--url`, `--url-env`, `--profile`).
 
 For `grok-search`, invoke the selected platform binary directly, for example `grok-search/bin/grok-search-darwin-arm64 news --query "test"`. It uses TOML config at `~/.config/ai-skills/grok-search.toml`, environment variables (`GROK_API_KEY`, `GROK_API_KEYS`, `GROK_BASE_URL`, `GROK_MODEL`, `GROK_TIMEOUT`), or CLI flags (`--api-key`, `--base-url`, `--model`).
 
@@ -53,6 +53,7 @@ Each Go skill owns isolated workflows:
 - `<skill>-update-skill.yml`: Updates only `<skill>/bin/**` after that skill's release workflow succeeds.
 
 Current Go workflow sets:
+- `db-explorer-test.yml` / `db-explorer-release.yml` / `db-explorer-update-skill.yml`
 - `exa-search-release.yml` / `exa-search-update-skill.yml`
 - `grok-search-test.yml` / `grok-search-release.yml` / `grok-search-update-skill.yml`
 
@@ -145,9 +146,9 @@ Abstraction is appropriate when:
 - The abstraction genuinely simplifies the mental model
 
 Example of good abstraction:
-```python
-# scripts/db_query.py - handles connection pooling, retries, error translation
-# AI doesn't need to know database driver internals
+```go
+// internal/db - handles connection setup, driver quirks, and error translation
+// AI doesn't need to know database driver internals for routine exploration
 ```
 
 ## Testing Guidelines
