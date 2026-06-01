@@ -37,13 +37,15 @@
 ## Existing codebase tactics
 
 - Identify seams to reuse and respect local patterns.
+- Challenge whether the requested shape fits current behavior before designing it.
+- Ground the check in real evidence rather than assumptions — use available tools such as `db-explorer` when the request depends on stored data or schema.
 - Refactors are allowed only when they unblock the current goal.
 - Prefer changes that reduce coupling without altering unrelated behavior.
 
 ## Review gate checklist
 
 - The design doc covers architecture, components, data flow, error handling, and testing.
-- Open questions are listed with an owner or next step.
+- Open Questions contains only surfaced unresolved questions, or explicitly says none remain.
 - Scope matches a single sub-project with explicit non-goals.
 
 ## Fuzziness diagnosis
@@ -55,7 +57,7 @@ Assess the user's request against these levels before choosing a strategy:
 | Problem unclear | User describes symptoms, not goals; "it feels wrong" | "The system is hard to use" | Reframe the problem |
 | Direction unclear | User has a goal but no sense of approach | "I want better user engagement" | Explore possibilities |
 | Boundaries unclear | User knows what they want but not the edges | "I want user auth" | Scan for blind spots |
-| Solution unclear | User knows what and scope, needs technical approach | "I want SSO with SAML" | Compare approaches (skip to step 4) |
+| Solution unclear | User knows what and scope, needs technical approach | "I want SSO with SAML" | Compare approaches (skip to step 5) |
 
 ## Assumption challenging
 

@@ -56,4 +56,4 @@ Critical test cases and where they run.
 
 ## Open Questions
 
-Unknowns and the plan to resolve them.
+Only unresolved questions already surfaced during discovery. If none remain, write: "None. Key decisions were confirmed during discovery."
