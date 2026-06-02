@@ -1,37 +1,24 @@
 ---
 name: db-explorer
 description: >
-  Read-only exploration of PostgreSQL, MySQL, and SQLite databases. Use for listing schemas,
-  tables, and views; inspecting columns, primary keys, indexes, and foreign keys; sampling data;
-  running read-only SQL; verifying code models against database schema; and troubleshooting stored records.
-  Only trigger when the user is explicitly in a database / SQL / schema / record / column context.
-  Do NOT trigger for HTML / Markdown / UI tables or other non-database "table" scenarios.
+  Use this CLI skill for read-only database access and exploration.
+  It supports PostgreSQL, MySQL, and SQLite schema inspection, record sampling, and safe read-only SQL.
+  Do not use for writes, migrations, data fixes, bulk exports, or non-database tables.
 ---
 
 # DB Explorer
 
-Use the prebuilt `db-explorer` Go binary in `bin/` for deterministic, read-only database exploration.
-The skill is binary-only and JSON-first: select the platform binary, run the smallest safe command, parse the JSON envelope, then summarize results.
+Use the bundled `db-explorer` Go binary only. Default to JSON. Run the smallest safe command, parse the JSON envelope, then summarize results.
 
-## Use this skill when
+Hard rules:
 
-- The user wants to list database schemas, tables, or views
-- The user wants to inspect columns, types, defaults, primary keys, indexes, or foreign keys
-- The user wants to sample a few rows of data
-- The user wants to run a read-only SQL query
-- The user wants to verify that code models match the database schema
-- The user is troubleshooting stored records or column values
-
-## Do not use
-
-- Any write operation, DDL, migration, data fix, backfill, or destructive maintenance operation
-- Bulk data export or heavy data processing
-- Non-database tables such as HTML, Markdown, UI, or spreadsheet tables
-- Unclear or unsafe production connections where the query may expose sensitive data
+- Read-only only; never execute or suggest write SQL, DDL, migrations, data fixes, or backfills.
+- Do not install dependencies, use helper scripts, or bypass the bundled binary with `psql`, `mysql`, `sqlite3`, or ad hoc code.
+- Do not print passwords, tokens, or full secret-bearing URLs.
 
 ## Binary Selection
 
-The skill includes precompiled binaries for major platforms in `bin/`. Detect the user's platform and select the matching binary:
+Select the matching precompiled binary in `bin/`:
 
 - Linux x86_64: `bin/db-explorer-linux-amd64`
 - Linux ARM64: `bin/db-explorer-linux-arm64`
@@ -46,17 +33,11 @@ uname -s  # Linux, Darwin, or MINGW64_NT
 uname -m  # x86_64, arm64, aarch64
 ```
 
-Invoke the selected binary directly. Do not install dependencies or use helper scripts.
-
 ## Capability contract
 
-Supported databases:
+Databases: `sqlite`, `postgres`, `mysql`.
 
-- `sqlite`
-- `postgres`
-- `mysql`
-
-Supported commands:
+Commands:
 
 - `test`: test connection
 - `schemas`: list schemas / namespaces
@@ -80,61 +61,30 @@ Connection flags:
 --debug
 ```
 
-Defaults for database exploration commands:
+Defaults: JSON output, 30 second timeout, `data --limit 10`.
 
-- Output format: JSON
-- Timeout: `30` seconds
-- Data sample limit: `10` rows
+JSON responses contain `schema_version: "1"`, `ok`, `command`, `data` or `error`, and `meta`.
 
-With the default `--format json`, database exploration responses are JSON envelopes with `schema_version: "1"`, `ok`, `command`, `data` or `error`, and `meta`.
+Only `query` and `data` support `--format table|markdown|csv`; other commands require JSON. Use non-JSON formats only when the user explicitly asks for rendered rows.
 
-`--format table|markdown|csv` is supported only by the row/column commands `query` and `data`; successful runs render the result set as human-readable output instead of a JSON envelope. Errors still return JSON envelopes. Other database commands (`schemas`, `tables`, `views`, `schema`, `test`) return a `FORMAT_UNSUPPORTED` JSON error before connecting if a non-JSON format is requested. Default to JSON for agent parsing; only use a non-JSON format when the user explicitly wants human-readable rows.
+## Connection
 
-## Configuration
-
-Connection resolution priority:
+Connection priority:
 
 1. CLI flags
 2. Project config: `.db-explorer.toml`
 3. Global config: `~/.config/ai-skills/db-explorer.toml`
 4. Environment fallback: `DATABASE_URL`, `DB_URL`, `POSTGRES_URL`, `MYSQL_URL`
 
-Example `.db-explorer.toml`:
-
-```toml
-default_profile = "local"
-
-[[profiles]]
-id = "local"
-db = "sqlite"
-url = "./app.db"
-
-[[profiles]]
-id = "dev"
-db = "postgres"
-url_env = "DATABASE_URL"
-
-[[profiles]]
-id = "mysql-dev"
-db = "mysql"
-url_env = "MYSQL_URL"
-```
-
-Prefer `url_env` for credentials. Do not print full connection URLs that contain passwords or tokens.
+Prefer project `.db-explorer.toml`. If the user provides a `.db`, `.sqlite`, or `.sqlite3` path, default to `--db sqlite` unless context says otherwise. Use `--url-env <ENV_VAR>` for credentials and do not print the env var value.
 
 See `references/configuration.md` for details.
 
 ## Workflow
 
-### 1. Resolve connection info
+### 1. Verify connection
 
-- Prefer existing `.db-explorer.toml` in the project root.
-- If no project config exists, use explicit user-provided flags, global config, or environment fallback.
-- If the user provides a `.db`, `.sqlite`, or `.sqlite3` path, default to `--db sqlite` unless context clearly says otherwise.
-- When using an env var, pass `--url-env <ENV_VAR>` and do not print its value.
-- Ask only for missing information that blocks execution.
-
-### 2. Verify connection first
+Ask only for missing connection information that blocks execution. Test before schema or data commands:
 
 ```bash
 bin/db-explorer-<platform> test --profile local
@@ -142,35 +92,28 @@ bin/db-explorer-<platform> test --db sqlite --url ./app.db
 bin/db-explorer-<platform> test --db postgres --url-env DATABASE_URL
 ```
 
-If the test fails, report the JSON error code and masked message. Do not speculate about schema or data before connection verification succeeds.
+If `test` fails, report the JSON `error.code` and masked `error.message`. Do not speculate about schema or data.
 
-### 3. Run the smallest useful command
+### 2. Run the smallest useful command
 
 ```bash
-# List schemas, tables, or views
 bin/db-explorer-<platform> schemas --profile local
 bin/db-explorer-<platform> tables --profile local
 bin/db-explorer-<platform> views --profile local
-
-# Inspect structure
 bin/db-explorer-<platform> schema users --profile local
 bin/db-explorer-<platform> schema public.users --db postgres --url-env DATABASE_URL
-
-# Sample data
 bin/db-explorer-<platform> data users --limit 10 --profile local
-
-# Run custom read-only SQL only when built-in commands are insufficient
 bin/db-explorer-<platform> query "SELECT id, email FROM users LIMIT 10" --profile local
 ```
-
-Selection strategy:
 
 - Need orientation: `schemas`, `tables`, `views`
 - Need definition: `schema <table>`
 - Need example records: `data <table> --limit 10`
-- Need filtering / joins / aggregation: `query "<sql>"`
+- Need filtering, joins, or aggregation: `query "<sql>"`
 
-### 4. SQL safety rules
+Use built-in commands before custom SQL when they answer the question.
+
+### 3. SQL safety
 
 Only run read-only SQL. The binary rejects:
 
@@ -190,36 +133,34 @@ Allowed custom SQL prefixes:
 
 For exploratory SQL written on behalf of the user, add a reasonable `LIMIT` unless the query semantics make a limit inappropriate.
 
+### 4. Sensitive data
+
+For production or sensitive-looking contexts, inspect schema first. Do not sample secret, token, password, payment, personal, or authentication columns unless the user explicitly asks and the connection is safe. Prefer counts, schema, or non-sensitive columns over raw row samples.
+
 ### 5. Present results
 
-For default JSON runs, do not dump raw terminal output. Parse the JSON envelope and summarize:
+Do not dump raw terminal output from JSON runs. Parse the envelope and summarize:
 
 - Tables/views: list relation names, schemas, and row estimate metadata when present
 - Schema: show columns first, then indexes and foreign keys
 - Data/query: show concise rows; mention if `meta.truncated` is true
 - Errors: report `error.code` and the masked `error.message`
 
-If the user explicitly requested `--format table`, `--format markdown`, or `--format csv` for `query` or `data`, present successful rendered row output directly or summarize it as requested. If that run fails, parse the JSON error envelope.
+If a command fails:
 
-### 6. Compare with code models
+- Config/profile/env error: check the selected profile, config file, or env var name.
+- Relation missing: run `tables` or `views`.
+- Permission error: report the missing read permission.
+- SQL rejected: use a built-in command or rewrite as one safe read-only statement.
 
-If cross-checking ORM/model definitions:
+### 6. Compare code models
+
+When cross-checking ORM/model definitions:
 
 1. Run `schema <table>`.
 2. Open the model file.
 3. Report only key differences: missing/extra fields, type mismatches, nullability differences, default differences, primary key/index/foreign key differences.
 
-## Guardrails
-
-- This is a read-only skill.
-- Use only the bundled `bin/db-explorer-*` binaries as the database access path.
-- Never execute or suggest write SQL, DDL, migrations, fixes, or backfills.
-- Do not expose passwords, tokens, or full secret-bearing URLs.
-- Do not rely on exact row counts from `tables`; row metadata is an estimate or unknown unless explicitly queried.
-- When a query fails, report the structured error and next troubleshooting step; do not fabricate results.
-
 ## Additional Resources
 
-- Source code: `db-explorer-go/`
 - Configuration: `references/configuration.md`
-- Evaluations: `evals/db-explorer/`
