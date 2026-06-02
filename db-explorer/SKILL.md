@@ -1,9 +1,10 @@
 ---
 name: db-explorer
 description: >
-  Use this CLI skill for read-only database access and exploration.
-  It supports PostgreSQL, MySQL, and SQLite schema inspection, record sampling, and safe read-only SQL.
-  Do not use for writes, migrations, data fixes, bulk exports, or non-database tables.
+  Read-only CLI for exploring PostgreSQL, MySQL, and SQLite databases. Use this skill whenever a task
+  needs reliable database facts, including schema details, sample records, read-only query results, or
+  code-model verification against actual database structure. Do not use for writes, migrations, data
+  fixes, bulk exports, or non-database tables.
 ---
 
 # DB Explorer
