@@ -67,3 +67,18 @@ func TestRenderers(t *testing.T) {
 		t.Fatalf("unexpected csv output: %s", csvOut)
 	}
 }
+
+func TestWriteRaw(t *testing.T) {
+	var buf bytes.Buffer
+	writer := NewWriter(&buf)
+	if err := writer.WriteRaw("id | name"); err != nil {
+		t.Fatal(err)
+	}
+	got := buf.String()
+	if got != "id | name\n" {
+		t.Fatalf("unexpected raw output: %q", got)
+	}
+	if strings.Contains(got, "schema_version") {
+		t.Fatalf("raw output must not be a JSON envelope: %q", got)
+	}
+}

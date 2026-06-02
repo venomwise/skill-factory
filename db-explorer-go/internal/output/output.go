@@ -71,3 +71,13 @@ func (w *Writer) write(envelope Envelope) error {
 	encoder.SetEscapeHTML(false)
 	return encoder.Encode(envelope)
 }
+
+// WriteRaw writes a pre-rendered string (e.g. table/markdown/csv) followed by a
+// trailing newline. It bypasses the JSON envelope for human-oriented formats.
+func (w *Writer) WriteRaw(s string) error {
+	if _, err := io.WriteString(w.out, s); err != nil {
+		return err
+	}
+	_, err := io.WriteString(w.out, "\n")
+	return err
+}

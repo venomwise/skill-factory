@@ -36,7 +36,7 @@ Other global flags:
 
 | Flag | Default | Description |
 | --- | --- | --- |
-| `--format json\|table\|markdown\|csv` | `json` | Output format |
+| `--format json\|table\|markdown\|csv` | `json` | Output format. Non-JSON formats are honored only by successful `query` and `data` runs; errors remain JSON envelopes. Other database commands return `FORMAT_UNSUPPORTED` before connecting. |
 | `--timeout <seconds>` | `30` | Connection/query timeout |
 | `--debug` | `false` | Enable debug diagnostics |
 
@@ -173,7 +173,7 @@ Inference examples:
 
 ## JSON contract
 
-JSON is the default output format. Every JSON response includes:
+JSON is the default output format. With the default `--format json`, every response is an envelope that includes:
 
 ```json
 {

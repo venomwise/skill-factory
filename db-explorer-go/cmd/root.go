@@ -59,7 +59,7 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&dbType, "db", "", "database type: sqlite, postgres, or mysql")
 	rootCmd.PersistentFlags().StringVar(&url, "url", "", "database connection URL or SQLite path")
 	rootCmd.PersistentFlags().StringVar(&urlEnv, "url-env", "", "environment variable containing the database connection URL")
-	rootCmd.PersistentFlags().StringVar(&format, "format", "json", "output format: json, table, markdown, or csv")
+	rootCmd.PersistentFlags().StringVar(&format, "format", "json", "output format: json for all database commands; table, markdown, or csv for query/data")
 	rootCmd.PersistentFlags().IntVar(&timeout, "timeout", 30, "query timeout in seconds")
 	rootCmd.PersistentFlags().BoolVar(&debug, "debug", false, "enable debug diagnostics")
 }

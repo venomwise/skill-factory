@@ -121,20 +121,22 @@ Browse the repository root and open the skill directory you need.
 
 That file defines the skill's purpose, workflow, guardrails, and expected outputs.
 
-### 3) Install dependencies if the skill includes scripts
+### 3) Prepare the skill runtime
 
-Some skills ship with Python helpers and `requirements.txt`.
-Use the **same virtual environment** for installation and execution.
+Follow the selected skill's `SKILL.md`.
+Binary skills such as `db-explorer`, `exa-search`, and `grok-search` should be run through their bundled platform binary.
+Skills with Python helpers may include `requirements.txt`; use the **same virtual environment** for installation and execution.
 
 ### 4) Run skill-specific scripts or evals
 
 Example for `db-explorer`:
 
-```powershell
-python -m venv .\db-explorer\.venv
-.\db-explorer\.venv\Scripts\pip install -r .\db-explorer\requirements.txt
-.\db-explorer\.venv\Scripts\python .\evals\db-explorer\run_comparison.py
-python .\db-explorer\scripts\db_query.py --db-type sqlite --url .\sample.db tables
+```bash
+uname -s
+uname -m
+
+./db-explorer/bin/db-explorer-linux-amd64 version
+./db-explorer/bin/db-explorer-linux-amd64 tables --db sqlite --url ./sample.db
 ```
 
 ## Development and testing
@@ -151,8 +153,8 @@ General testing approach:
 
 For `db-explorer`, the main regression check is:
 
-```powershell
-.\db-explorer\.venv\Scripts\python .\evals\db-explorer\run_comparison.py
+```bash
+python3 evals/db-explorer/run_comparison.py
 ```
 
 ## Authoring conventions

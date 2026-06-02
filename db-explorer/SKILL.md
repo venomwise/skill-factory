@@ -10,8 +10,8 @@ description: >
 
 # DB Explorer
 
-Use the prebuilt `db-explorer` Go binary for deterministic, read-only database exploration.
-Goal: retrieve trustworthy database metadata and small samples with stable JSON output for agent parsing.
+Use the prebuilt `db-explorer` Go binary in `bin/` for deterministic, read-only database exploration.
+The skill is binary-only and JSON-first: select the platform binary, run the smallest safe command, parse the JSON envelope, then summarize results.
 
 ## Use this skill when
 
@@ -29,7 +29,7 @@ Goal: retrieve trustworthy database metadata and small samples with stable JSON 
 - Non-database tables such as HTML, Markdown, UI, or spreadsheet tables
 - Unclear or unsafe production connections where the query may expose sensitive data
 
-## Setup
+## Binary Selection
 
 The skill includes precompiled binaries for major platforms in `bin/`. Detect the user's platform and select the matching binary:
 
@@ -46,7 +46,7 @@ uname -s  # Linux, Darwin, or MINGW64_NT
 uname -m  # x86_64, arm64, aarch64
 ```
 
-Invoke the selected binary directly. No Python, virtualenv, pip install, or database driver setup is required.
+Invoke the selected binary directly. Do not install dependencies or use helper scripts.
 
 ## Capability contract
 
@@ -67,7 +67,7 @@ Supported commands:
 - `query "<sql>"`: run one read-only SQL statement
 - `version`: show binary version metadata
 
-Global flags:
+Connection flags:
 
 ```text
 --profile <id>
@@ -80,13 +80,15 @@ Global flags:
 --debug
 ```
 
-Defaults:
+Defaults for database exploration commands:
 
-- Output format: `json`
+- Output format: JSON
 - Timeout: `30` seconds
 - Data sample limit: `10` rows
 
-All JSON responses include `schema_version: "1"`.
+With the default `--format json`, database exploration responses are JSON envelopes with `schema_version: "1"`, `ok`, `command`, `data` or `error`, and `meta`.
+
+`--format table|markdown|csv` is supported only by the row/column commands `query` and `data`; successful runs render the result set as human-readable output instead of a JSON envelope. Errors still return JSON envelopes. Other database commands (`schemas`, `tables`, `views`, `schema`, `test`) return a `FORMAT_UNSUPPORTED` JSON error before connecting if a non-JSON format is requested. Default to JSON for agent parsing; only use a non-JSON format when the user explicitly wants human-readable rows.
 
 ## Configuration
 
@@ -142,7 +144,7 @@ bin/db-explorer-<platform> test --db postgres --url-env DATABASE_URL
 
 If the test fails, report the JSON error code and masked message. Do not speculate about schema or data before connection verification succeeds.
 
-### 3. Choose the minimal operation
+### 3. Run the smallest useful command
 
 ```bash
 # List schemas, tables, or views
@@ -157,7 +159,7 @@ bin/db-explorer-<platform> schema public.users --db postgres --url-env DATABASE_
 # Sample data
 bin/db-explorer-<platform> data users --limit 10 --profile local
 
-# Run read-only SQL
+# Run custom read-only SQL only when built-in commands are insufficient
 bin/db-explorer-<platform> query "SELECT id, email FROM users LIMIT 10" --profile local
 ```
 
@@ -190,12 +192,14 @@ For exploratory SQL written on behalf of the user, add a reasonable `LIMIT` unle
 
 ### 5. Present results
 
-Do not dump raw terminal output. Parse JSON and summarize:
+For default JSON runs, do not dump raw terminal output. Parse the JSON envelope and summarize:
 
 - Tables/views: list relation names, schemas, and row estimate metadata when present
 - Schema: show columns first, then indexes and foreign keys
 - Data/query: show concise rows; mention if `meta.truncated` is true
 - Errors: report `error.code` and the masked `error.message`
+
+If the user explicitly requested `--format table`, `--format markdown`, or `--format csv` for `query` or `data`, present successful rendered row output directly or summarize it as requested. If that run fails, parse the JSON error envelope.
 
 ### 6. Compare with code models
 
@@ -208,6 +212,7 @@ If cross-checking ORM/model definitions:
 ## Guardrails
 
 - This is a read-only skill.
+- Use only the bundled `bin/db-explorer-*` binaries as the database access path.
 - Never execute or suggest write SQL, DDL, migrations, fixes, or backfills.
 - Do not expose passwords, tokens, or full secret-bearing URLs.
 - Do not rely on exact row counts from `tables`; row metadata is an estimate or unknown unless explicitly queried.
@@ -217,5 +222,4 @@ If cross-checking ORM/model definitions:
 
 - Source code: `db-explorer-go/`
 - Configuration: `references/configuration.md`
-- Migration notes: `references/migration-from-python.md`
 - Evaluations: `evals/db-explorer/`
