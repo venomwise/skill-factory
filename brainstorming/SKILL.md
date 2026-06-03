@@ -44,7 +44,7 @@ description: Turn ideas into validated designs and specs through collaborative d
    Stop when the user can clearly state what they want, why they want it, and what they explicitly do not want, and when key constraints and success criteria are known or explicitly recorded as assumptions.
 5. Converge and propose. Summarize what brainstorming revealed: the refined problem statement, request-fit findings, challenged assumptions, discovered blind spots, and trimmed scope. Then propose 1-3 approaches with trade-offs. Lead with your recommendation. If only one approach is viable, explain why alternatives were ruled out. Ask the user to confirm the problem summary and select an approach before continuing.
 6. Present the design scaled to complexity. For simple projects, present the full design at once and ask for approval. For moderate or complex projects, present by section and ask for approval after each. Cover architecture, components, data flow, error handling, and testing.
-7. Write the design doc to `specs/<topic>/design.md` using the template in `assets/design-doc-template.md`. Name `<topic>` using kebab-case derived from the project or feature name (e.g., `user-auth`, `payment-integration`). Confirm the path with the user if ambiguous. Open Questions must contain only unresolved questions already surfaced to the user; if none remain, write that no open questions remain.
+7. Write the design doc to `specs/<topic>/design.md` using the template in `assets/design-doc-template.md`. Preserve the template's English headings and structural labels exactly, while writing the section content in the user's current language. Infer that language from the conversation; do not ask solely to determine it. Name `<topic>` using kebab-case derived from the project or feature name (e.g., `user-auth`, `payment-integration`). Confirm the path with the user if ambiguous. Open Questions must contain only unresolved questions already surfaced to the user; if none remain, write that no open questions remain.
 8. User review gate. Ask the user to review the written doc. On feedback:
    - Wording or detail changes: edit the doc and re-confirm.
    - Scope or approach changes: return to step 5.
@@ -56,6 +56,7 @@ description: Turn ideas into validated designs and specs through collaborative d
 
 - [ ] `specs/<topic>/design.md` exists and the user approved it
 - [ ] The design doc includes the template headings from `assets/design-doc-template.md`
+- [ ] The design doc keeps template headings in English and writes section content in the user's current language
 - [ ] The design covers architecture, components, data flow, error handling, and testing
 - [ ] If brainstorming surfaced notable discoveries, they are recorded in the design doc's Discovery section
 - [ ] Open Questions contains only surfaced unresolved questions, or explicitly says none remain

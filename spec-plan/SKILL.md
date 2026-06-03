@@ -38,12 +38,14 @@ description: Create requirements.md and tasks.md for a project spec, with tracea
    - If the user did not provide a design path, reply exactly: `请指定 design 文件路径（例如 specs/<topic>/design.md）。` Then end the workflow. Do not search, list, or infer a design.
    - If the user-provided path does not exist, end the workflow and recommend running the **`brainstorming`** skill first to produce an approved design at `specs/<topic>/design.md`.
 2. Confirm the target directory and project name from the selected `specs/<topic>/design.md`.
-3. Open the selected `design.md`.
+3. Open the selected `design.md` and infer its body language from the prose content, ignoring Markdown headings, code, file paths, identifiers, and quoted/template labels. If languages are mixed, use the dominant language of the user-authored explanatory content. Do not ask solely to determine language.
 4. Draft `requirements.md` using `assets/requirements.template.md`.
    Follow the HTML comments in the template for content depth and coverage guidance.
    HTML comments are authoring instructions - do NOT include them in the final output.
+   Preserve the template's English structure exactly: Markdown headings, fixed section/schema labels, `Requirement N`, `User Story`, `Acceptance Criteria`, and acceptance-criteria control words such as `WHEN`, `THEN`, `IF`, and `SHALL`. Write generated content in the inferred `design.md` body language, including the introduction, glossary definitions, requirement titles, user story text, and acceptance-criteria condition/behavior text, unless using code names, product names, or fixed identifiers.
    Treat `design.md` as the authoritative source of requirements. Translate the approved design into accurate, testable acceptance criteria without adding, omitting, or changing intended behavior. Reflect approved behavior and constraints where applicable, but do not convert design rationale, examples, alternatives, or future ideas into hard requirements unless the design explicitly requires them.
 5. Draft `tasks.md` using `assets/tasks.template.md` and link to `requirements.md`.
+   Preserve the template's English structure exactly: Markdown headings, checkbox/task numbering syntax, `Phase`, `Checkpoint`, optional `*` marker syntax, and `_Requirements:` labels. Write generated content in the inferred `design.md` body language, including the overview, phase titles after the fixed `Phase N:` prefix, task titles, task detail bullets, checkpoint validation details, and notes, unless using code names, product names, file paths, command names, or fixed identifiers.
    Include test tasks for each functional phase and add Checkpoint stages at key milestones. Checkpoints are validation tasks for the execution agent, not user approval gates; write concrete verification steps and blocker conditions instead of asking whether to continue.
    Mark optional phases/tasks with `- [ ]*` (asterisk immediately after closing bracket). Non-essential steps such as test tasks, verification tasks, summary/documentation wrap-up tasks, and nice-to-have features MUST use this marker — never use text labels like "可选" or "Optional:" instead.
 6. Ensure every task references one or more requirement IDs (for traceability).
@@ -55,6 +57,8 @@ description: Create requirements.md and tasks.md for a project spec, with tracea
 Before presenting the final output, scan both files and confirm each item:
 
 - [ ] `design.md` exists and has been read before drafting `requirements.md` or `tasks.md`.
+- [ ] The body language for `requirements.md` and `tasks.md` was inferred from `design.md` prose, not from template headings.
+- [ ] Template English structure is preserved while generated content uses the inferred `design.md` body language.
 - [ ] `requirements.md` contains Introduction, Glossary, and numbered Requirements sections.
 - [ ] Every requirement is traceable to approved behavior or constraints in `design.md`.
 - [ ] `requirements.md` accurately implements `design.md`: no added behavior, omitted required behavior, changed semantics, or contradictory architecture.
