@@ -1,6 +1,11 @@
 ---
 name: tech-design-doc
-description: Generate a structured Technical Design Document (TDD). Use this skill whenever the user wants to write a technical design doc, system design spec, or technical proposal — including phrases like "write a tech design", "generate a TDD", "create a design doc", "document the technical approach", "write up the design", "帮我写个技术设计", "生成技术方案", "写个设计文档", "出一份 TDD", "整理一下技术方案", "写技术设计文档". Supports two input sources: a design.md produced by the brainstorming skill, or git commit history. Outputs a standardized doc with five sections: Background, Goals, Solution Design, Design Details (Function/API/Database), and Key Points.
+description: >
+  Generate a structured Technical Design Document (TDD). Use this skill whenever the user wants to write a technical design doc,
+  system design spec, or technical proposal — including phrases like "write a tech design", "generate a TDD", "create a design doc",
+  "document the technical approach", "write up the design", "帮我写个技术设计", "生成技术方案", "写个设计文档", "出一份 TDD", "整理一下技术方案",
+  "写技术设计文档". Supports two input sources: a design.md produced by the brainstorming skill, or git commit history. Outputs a
+  standardized doc with five sections: Background, Goals, Solution Design, Design Details (Function/API/Database), and Key Points.
 ---
 
 # Technical Design Document Generator
@@ -109,4 +114,3 @@ Write the file to the target path only after the user approves.
 ## References
 
 - [Document template](assets/tech-design-template.md)
-
