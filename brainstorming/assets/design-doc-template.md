@@ -30,6 +30,18 @@ One paragraph on what we are building and why.
 
 - What was explicitly included and excluded, with reasoning.
 
+## Decision Record
+
+Capture the alternatives that were weighed and why the chosen one won, so the decision can be revisited later. Record the options actually compared during brainstorming; do not invent alternatives that were never on the table.
+
+### Options Considered
+
+- One entry per approach evaluated, each with its key trade-offs (pros, cons, cost, risk). If only one approach was viable, state that here.
+
+### Decision & Rationale
+
+- The chosen approach and the concrete reasons it won over the others. If only one approach was viable, record why the alternatives were ruled out. Note any decisions the user explicitly made or constraints that forced the choice.
+
 ## Proposed Solution
 
 High-level approach and the reason it fits the constraints.
