@@ -57,7 +57,7 @@ Assess the user's request against these levels before choosing a strategy:
 | Problem unclear | User describes symptoms, not goals; "it feels wrong" | "The system is hard to use" | Reframe the problem |
 | Direction unclear | User has a goal but no sense of approach | "I want better user engagement" | Explore possibilities |
 | Boundaries unclear | User knows what they want but not the edges | "I want user auth" | Scan for blind spots |
-| Solution unclear | User knows what and scope, needs technical approach | "I want SSO with SAML" | Compare approaches (skip to step 5) |
+| Solution unclear | User knows what and scope, needs technical approach | "I want SSO with SAML" | Confirm intent, priorities, and constraints first, then compare approaches |
 
 ## Assumption challenging
 
