@@ -44,7 +44,10 @@
 
 ## Review gate checklist
 
+This is the user-facing lens for the step 8 review — what to look at when reading the written doc. SKILL.md's Verification section is the agent's own complete self-check; this list is a subset framed for human review.
+
 - The design doc covers architecture, components, data flow, error handling, and testing.
+- The Decision Record records the alternatives weighed and why the chosen one won.
 - Open Questions contains only surfaced unresolved questions, or explicitly says none remain.
 - Scope matches a single sub-project with explicit non-goals.
 
@@ -111,6 +114,8 @@ Use these during brainstorming to expand the problem space:
 - **Analogy**: "How do similar products or domains solve this?" Borrow proven patterns.
 
 ## When to stop brainstorming
+
+The authoritative exit condition lives in SKILL.md step 4; do not duplicate or override it here. Use these as supporting signals that the condition is likely met:
 
 - The user can state what they want, why they want it, and what they do not want.
 - Key constraints and success criteria are known or explicitly recorded as assumptions.
