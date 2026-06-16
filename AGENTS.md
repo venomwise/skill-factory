@@ -17,9 +17,11 @@ skill-factory/
 ├── spec-plan/             # Generate requirements.md + tasks.md from a design
 ├── spec-exec/             # Execute tasks from tasks.md
 ├── springcloud-init/      # Spring Cloud project initialization
+├── web-access/            # Unified web access (Exa + Grok)
 ├── db-explorer-go/        # Go source for the db-explorer binary
 ├── exa-search-go/         # Go source for the exa-search binary
 ├── grok-search-go/        # Go source for the grok-search binary
+├── web-access-go/         # Go source for the web-access binary
 ├── evals/                 # Evaluation cases, organized by skill name
 └── specs/                 # Spec outputs (design/requirements/tasks per topic)
 ```
@@ -30,12 +32,12 @@ Each top-level directory that contains a `SKILL.md` is a skill. A skill folder f
 - `references/` — supporting reference docs
 - `scripts/` — executable helpers (optional)
 
-The Go-based skills (`db-explorer`, `exa-search`, `grok-search`) ship pre-compiled binaries in their own `bin/` directory; the source lives in the matching `*-go/` project. Evaluation cases live in `evals/<skill>/`. This file (`AGENTS.md`) is the single repo-level source of truth for all conventions below.
+The Go-based skills (`db-explorer`, `exa-search`, `grok-search`, `web-access`) ship pre-compiled binaries in their own `bin/` directory; the source lives in the matching `*-go/` project. Evaluation cases live in `evals/<skill>/`. This file (`AGENTS.md`) is the single repo-level source of truth for all conventions below.
 
 ## Build, Test, and Development Commands
 There is no monolithic build step; work is usually skill-specific.
 
-### Go-based skills (db-explorer, exa-search, grok-search)
+### Go-based skills (db-explorer, exa-search, grok-search, web-access)
 ```bash
 # Build db-explorer from source
 cd db-explorer-go
@@ -55,13 +57,21 @@ cd ../grok-search-go
 go test ./...
 go build -o grok-search ./cmd/grok-search
 ./grok-search version
+
+# Build web-access from source
+cd ../web-access-go
+go test ./...
+go build -o web-access ./cmd/web-access
+./web-access version
 ```
 
-The `db-explorer`, `exa-search`, and `grok-search` skills use a hybrid architecture: pre-compiled Go binaries for supported platforms are stored in each skill's `bin/` directory, while source code lives in independent Go projects (`db-explorer-go/`, `exa-search-go/`, `grok-search-go/`). Skill definitions remain self-contained in their skill directories. Configuration is loaded from `~/.config/ai-skills/<skill>.toml`, project config where supported, environment variables, or CLI flags.
+The `db-explorer`, `exa-search`, `grok-search`, and `web-access` skills use a hybrid architecture: pre-compiled Go binaries for supported platforms are stored in each skill's `bin/` directory, while source code lives in independent Go projects (`db-explorer-go/`, `exa-search-go/`, `grok-search-go/`, `web-access-go/`). Skill definitions remain self-contained in their skill directories. Configuration is loaded from `~/.config/ai-skills/<skill>.toml`, project config where supported, environment variables, or CLI flags.
 
 For `db-explorer`, invoke the selected platform binary directly, for example `db-explorer/bin/db-explorer-darwin-arm64 tables --db sqlite --url ./sample.db`. It uses project `.db-explorer.toml`, global `~/.config/ai-skills/db-explorer.toml`, environment variables (`DATABASE_URL`, `DB_URL`, `POSTGRES_URL`, `MYSQL_URL`), or CLI flags (`--db`, `--url`, `--url-env`, `--profile`).
 
 For `grok-search`, invoke the selected platform binary directly, for example `grok-search/bin/grok-search-darwin-arm64 news --query "test"`. It uses TOML config at `~/.config/ai-skills/grok-search.toml`, environment variables (`GROK_API_KEY`, `GROK_API_KEYS`, `GROK_BASE_URL`, `GROK_MODEL`, `GROK_TIMEOUT`), or CLI flags (`--api-key`, `--base-url`, `--model`).
+
+For `web-access`, invoke the selected platform binary directly, for example `web-access/bin/web-access-darwin-arm64 docs --query "authentication"`. It provides unified access to both Exa (source-first) and Grok (live synthesis) capabilities through a single CLI. Configuration is loaded from `~/.config/ai-skills/web-access.toml`, environment variables (`WEB_ACCESS_EXA_API_KEY`, `WEB_ACCESS_GROK_API_KEY`, `EXA_API_KEY`, `GROK_API_KEY`), or CLI flags (`--exa-api-key`, `--grok-api-key`, `--config`, `--profile`). The skill supports multiple profiles per provider for failover without cooldown state.
 
 ### Automated Releases (Go skills)
 GitHub Actions workflows automate building, releasing, and updating Go-based skills. Use project-scoped release tags so one skill does not rebuild another:
@@ -74,6 +84,10 @@ git push origin exa-search-v1.0.0
 # Grok Search
 git tag -a grok-search-v1.0.0 -m "Release grok-search v1.0.0"
 git push origin grok-search-v1.0.0
+
+# Web Access
+git tag -a web-access-v1.0.0 -m "Release web-access v1.0.0"
+git push origin web-access-v1.0.0
 ```
 
 Each Go skill owns isolated workflows:

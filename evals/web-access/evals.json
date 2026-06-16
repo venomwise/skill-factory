@@ -1,0 +1,192 @@
+{
+  "name": "web-access",
+  "description": "Unified web access skill evaluation cases covering Exa source-first and Grok live synthesis commands",
+  "version": "1.0.0",
+  "cases": [
+    {
+      "id": "docs-lookup",
+      "name": "Official Documentation Lookup",
+      "description": "Agent needs to find official documentation for a specific library or framework",
+      "scenario": "User asks: 'Find the official OpenClaw documentation on authentication'",
+      "expected_routing": {
+        "command": "docs",
+        "provider": "exa",
+        "reasoning": "Official documentation requires source-first search with domain filtering"
+      },
+      "example_command": "web-access docs --query 'OpenClaw authentication' --include-domains docs.openclaw.ai",
+      "acceptance_criteria": [
+        "Routes to Exa provider",
+        "Uses docs command with default domain filter",
+        "Returns official documentation URLs"
+      ]
+    },
+    {
+      "id": "source-first-search",
+      "name": "General Source-First Search",
+      "description": "Agent needs to search for authoritative sources across the web",
+      "scenario": "User asks: 'Search for articles about Rust async programming patterns'",
+      "expected_routing": {
+        "command": "search",
+        "provider": "exa",
+        "reasoning": "General web search for authoritative sources without domain restriction"
+      },
+      "example_command": "web-access search --query 'Rust async programming patterns' --num 5 --type neural",
+      "acceptance_criteria": [
+        "Routes to Exa provider",
+        "Uses search command without default domain filter",
+        "Returns ranked authoritative sources"
+      ]
+    },
+    {
+      "id": "text-extraction",
+      "name": "Article Text Extraction",
+      "description": "Agent needs to extract full text content from search results",
+      "scenario": "User asks: 'Find and extract text from articles about GraphQL best practices'",
+      "expected_routing": {
+        "command": "extract",
+        "provider": "exa",
+        "reasoning": "Extracting article text requires Exa's content extraction capability"
+      },
+      "example_command": "web-access extract --query 'GraphQL best practices' --text --num 3",
+      "acceptance_criteria": [
+        "Routes to Exa provider",
+        "Uses extract command with default text extraction",
+        "Returns full article text content"
+      ]
+    },
+    {
+      "id": "similar-pages",
+      "name": "Find Similar Pages",
+      "description": "Agent needs to find pages similar to a given URL",
+      "scenario": "User asks: 'Find pages similar to this tutorial: https://example.com/tutorial'",
+      "expected_routing": {
+        "command": "similar",
+        "provider": "exa",
+        "reasoning": "Similar page discovery is an Exa-specific capability"
+      },
+      "example_command": "web-access similar --url 'https://example.com/tutorial' --num 5",
+      "acceptance_criteria": [
+        "Routes to Exa provider",
+        "Uses similar command with URL parameter",
+        "Returns URLs similar in content/topic"
+      ]
+    },
+    {
+      "id": "fresh-news",
+      "name": "Latest News Search",
+      "description": "Agent needs to find breaking news or recent developments",
+      "scenario": "User asks: 'What are the latest developments in AI regulation?'",
+      "expected_routing": {
+        "command": "news",
+        "provider": "grok",
+        "reasoning": "Breaking news requires live synthesis with real-time web access"
+      },
+      "example_command": "web-access news --query 'latest AI regulation developments'",
+      "acceptance_criteria": [
+        "Routes to Grok provider",
+        "Uses news prompt mode",
+        "Returns synthesized news summary with sources"
+      ]
+    },
+    {
+      "id": "social-discourse",
+      "name": "Social Media Discourse",
+      "description": "Agent needs to understand community sentiment and discussions",
+      "scenario": "User asks: 'What is the developer community saying about the new Python release?'",
+      "expected_routing": {
+        "command": "social",
+        "provider": "grok",
+        "reasoning": "Social discourse analysis requires live synthesis of community discussions"
+      },
+      "example_command": "web-access social --query 'developer community reaction Python 3.13'",
+      "acceptance_criteria": [
+        "Routes to Grok provider",
+        "Uses social prompt mode",
+        "Returns synthesized community sentiment with sources"
+      ]
+    },
+    {
+      "id": "broad-research",
+      "name": "Broad Live Research",
+      "description": "Agent needs to synthesize information across multiple sources in real-time",
+      "scenario": "User asks: 'Research current state of quantum computing applications'",
+      "expected_routing": {
+        "command": "research",
+        "provider": "grok",
+        "reasoning": "Broad synthesis across diverse sources requires live research capability"
+      },
+      "example_command": "web-access research --query 'current state quantum computing practical applications'",
+      "acceptance_criteria": [
+        "Routes to Grok provider",
+        "Uses research prompt mode",
+        "Returns comprehensive synthesized analysis with diverse sources"
+      ]
+    },
+    {
+      "id": "docs-comparison",
+      "name": "Official vs Community Documentation",
+      "description": "Agent needs to compare official documentation with community interpretations",
+      "scenario": "User asks: 'Compare official Docker documentation with community guides on networking'",
+      "expected_routing": {
+        "command": "docs-compare",
+        "provider": "grok",
+        "reasoning": "Comparing official and community sources requires live synthesis"
+      },
+      "example_command": "web-access docs-compare --query 'Docker networking official docs vs community guides'",
+      "acceptance_criteria": [
+        "Routes to Grok provider",
+        "Uses docs-compare prompt mode",
+        "Returns comparative analysis with both official and community sources"
+      ]
+    },
+    {
+      "id": "output-formats",
+      "name": "Multiple Output Formats",
+      "description": "Agent needs to output results in different formats based on task",
+      "scenario": "User asks: 'Find Rust resources and give me just the URLs'",
+      "expected_routing": {
+        "command": "search",
+        "provider": "exa",
+        "reasoning": "Source-first search with URLs-only output format"
+      },
+      "example_command": "web-access search --query 'Rust learning resources' --urls",
+      "acceptance_criteria": [
+        "Routes to Exa provider",
+        "Uses search command",
+        "Outputs only URLs (not full JSON or plain text)"
+      ]
+    },
+    {
+      "id": "profile-failover",
+      "name": "Multi-Profile Failover",
+      "description": "CLI handles rate limits gracefully with multiple profiles",
+      "scenario": "First profile hits rate limit during search",
+      "expected_routing": {
+        "command": "search",
+        "provider": "exa",
+        "reasoning": "Failover to next available profile on rate limit"
+      },
+      "example_command": "web-access search --query 'test query' --profile '*'",
+      "acceptance_criteria": [
+        "Detects retryable failure (rate limit, quota, auth)",
+        "Attempts next available profile",
+        "Records all attempts in output",
+        "Does not write cooldown state"
+      ]
+    }
+  ],
+  "metadata": {
+    "routing_decision_points": [
+      "Source-first (authoritative, official docs, text extraction) → Exa",
+      "Live synthesis (news, social, research, comparison) → Grok",
+      "Similar pages, domain-filtered searches → Exa only",
+      "Real-time or breaking information → Grok"
+    ],
+    "validation_notes": [
+      "Eval cases focus on routing decisions and command examples",
+      "Network-dependent live results are not evaluated for correctness",
+      "Failover behavior is validated through mock HTTP test servers",
+      "Output format tests verify structure, not content accuracy"
+    ]
+  }
+}

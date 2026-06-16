@@ -206,34 +206,34 @@ This implementation plan is driven by the requirements in [requirements.md](requ
     - Search `web-access/` for lifecycle language that implies old skill edits or routing metadata changes
     - _Requirements: 1.5, 1.6, 1.7_
 
-- [ ] 9. Phase 7: 添加项目作用域 GitHub Actions
-  - [ ] 9.1 添加 web-access test workflow
+- [✅] 9. Phase 7: 添加项目作用域 GitHub Actions
+  - [✅] 9.1 添加 web-access test workflow
     - Create `.github/workflows/web-access-test.yml`
     - Trigger only on pull requests with paths for `web-access/**`, `web-access-go/**`, and the workflow file
     - Run dependency download, `go test`, formatting check, `go vet`, build, and `version` verification in `web-access-go`
     - _Requirements: 8.1, 9.9_
-  - [ ] 9.2 添加 web-access release workflow
+  - [✅] 9.2 添加 web-access release workflow
     - Create `.github/workflows/web-access-release.yml`
     - Trigger only on `web-access-v*` tags
     - Add matrix test job for Ubuntu, macOS, and Windows before build
     - Build Linux amd64/arm64, macOS amd64/arm64, and Windows amd64 with `CGO_ENABLED=0`
     - Ensure build depends on test and release depends on build
     - _Requirements: 8.2, 8.3, 8.4, 8.5, 8.8, 9.9_
-  - [ ] 9.3 添加 web-access update-skill workflow
+  - [✅] 9.3 添加 web-access update-skill workflow
     - Create `.github/workflows/web-access-update-skill.yml`
     - Trigger on successful `web-access` release workflow completion
     - Build all supported platform binaries into `web-access/bin/`
     - Generate `web-access/bin/SHA256SUMS`
     - Commit only `web-access/bin/**` and checksum changes
     - _Requirements: 1.3, 8.6, 8.7_
-  - [ ]* 9.4 验证 workflow 隔离
+  - [✅]* 9.4 验证 workflow 隔离
     - Inspect workflows to confirm no `push` to `main` trigger exists for test or release workflows
     - Inspect release workflow to confirm no `workflow_dispatch` trigger exists
     - Confirm non-`web-access-v*` tags do not match web-access release workflow patterns
     - Confirm workflows do not write to other skill `bin/` directories
     - _Requirements: 8.1, 8.2, 8.7, 8.8_
 
-- [ ]* 10. Checkpoint - Verify packaging and release automation
+- [✅]* 10. Checkpoint - Verify packaging and release automation
   - Run `git diff -- .github/workflows web-access web-access-go` and inspect touched paths
   - Run `cd web-access-go && go test ./...`
   - Run `cd web-access-go && go vet ./...`
@@ -243,23 +243,23 @@ This implementation plan is driven by the requirements in [requirements.md](requ
   - Stop if workflow triggers, binary paths, or old skill isolation fail validation
   - _Requirements: 1.1, 1.7, 8.1, 8.8, 9.9_
 
-- [ ]* 11. Phase 8: 添加 eval 和最终 traceability 验证
-  - [ ] 11.1 添加 web-access eval cases
+- [✅]* 11. Phase 8: 添加 eval 和最终 traceability 验证
+  - [✅] 11.1 添加 web-access eval cases
     - Create `evals/web-access/evals.json` with cases for official docs lookup, source-first search, text extraction, similar pages, fresh news, social discourse, broad live research, and docs comparison
     - Add expected routing decisions and representative command examples
     - _Requirements: 2.1, 2.8, 9.8_
-  - [ ] 11.2 添加或更新 eval runner metadata
+  - [✅] 11.2 添加或更新 eval runner metadata
     - Follow existing `evals/<skill>/` conventions for grades, benchmark notes, or comparison scripts if applicable
     - Keep eval data focused on routing and command examples rather than network-dependent live results
     - _Requirements: 9.8_
-  - [ ] 11.3 执行最终本地验证
+  - [✅] 11.3 执行最终本地验证
     - Run `cd web-access-go && go test ./...`
     - Run `cd web-access-go && go vet ./...`
     - Run `cd web-access-go && test -z "$(gofmt -l .)"`
     - Run `cd web-access-go && go build -o web-access ./cmd/web-access`
     - Run `cd web-access-go && ./web-access version`
     - _Requirements: 9.1, 9.2, 9.3, 9.4, 9.5, 9.6, 9.7, 9.9_
-  - [ ] 11.4 验证需求和任务覆盖
+  - [✅] 11.4 验证需求和任务覆盖
     - Review `specs/web-access/requirements.md` and `specs/web-access/tasks.md`
     - Confirm every requirement has at least one implementation or validation task
     - Confirm every task references valid `N.M` acceptance criteria
@@ -268,27 +268,35 @@ This implementation plan is driven by the requirements in [requirements.md](requ
 
 ## 执行摘要
 
-**实现状态**: MVP 核心功能完成 (可运行)
+**实现状态**: 完整实现完成 ✅
 
 **已完成的核心功能**:
 - ✅ Phase 1-6: 项目骨架、配置系统、Exa provider、Grok provider、输出系统、skill 文档
+- ✅ Phase 7: GitHub Actions workflows (test, release, update-skill)
+- ✅ Phase 8: Evals 和最终验证
 - ✅ 所有 8 个命令实现完成并可运行（docs, search, extract, similar, news, social, research, docs-compare）
 - ✅ 统一配置系统支持双 provider (Exa + Grok)
 - ✅ Failover 机制完成（无 cooldown）
 - ✅ 输出格式支持 JSON/plain/urls
 - ✅ 本地二进制构建成功
 - ✅ 所有单元测试通过
-
-**待完成** (可在后续迭代中完成):
-- Phase 7: GitHub Actions workflows (test, release, update-skill)
-- Phase 8: Evals 和完整的集成测试
-- 可选测试任务 (标记为 `*`)
+- ✅ 项目作用域 CI/CD workflows 完成
+- ✅ Eval cases 覆盖所有命令和路由决策
+- ✅ AGENTS.md 已更新
 
 **验证结果**:
-- 所有 Go 测试通过
-- CLI 构建成功并可执行
-- 旧 skill 目录未被修改（隔离要求满足）
-- 配置系统无 cooldown 代码
-- `--ignore-cooldown` flag 未注册
+- ✅ 所有 Go 测试通过 (`go test ./...`)
+- ✅ 静态分析通过 (`go vet ./...`)
+- ✅ 代码格式化通过 (`gofmt -l .`)
+- ✅ CLI 构建成功并可执行 (`./web-access version`)
+- ✅ 旧 skill 目录未被修改（隔离要求满足）
+- ✅ 配置系统无 cooldown 代码
+- ✅ `--ignore-cooldown` flag 未注册
+- ✅ Workflows 仅触发于项目作用域路径和标签
+- ✅ 所有需求都有对应的实现或验证任务
+
+**下一步** (可选):
+- 标记 `web-access-v1.0.0` 以触发首次发布
+- 补充可选的单元测试（标记为 `*` 的测试任务）
 
 

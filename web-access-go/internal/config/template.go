@@ -10,11 +10,11 @@ const (
 	defaultConfigDir  = ".config/ai-skills"
 	defaultConfigFile = "web-access.toml"
 
-	defaultExaBaseURL    = "https://api.exa.ai"
-	defaultGrokBaseURL   = "https://api.x.ai/v1"
-	defaultGrokModel     = "grok-beta"
-	defaultTimeout       = 30
-	defaultGrokTimeout   = 60
+	defaultExaBaseURL  = "https://api.exa.ai"
+	defaultGrokBaseURL = "https://api.x.ai/v1"
+	defaultGrokModel   = "grok-beta"
+	defaultTimeout     = 30
+	defaultGrokTimeout = 60
 )
 
 // EnsureTemplate creates a template config file if it doesn't exist

@@ -48,16 +48,16 @@ type ResolvedProviderConfig struct {
 
 // ResolvedProfile represents a resolved profile with all settings applied
 type ResolvedProfile struct {
-	ID           string
-	APIKey       string
-	BaseURL      string
-	Model        string // for Grok only
+	ID            string
+	APIKey        string
+	BaseURL       string
+	Model         string // for Grok only
 	ProfileSource string // "cli", "env", "toml"
 }
 
 // Common errors
 var (
-	ErrNoAPIKey       = errors.New("no API key configured")
-	ErrConfigParse    = errors.New("config parse error")
-	ErrInvalidJSON    = errors.New("invalid JSON")
+	ErrNoAPIKey    = errors.New("no API key configured")
+	ErrConfigParse = errors.New("config parse error")
+	ErrInvalidJSON = errors.New("invalid JSON")
 )

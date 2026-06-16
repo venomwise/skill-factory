@@ -7,10 +7,10 @@ import (
 
 var (
 	// Global flags
-	cfgFile    string
-	profileID  string
-	timeout    int
-	debugMode  bool
+	cfgFile   string
+	profileID string
+	timeout   int
+	debugMode bool
 
 	// Output flags
 	plainOutput bool

@@ -87,10 +87,10 @@ api_key = "grok-toml-key"
 	}
 
 	tests := []struct {
-		name     string
-		opts     Options
-		envVars  map[string]string
-		checkExa func(*testing.T, ResolvedProviderConfig)
+		name      string
+		opts      Options
+		envVars   map[string]string
+		checkExa  func(*testing.T, ResolvedProviderConfig)
 		checkGrok func(*testing.T, ResolvedProviderConfig)
 	}{
 		{
@@ -421,8 +421,8 @@ X-From-TOML = "toml-value"
 func contains(s, substr string) bool {
 	return len(s) >= len(substr) && (s == substr || len(s) > len(substr) &&
 		(s[:len(substr)] == substr || s[len(s)-len(substr):] == substr ||
-		len(s) > len(substr)*2 && s[len(s)/2-len(substr)/2:len(s)/2+len(substr)/2+len(substr)%2] == substr ||
-		findSubstring(s, substr)))
+			len(s) > len(substr)*2 && s[len(s)/2-len(substr)/2:len(s)/2+len(substr)/2+len(substr)%2] == substr ||
+			findSubstring(s, substr)))
 }
 
 func findSubstring(s, substr string) bool {
