@@ -11,6 +11,7 @@ This is a **skill factory** — a collection of reusable AI agent skills. Each s
 ```
 skill-factory/
 ├── brainstorming/        # Brainstorm ideas into design docs
+├── design-review/        # Review a design.md and produce review.md
 ├── db-explorer/          # Database exploration and querying
 ├── exa-search/           # Neural web search for documentation
 ├── git-commit/           # Generate and submit git commits
@@ -21,6 +22,7 @@ skill-factory/
 ├── tech-design-doc/      # Technical design documentation
 └── evals/                # Evaluation cases for skills
     ├── brainstorming/
+    ├── design-review/
     ├── db-explorer/
     └── exa-search/
 ```

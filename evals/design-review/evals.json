@@ -1,0 +1,57 @@
+{
+  "skill_name": "design-review",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "评审这份设计文档：fixtures/clean/design.md",
+      "expected_output": "Read the design and project context, evaluate against the 7-dimension rubric, and write review.md next to design.md with a Pass verdict and Go for spec-plan. No fabricated blockers; findings minimal (Minor at most).",
+      "files": ["fixtures/clean/design.md"],
+      "expectations": [
+        "A review.md is written to the same directory as the reviewed design.md (fixtures/clean/)",
+        "The verdict is Pass and spec-plan readiness is Go",
+        "There are zero Blocker and zero Major findings; the review does not invent blockers to look thorough",
+        "All 7 dimensions appear in the Dimension Summary, each marked sound or with only Minor findings",
+        "The original design.md is left unmodified"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "评审这份设计文档：fixtures/incomplete/design.md",
+      "expected_output": "Detect missing load-bearing sections (Error Handling, Testing), the empty/placeholder Decision Record, the missing Open Questions section, and the in-app notification goal with no design support. Assign Completeness Blockers and a Reject verdict / No-Go.",
+      "files": ["fixtures/incomplete/design.md"],
+      "expectations": [
+        "The verdict is Reject and spec-plan readiness is No-Go",
+        "At least one Blocker is raised for the missing Error Handling and/or Testing sections (D1 Completeness)",
+        "The empty/placeholder Decision Record ('TBD' / 'To be decided') is flagged (D1 or D3)",
+        "The in-app notification goal having no corresponding design element is flagged (D1 Completeness)",
+        "Every finding cites a concrete location in design.md and gives a recommendation"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "评审这份设计文档：fixtures/over-engineered/design.md",
+      "expected_output": "Recognize the design is structurally complete but the generic PreferenceEngine (plugin registry, multiple storage backends, cache, event bus, audit subscriber) is unjustified by the Goals and contradicts the Non-Goals. Raise D6 Over-Engineering findings and recommend the simpler single-column approach the doc itself listed. Verdict Revise.",
+      "files": ["fixtures/over-engineered/design.md"],
+      "expectations": [
+        "The review's dominant findings are Over-Engineering (D6), not Completeness — it acknowledges the doc has all sections",
+        "It identifies specific unjustified machinery (e.g., multiple storage backends, cache, event bus, plugin registry) as beyond the stated Goals",
+        "It points out the design contradicts the Non-Goals (single value, theme only, no custom themes) and that the Decision Record justifies the framework with speculative future needs",
+        "It recommends the simpler 'single column users.theme' alternative that already appears in the Options Considered",
+        "Over-engineering is judged against the design's own Goals/Non-Goals, and the verdict is Revise (no fabricated Blocker)"
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "评审这份设计文档：fixtures/blind-spots/design.md",
+      "expected_output": "Recognize the design looks complete but ignores integration/data blind spots: CRM API rate limits, failure/retry/resume on a failed page, upstream deletions never removed by full reload, local-edit conflict policy, partial-sync consistency, and monitoring/alerting. Surface these as D5 findings framed as worth checking, and flag that Open Questions wrongly says 'None'. Verdict Revise.",
+      "files": ["fixtures/blind-spots/design.md"],
+      "expectations": [
+        "The review surfaces multiple Blind Spot (D5) findings, including at least: Acme API rate limits, failure handling/retry beyond 'log and stop', and upstream deletions not being removed by a full reload",
+        "It flags that 'log the error and stops' leaves the contacts table in a partial/inconsistent state with no resume or retry",
+        "It notes the absence of conflict resolution for locally edited contacts and of monitoring/alerting on sync failure",
+        "It flags that Open Questions states 'None' when real unknowns remain (e.g., deletion and conflict policy) — a D3 conformance finding",
+        "Blind spots are framed as considerations to check rather than as certain defects, and findings cite concrete locations"
+      ]
+    }
+  ]
+}
