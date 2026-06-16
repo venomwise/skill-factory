@@ -1,7 +1,36 @@
 # Repository Guidelines
 
 ## Project Structure & Module Organization
-This repository is a skill factory for AI coding agents. Each skill has its own folder at the root level with a `SKILL.md` entry point plus optional `assets/`, `references/`, and `scripts/`. Current evaluation cases live in `evals/`, organized by skill name. Use `CLAUDE.md` as the repo-level reference for skill pairing, spec output conventions, and commit style.
+This repository is a **skill factory** — a collection of reusable AI agent skills. Each skill is a self-contained folder at the root level with a `SKILL.md` entry point that defines how an agent should behave when the skill is invoked.
+
+```
+skill-factory/
+├── brainstorming/         # Brainstorm ideas into a validated design.md
+├── clarification/         # Clarify underspecified small changes before editing
+├── db-explorer/           # Read-only database exploration and querying
+├── design-review/         # Review a design.md and produce review.md
+├── exa-search/            # Neural web search for documentation
+├── git-commit/            # Generate and submit git commits
+├── grok-search/           # Real-time web research
+├── hld-generator/         # High-level (technical) design documentation
+├── skill-authoring/       # Guide for creating AI agent skills
+├── spec-plan/             # Generate requirements.md + tasks.md from a design
+├── spec-exec/             # Execute tasks from tasks.md
+├── springcloud-init/      # Spring Cloud project initialization
+├── db-explorer-go/        # Go source for the db-explorer binary
+├── exa-search-go/         # Go source for the exa-search binary
+├── grok-search-go/        # Go source for the grok-search binary
+├── evals/                 # Evaluation cases, organized by skill name
+└── specs/                 # Spec outputs (design/requirements/tasks per topic)
+```
+
+Each top-level directory that contains a `SKILL.md` is a skill. A skill folder follows this layout:
+- `SKILL.md` — the skill definition (YAML frontmatter + workflow)
+- `assets/` — reusable templates referenced by the skill
+- `references/` — supporting reference docs
+- `scripts/` — executable helpers (optional)
+
+The Go-based skills (`db-explorer`, `exa-search`, `grok-search`) ship pre-compiled binaries in their own `bin/` directory; the source lives in the matching `*-go/` project. Evaluation cases live in `evals/<skill>/`. This file (`AGENTS.md`) is the single repo-level source of truth for all conventions below.
 
 ## Build, Test, and Development Commands
 There is no monolithic build step; work is usually skill-specific.
@@ -88,6 +117,47 @@ See `.github/workflows/QUICKSTART.md` for release workflow details.
 
 ## Coding Style & Naming Conventions
 Use 4-space indentation in Python and keep functions, variables, and files in `snake_case`. Keep Markdown concise, instructional, and structured with clear headings. Every skill must expose a `SKILL.md` with YAML frontmatter, especially `name` and `description`. Place reusable templates in `assets/`, supporting docs in `references/`, and executable helpers in `scripts/`.
+
+## Skill File Format
+`SKILL.md` files use YAML frontmatter followed by Markdown:
+
+```markdown
+---
+name: skill-name
+description: One-line description used for skill routing/matching.
+---
+
+# Skill Title
+## When to use
+## When not to use
+## Inputs / Outputs
+## Workflow
+## Verification
+## Safety & guardrails
+## References
+```
+
+The `description` field is critical — it determines when the skill is invoked.
+
+## Skill Pairing & Spec Conventions
+Several skills are designed to chain into a spec pipeline, all rooted at `specs/<topic>/`:
+- **brainstorming** turns an idea into a validated `specs/<topic>/design.md`, then hands off to spec-plan.
+- **spec-plan** consumes the approved `design.md` and produces `requirements.md` + `tasks.md`.
+- **spec-exec** consumes `tasks.md`, implements each task, and updates checkboxes as they complete; it consults `requirements.md` for acceptance criteria and `design.md` only as background context.
+
+Spec output conventions:
+- Default spec location: `specs/<topic>/` (`<topic>` in kebab-case, e.g. `user-auth`).
+- `requirements.md` uses `Requirement N` headings; acceptance criteria are referenced as `N.M` in tasks.
+- `tasks.md` uses checkbox list items for phases: `- [ ] Phase N: Title` (never `###` headings).
+- Optional tasks: `[optional]` suffix (claude-code) or `- [ ]*` marker (codex).
+- Checkpoints: `- [ ] Checkpoint: Verify <scope>` — pause points between phases.
+- Completed tasks: `- [x]` (claude-code) or `- [✅]` / `- [✅]*` (codex).
+
+## Adding a New Skill
+1. Create `<skill-name>/SKILL.md` at the root level with frontmatter `name` and `description`.
+2. Add `assets/` templates and `references/` docs if needed.
+3. Add `scripts/` for executable helpers if the skill requires automation.
+4. Create corresponding eval cases under `evals/<skill-name>/` for testing.
 
 ## Skill Design Principles
 
@@ -182,4 +252,16 @@ Example of good abstraction:
 This repo does not currently enforce a global coverage threshold. Instead, add focused eval data under `evals/<skill>/` and run the relevant script or workflow manually. For database work, prefer deterministic checks through `evals/db-explorer/run_comparison.py`. Name new eval artifacts descriptively, following existing patterns such as `evals.json`, `grades.json`, and `benchmark.md`.
 
 ## Commit & Pull Request Guidelines
-Recent history follows lightweight Conventional Commit patterns, usually with a scope and Chinese subject line, for example `fix(db-explorer): 修复 URL 解码问题` or `docs(db-explorer): 将 SKILL.md 从中文改写为英文`. Use `feat`, `fix`, `docs`, `test`, `refactor`, or `chore`, and keep each commit focused on one change. PRs should summarize the affected skill(s), explain behavior changes, list verification commands, and include sample outputs when a prompt flow, script result, or eval expectation changes.
+Recent history follows lightweight Conventional Commit patterns, usually with a scope and Chinese subject line, for example `fix(db-explorer): 修复 URL 解码问题` or `docs(db-explorer): 将 SKILL.md 从中文改写为英文`.
+
+Format: `[<emoji>] <type>(<scope>): <subject>`
+- Main subject text in **Chinese**; English allowed for technical terms.
+- Emoji: follow repo history (include if recent commits have emoji, omit if not, include if no history).
+- Types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`.
+- Scope from path: skill name (`db-explorer`, `brainstorming`, …), or `mcp`, `common`, `doc`, `tests`, `repo` (mixed/unclear).
+- Body: `- ` bullets wrapped at ~72 chars explaining why/what.
+- Footer: only for `BREAKING CHANGE:` or `Closes #N`.
+
+Full emoji list and examples: `git-commit/references/commit-convention.md`.
+
+Keep each commit focused on one change. PRs should summarize the affected skill(s), explain behavior changes, list verification commands, and include sample outputs when a prompt flow, script result, or eval expectation changes.
