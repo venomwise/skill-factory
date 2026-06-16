@@ -1,0 +1,30 @@
+[exa]
+base_url = "https://api.exa.ai"
+timeout = 30
+
+[[exa.profiles]]
+id = "primary"
+api_key = "YOUR_EXA_API_KEY"
+
+# Uncomment to add backup profiles
+# [[exa.profiles]]
+# id = "backup"
+# api_key = "YOUR_BACKUP_EXA_KEY"
+
+[grok]
+base_url = "https://api.x.ai/v1"
+model = "grok-beta"
+timeout = 60
+
+[[grok.profiles]]
+id = "primary"
+api_key = "YOUR_GROK_API_KEY"
+
+# Uncomment to add backup profiles
+# [[grok.profiles]]
+# id = "backup"
+# api_key = "YOUR_BACKUP_GROK_KEY"
+
+# Optional: Extra body and headers for Grok requests
+# extra_body = { temperature = 0.7 }
+# extra_headers = { "X-Custom-Header" = "value" }

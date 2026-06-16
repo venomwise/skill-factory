@@ -2,77 +2,98 @@
 
 ## Summary
 
-Build `web-access` as the unified web access skill for AI coding agents. The skill will provide one documented entry point, one Go CLI binary, one configuration file, and one release pipeline while preserving the distinct strengths of the existing `exa-search` and `grok-search` tools: source-first retrieval through Exa and live synthesis through Grok.
+构建 `web-access`，作为 AI coding agent 的统一 Web 访问 skill。该 skill 提供一个明确文档化的入口、一个 Go CLI 二进制、一个配置文件和一套发布流水线，同时保留现有 `exa-search` 与 `grok-search` 的不同优势：通过 Exa 做 source-first 检索，通过 Grok 做实时综合分析。
 
 ## Goals
 
-- Create a new `web-access/` skill directory with `SKILL.md`, references, config example, and prebuilt binaries.
-- Create a new `web-access-go/` Go CLI project.
-- Expose a single `web-access` binary for all supported platforms:
+- 新增 `web-access/` skill 目录，包含 `SKILL.md`、references、配置示例和预编译二进制。
+- 新增 `web-access-go/` Go CLI 项目。
+- 为所有支持平台提供单一 `web-access` 二进制：
   - Linux amd64 / arm64
   - macOS amd64 / arm64
   - Windows amd64
-- Preserve the existing Exa-backed capabilities:
-  - documentation and canonical source search
-  - general source-first search
-  - text extraction / research retrieval
-  - similar page discovery
-- Preserve the existing Grok-backed capabilities:
-  - fresh news research
-  - social and community discourse research
-  - broad live synthesis
-  - official-docs-vs-community comparison
-- Use one TOML config at `~/.config/ai-skills/web-access.toml`.
-- Keep output machine-readable by default with JSON, plus plain text and URLs-only formats.
-- Add project-scoped GitHub Actions for PR tests, tag-only release builds, and skill binary updates.
-- Deprecate the old `exa-search` and `grok-search` skills in documentation without deleting them in the first release.
+- 保留现有 Exa 能力：
+  - 文档和权威来源搜索
+  - 通用 source-first 搜索
+  - 文本提取 / research retrieval
+  - 相似页面发现
+- 保留现有 Grok 能力：
+  - 最新新闻研究
+  - 社交和社区讨论研究
+  - 广泛实时综合分析
+  - 官方文档与社区解读对比
+- 使用一个 TOML 配置文件：`~/.config/ai-skills/web-access.toml`。
+- 默认输出机器可读 JSON，同时支持 plain text 和 URLs-only 格式。
+- 增加项目作用域的 GitHub Actions，用于 PR 测试、tag-only release 构建和 skill 二进制更新。
 
 ## Primary Users / Roles
 
-- AI coding agents that need one reliable web access entry point for documentation lookup, source retrieval, real-time updates, and community synthesis.
-- Skill maintainers who need a self-contained binary skill with clear provider boundaries and project-scoped release automation.
-- Users who configure Exa, Grok, or compatible proxy endpoints through local skill config.
+- AI coding agent：需要一个可靠的 Web 访问入口，用于文档查询、来源检索、实时更新和社区综合分析。
+- Skill 维护者：需要一个自包含的二进制 skill，具备清晰的 provider 边界和项目作用域发布自动化。
+- 用户：通过本地 skill 配置配置 Exa、Grok 或兼容代理 endpoint。
 
 ## Non-Goals
 
-- Do not collapse Exa and Grok into an opaque generic search mode that hides provider differences.
-- Do not remove `exa-search/`, `grok-search/`, `exa-search-go/`, or `grok-search-go/` in the first release.
-- Do not preserve old binary names as hard compatibility targets inside `web-access`.
-- Do not create a global monorepo release workflow.
-- Do not add caching, local indexing, browser automation, or page rendering.
-- Do not implement AI-based automatic routing as a required first-version behavior.
+- 不把 Exa 和 Grok 合并成隐藏 provider 差异的不透明通用搜索模式。
+- 第一版不删除 `exa-search/`、`grok-search/`、`exa-search-go/` 或 `grok-search-go/`。
+- 不在 `web-access` 内保留旧二进制名称作为强兼容目标。
+- 第一版不修改现有 `exa-search/SKILL.md` 或 `grok-search/SKILL.md`。
+- 第一版不涉及旧 skill 的路由变更设计。
+- 不创建全局 monorepo release workflow。
+- 不增加缓存、本地索引、浏览器自动化或页面渲染。
+- 第一版不增加 Grok cooldown 状态持久化。
+- 第一版不把 AI 自动路由作为必需行为。
 
 ## Context
 
-This repository is a skill factory where each skill is a root-level directory with a `SKILL.md` entry point and optional `bin/`, `references/`, `assets/`, and `scripts/`. Go-based skills use a hybrid architecture: source code lives in a sibling Go project, and prebuilt platform binaries live under the skill directory.
+本仓库是一个 skill factory。每个 skill 都是根目录下的独立目录，包含 `SKILL.md` 入口，并可选包含 `bin/`、`references/`、`assets/` 和 `scripts/`。Go-based skill 使用混合架构：源码位于相邻的 Go 项目中，预编译平台二进制位于 skill 目录下。
 
-`exa-search` currently provides source-first web retrieval with commands such as `docs`, `search`, `research`, and `similar`. It is best suited for official documentation, API references, pricing pages, canonical source retrieval, and extracted page content. Its Go CLI lives in `exa-search-go/` and uses Cobra, Viper-style config loading, Exa API clients, failover, and JSON/plain/URLs output.
+`exa-search` 当前提供 source-first Web 检索，命令包括 `docs`、`search`、`research` 和 `similar`。它适合官方文档、API reference、价格页、权威来源检索和提取页面正文。它的 Go CLI 位于 `exa-search-go/`，使用 Cobra、Viper-style 配置加载、Exa API client、failover，以及 JSON/plain/URLs 输出。
 
-`grok-search` currently provides real-time research with commands such as `news`, `social`, `research`, and `docs-compare`. It is best suited for fresh updates, X/Twitter or community discourse, broad multi-source live synthesis, and comparing official claims with community interpretation. Its Go CLI lives in `grok-search-go/` and uses Cobra, TOML config, OpenAI-compatible chat completions, failover, cooldowns, prompt templates, and JSON/plain/URLs output.
+`grok-search` 当前提供实时研究，命令包括 `news`、`social`、`research` 和 `docs-compare`。它适合最新更新、X/Twitter 或社区讨论、广泛实时综合分析，以及对比官方说法与社区解读。它的 Go CLI 位于 `grok-search-go/`，使用 Cobra、TOML 配置、OpenAI-compatible chat completions、failover、cooldown、prompt templates，以及 JSON/plain/URLs 输出。`web-access` 会保留 Grok failover 和 prompt 行为，但第一版不包含 cooldown 状态持久化。
 
 ## Discovery
 
 ### Key Discoveries
 
-- The current two skills are complementary, not redundant. Exa is a source-first retrieval backend; Grok is a live synthesis backend.
-- A simple documentation wrapper would provide a unified skill name but would not deliver the requested unified binary, config, or release model.
-- A source-level merge fits the repository's existing Go skill pattern better than a wrapper skill.
-- `grok-search-release.yml` already follows the newer `test -> build -> release` release structure. `exa-search-release.yml` still has older structure traits, so `web-access` should follow the newer repository workflow requirements rather than copying Exa's release file.
-- Provider differences should remain visible in docs and command semantics so agents choose the correct retrieval mode.
+- 当前两个 skill 是互补关系，不是重复关系。Exa 是 source-first retrieval backend；Grok 是 live synthesis backend。
+- 只做一个文档包装 skill 可以提供统一 skill 名称，但不能提供用户要求的统一二进制、统一配置和统一发布模型。
+- 源码级合并比 wrapper skill 更符合本仓库现有 Go skill 模式。
+- `grok-search-release.yml` 已经遵循较新的 `test -> build -> release` 发布结构。`exa-search-release.yml` 仍有较旧结构特征，所以 `web-access` 应遵循较新的仓库 workflow 要求，而不是照搬 Exa release 文件。
+- Provider 差异应继续体现在文档和命令语义中，让 agent 能选择正确的检索模式。
 
 ### Scope Decisions
 
-- Implement a new first-class `web-access` skill and `web-access-go` CLI instead of renaming either existing skill.
-- Use command semantics to choose providers by default:
-  - source-first commands route to Exa
-  - live synthesis commands route to Grok
-- Keep provider override support minimal in the first version. Add explicit `--provider` only where it is useful and unambiguous.
-- Keep old skills as deprecated compatibility documentation for one release cycle.
-- Use `web-access-v*` release tags and project-scoped workflows.
+- 新增一等公民 `web-access` skill 和 `web-access-go` CLI，而不是重命名任一现有 skill。
+- 默认通过命令语义选择 provider：
+  - source-first 命令路由到 Exa
+  - live synthesis 命令路由到 Grok
+- 第一版保持 provider override 支持最小化。仅在有用且不含糊的地方添加显式 `--provider`。
+- 旧 skill 完全不在本设计交付范围内；`web-access` 不改变它们的文档、路由元数据、源码或发布流程。
+- 使用 `web-access-v*` release tag 和项目作用域 workflow，不提供手动 release dispatch。
+
+## Decision Record
+
+### Options Considered
+
+- 只新增文档包装 skill：实现成本最低，但仍然保留两个二进制、两个配置和两套发布路径，无法满足统一操作模型。
+- 重命名或替换某一个现有 skill：仓库形态更简单，但会模糊 Exa/Grok provider 边界，并给现有用户带来不必要的兼容风险。
+- 新增一等公民 `web-access` skill 和 `web-access-go` CLI：实现成本更高，但可以在保留 provider 优势的同时，为 agent 提供一个入口、一个二进制、一个配置和一套发布流水线。
+
+### Decision & Rationale
+
+选择新增一等公民 `web-access` skill 和 `web-access-go` CLI。该方案将 source-first retrieval 和 live synthesis 保持为显式命令族，同时合并配置、输出处理和发布自动化。
+
+已确认的补充决策：
+
+- 第一版保留旧 skill 目录和源码项目不变。
+- 将 Exa-backed 文本提取命令命名为 `extract`，从而把 `research` 名称留给 Grok-backed live synthesis。
+- `web-access-release.yml` 使用 tag-only release workflow。
+- 第一版省略 Grok cooldown 状态持久化，以保持配置和运行时行为更简单。
 
 ## Proposed Solution
 
-Create `web-access-go` as a single Cobra-based Go CLI with provider-specific internal packages for Exa and Grok. Create `web-access` as the skill directory that documents when to use each command, ships prebuilt binaries, and contains configuration references. The first version should favor clear command names and predictable provider routing over broad automatic routing.
+创建 `web-access-go`，作为一个 Cobra-based Go CLI，并在内部使用 provider-specific package 分别封装 Exa 和 Grok。创建 `web-access` skill 目录，用于说明何时使用各个命令、发布预编译二进制，并提供配置参考。第一版优先保证命令名称清晰、provider 路由可预测，而不是做宽泛的自动路由。
 
 ### Architecture
 
@@ -90,7 +111,6 @@ web-access/
   references/
     configuration.md
     query-recipes.md
-    migration-from-exa-grok.md
 
 web-access-go/
   go.mod
@@ -115,29 +135,28 @@ web-access-go/
     providers/
       exa/
       grok/
-    cooldown/
     prompts/
 ```
 
-The CLI has shared command parsing, config resolution, output rendering, and debug handling. Provider-specific HTTP request construction, response parsing, failover behavior, and prompt handling stay isolated under `internal/providers/exa` and `internal/providers/grok`.
+CLI 共享命令解析、配置解析、输出渲染和 debug 处理。Provider-specific HTTP 请求构造、响应解析、failover 行为和 prompt 处理保持隔离，分别位于 `internal/providers/exa` 和 `internal/providers/grok`。
 
 ### Components
 
-#### Skill Directory: `web-access/`
+#### Skill 目录：`web-access/`
 
-Responsibilities:
+职责：
 
-- Define the triggerable `SKILL.md` for unified web access.
-- Teach agents which command to use for source-first retrieval versus live synthesis.
-- Document platform binary selection.
-- Include concise examples for JSON, plain text, and URLs-only output.
-- Link to configuration, query recipes, and migration guidance.
+- 定义可触发的统一 Web access `SKILL.md`。
+- 指导 agent 在 source-first retrieval 和 live synthesis 之间选择正确命令。
+- 记录平台二进制选择方式。
+- 提供 JSON、plain text 和 URLs-only 输出的简洁示例。
+- 链接到配置和查询 recipe。
 
-#### CLI Layer: `web-access-go/cmd`
+#### CLI 层：`web-access-go/cmd`
 
-Responsibilities:
+职责：
 
-- Define global flags:
+- 定义全局 flags：
   - `--config`
   - `--profile`
   - `--timeout`
@@ -145,14 +164,13 @@ Responsibilities:
   - `--urls`
   - `--json`
   - `--debug`
-- Define provider-specific global flags where needed:
+- 在需要时定义 provider-specific 全局 flags：
   - `--exa-api-key`
   - `--grok-api-key`
   - `--grok-model`
-  - `--ignore-cooldown`
   - `--extra-body-json`
   - `--extra-headers-json`
-- Define commands:
+- 定义命令：
   - `docs`
   - `search`
   - `extract`
@@ -163,7 +181,7 @@ Responsibilities:
   - `docs-compare`
   - `version`
 
-Default provider routing:
+默认 provider 路由：
 
 ```text
 docs         -> exa
@@ -176,16 +194,30 @@ research     -> grok
 docs-compare -> grok
 ```
 
-#### Config Layer: `internal/config`
+命令合约：
 
-Responsibilities:
+| 命令 | Provider | 必填输入 | 命令专属 flags | 默认值 | 输出 payload | 说明 |
+|------|----------|----------|----------------|--------|--------------|------|
+| `docs` | Exa | `--query` | `--num`, `--type`, `--text`, `--highlights`, `--start-date`, `--include-domains`, `--exclude-domains`, `--category`, `--no-autoprompt` | `--num 5`，`--type neural`，启用 autoprompt；省略 `--include-domains` 时默认包含 `docs.openclaw.ai`；text/highlights 默认关闭 | Exa `results`、`resolvedSearchType`、`requestId`、`searchTime`、`costDollars` | 面向官方文档和权威来源检索。 |
+| `search` | Exa | `--query` | `--num`, `--type`, `--text`, `--highlights`, `--start-date`, `--include-domains`, `--exclude-domains`, `--category`, `--no-autoprompt` | `--num 5`，`--type neural`，启用 autoprompt；无默认 domain filter；text/highlights 默认关闭 | Exa `results`、`resolvedSearchType`、`requestId`、`searchTime`、`costDollars` | 面向通用 source-first 搜索。 |
+| `extract` | Exa | `--query` | `--num`, `--type`, `--text`, `--highlights`, `--start-date`, `--include-domains`, `--exclude-domains`, `--category`, `--no-autoprompt` | `--num 5`，`--type neural`，启用 autoprompt；当 `--text` 和 `--highlights` 都未显式设置时，默认启用文本提取 | Exa `results`、`resolvedSearchType`、`requestId`、`searchTime`、`costDollars` | 面向需要页面正文或更深来源内容的检索。 |
+| `similar` | Exa | `--url` | `--num` | `--num 5` | Exa `results`、`requestId`、`searchTime`、`costDollars` | 面向相似页面发现。 |
+| `news` | Grok | `--query` | 仅使用全局 Grok flags | 使用 `news` prompt mode | Grok `content`、`sources`、`usage`、`raw` | 面向新鲜新闻和突发更新。 |
+| `social` | Grok | `--query` | 仅使用全局 Grok flags | 使用 `social` prompt mode | Grok `content`、`sources`、`usage`、`raw` | 面向社交和社区讨论。 |
+| `research` | Grok | `--query` | 仅使用全局 Grok flags | 使用 `research` prompt mode | Grok `content`、`sources`、`usage`、`raw` | 面向广泛实时综合分析。 |
+| `docs-compare` | Grok | `--query` | 仅使用全局 Grok flags | 使用 `docs-compare` prompt mode | Grok `content`、`sources`、`usage`、`raw` | 面向官方信息与社区解读对比。 |
+| `version` | local | 无 | 无 | 输出二进制版本元数据 | Plain command metadata | 本地版本信息命令。 |
 
-- Load `~/.config/ai-skills/web-access.toml` by default.
-- Auto-create a template config if the default path is missing.
-- Merge CLI flags, environment variables, TOML config, and built-in defaults.
-- Resolve separate Exa and Grok provider configs.
-- Support provider-specific profiles, base URLs, timeouts, and Grok model overrides.
-- Preserve existing environment variable compatibility where practical:
+#### 配置层：`internal/config`
+
+职责：
+
+- 默认加载 `~/.config/ai-skills/web-access.toml`。
+- 默认路径配置不存在时自动创建模板配置。
+- 合并 CLI flags、环境变量、TOML 配置和内置默认值。
+- 解析独立的 Exa 和 Grok provider 配置。
+- 支持 provider-specific profiles、base URLs、timeouts 和 Grok model overrides。
+- 尽量保留现有环境变量兼容性：
   - `EXA_API_KEY`
   - `EXA_API_KEYS`
   - `EXA_BASE_URL`
@@ -195,12 +227,12 @@ Responsibilities:
   - `GROK_BASE_URL`
   - `GROK_MODEL`
   - `GROK_TIMEOUT`
-- Add explicit unified environment variables:
+- 增加显式统一环境变量：
   - `WEB_ACCESS_EXA_API_KEY`
   - `WEB_ACCESS_GROK_API_KEY`
   - `WEB_ACCESS_CONFIG`
 
-Config shape:
+配置形状：
 
 ```toml
 [exa]
@@ -219,59 +251,51 @@ timeout = 120
 [[grok.profiles]]
 id = "main"
 api_key = "YOUR_GROK_API_KEY"
-
-[grok.cooldown]
-enabled = true
-state_file = "runtime/web-access-grok-cooldowns.json"
-default_minutes = 15
-rate_limit_minutes = 20
-quota_minutes = 60
-auth_minutes = 360
 ```
 
-Configuration priority, highest to lowest:
+配置优先级从高到低：
 
 1. CLI flags
-2. `WEB_ACCESS_*` environment variables
-3. existing provider-specific environment variables
-4. TOML config
-5. built-in defaults
+2. `WEB_ACCESS_*` 环境变量
+3. 现有 provider-specific 环境变量
+4. TOML 配置
+5. 内置默认值
 
-#### Exa Provider: `internal/providers/exa`
+#### Exa Provider：`internal/providers/exa`
 
-Responsibilities:
+职责：
 
-- Implement source-first commands backed by the Exa API.
-- Support search request options from the current `exa-search-go` CLI:
-  - result count
+- 实现由 Exa API 支撑的 source-first 命令。
+- 支持当前 `exa-search-go` CLI 的 search request options：
+  - 结果数量
   - search type
-  - text extraction
+  - 文本提取
   - highlights
   - published date filters
-  - include and exclude domains
+  - include 和 exclude domains
   - category
   - autoprompt toggle
-- Implement `similar` through Exa's similar-page endpoint.
-- Preserve profile failover behavior and normalized attempt metadata.
+- 通过 Exa similar-page endpoint 实现 `similar`。
+- 保留 profile failover 行为和标准化 attempt metadata。
 
-#### Grok Provider: `internal/providers/grok`
+#### Grok Provider：`internal/providers/grok`
 
-Responsibilities:
+职责：
 
-- Implement live synthesis commands backed by OpenAI-compatible Grok chat completions.
-- Preserve mode-specific prompts for `news`, `social`, `research`, and `docs-compare`.
-- Support model, base URL, timeout, extra body, and extra header overrides.
-- Preserve multi-profile failover and cooldown behavior.
-- Preserve source extraction from model responses where available.
+- 实现由 OpenAI-compatible Grok chat completions 支撑的 live synthesis 命令。
+- 保留 `news`、`social`、`research` 和 `docs-compare` 的 mode-specific prompts。
+- 支持 model、base URL、timeout、extra body 和 extra header overrides。
+- 保留 multi-profile failover 行为，但不写入 cooldown 状态。
+- 在 provider 响应可用时保留 source extraction。
 
-#### Output Layer: `internal/output`
+#### 输出层：`internal/output`
 
-Responsibilities:
+职责：
 
-- Render JSON by default.
-- Render plain text for human terminal review.
-- Render URLs-only output for source collection.
-- Normalize common metadata across providers:
+- 默认渲染 JSON。
+- 为人工终端查看渲染 plain text。
+- 为来源收集渲染 URLs-only 输出。
+- 标准化 provider 之间的通用 metadata：
   - `ok`
   - `mode`
   - `provider`
@@ -281,116 +305,100 @@ Responsibilities:
   - `profileSource`
   - `attempts`
   - `elapsedMS`
-- Preserve provider-specific result payloads without forcing lossy conversion:
-  - Exa commands return `results`
-  - Grok commands return `content`, `sources`, `usage`, and `raw`
+- 保留 provider-specific result payload，不做有损转换：
+  - Exa 命令返回 `results`
+  - Grok 命令返回 `content`、`sources`、`usage` 和 `raw`
 
-#### Release Automation
+#### 发布自动化
 
-Add:
+新增：
 
 - `.github/workflows/web-access-test.yml`
 - `.github/workflows/web-access-release.yml`
 - `.github/workflows/web-access-update-skill.yml`
 
-Workflow requirements:
+Workflow 要求：
 
-- Test workflow is PR-only with `web-access/**`, `web-access-go/**`, and workflow path filters.
-- Release workflow triggers only on `web-access-v*` tags plus optional manual dispatch.
-- Release workflow runs matrix tests on Ubuntu, macOS, and Windows before build.
-- Build depends on test; release depends on build.
-- Builds use `CGO_ENABLED=0` for Linux amd64/arm64, macOS amd64/arm64, and Windows amd64.
-- Update-skill workflow runs on successful release workflow completion and optional manual dispatch, updating only `web-access/bin/**` and checksums.
-
-#### Migration Documentation
-
-Add `web-access/references/migration-from-exa-grok.md` with command mapping:
-
-```text
-exa-search docs      -> web-access docs
-exa-search search    -> web-access search
-exa-search research  -> web-access extract
-exa-search similar   -> web-access similar
-grok-search news     -> web-access news
-grok-search social   -> web-access social
-grok-search research -> web-access research
-grok-search docs-compare -> web-access docs-compare
-```
-
-Update `exa-search/SKILL.md` and `grok-search/SKILL.md` to state that new work should prefer `web-access`, while keeping their existing commands documented for compatibility.
+- Test workflow 只在 PR 触发，并使用 `web-access/**`、`web-access-go/**` 和 workflow 路径过滤。
+- Release workflow 只在 `web-access-v*` tags 触发。
+- Release workflow 在 build 前运行 Ubuntu、macOS 和 Windows matrix tests。
+- Build 依赖 test；release 依赖 build。
+- 使用 `CGO_ENABLED=0` 构建 Linux amd64/arm64、macOS amd64/arm64 和 Windows amd64。
+- Update-skill workflow 在 release workflow 成功完成后运行，只更新 `web-access/bin/**` 和 checksums。
 
 ### Data Flow
 
 #### Source-First Retrieval Path
 
-1. Agent invokes a source-first command, for example:
+1. Agent 调用 source-first 命令，例如：
    ```bash
    web-access docs --query "OpenClaw streaming API" --text --num 3
    ```
-2. Cobra parses the command and maps it to the Exa provider.
-3. Config resolves the Exa section from CLI flags, environment variables, TOML, and defaults.
-4. The Exa provider builds the search or similar-page request.
-5. The provider attempts the request with configured profiles, failing over on rate limit, auth, or quota failures.
-6. Output renders normalized JSON with `provider: "exa"`, attempts, and Exa result data.
+2. Cobra 解析命令并将其映射到 Exa provider。
+3. Config 根据 CLI flags、环境变量、TOML 和默认值解析 Exa section。
+4. Exa provider 构造 search 或 similar-page request。
+5. Provider 使用配置的 profiles 发起请求，并在 rate limit、auth 或 quota 失败时 fail over。
+6. Output 渲染标准化 JSON，包含 `provider: "exa"`、attempts 和 Exa result data。
 
 #### Live Synthesis Path
 
-1. Agent invokes a live command, for example:
+1. Agent 调用 live 命令，例如：
    ```bash
    web-access news --query "latest model release updates" --plain
    ```
-2. Cobra parses the command and maps it to the Grok provider.
-3. Config resolves the Grok section from CLI flags, environment variables, TOML, and defaults.
-4. The Grok provider selects the mode-specific prompt and constructs an OpenAI-compatible chat completion request.
-5. The provider attempts configured profiles, applying cooldowns for repeat failures.
-6. Output renders normalized JSON or plain text with `provider: "grok"`, content, sources, usage, and attempts.
+2. Cobra 解析命令并将其映射到 Grok provider。
+3. Config 根据 CLI flags、环境变量、TOML 和默认值解析 Grok section。
+4. Grok provider 选择 mode-specific prompt，并构造 OpenAI-compatible chat completion request。
+5. Provider 使用配置的 profiles 发起请求，并在可重试的 profile 失败上 fail over。
+6. Output 渲染标准化 JSON 或 plain text，包含 `provider: "grok"`、content、sources、usage 和 attempts。
 
 #### Agent Selection Flow
 
-1. If the task requires official docs, API references, pricing pages, canonical retrieval, or extracted page text, the skill directs the agent to `docs`, `search`, `extract`, or `similar`.
-2. If the task depends on freshness, public discussion, breaking updates, X/Twitter discourse, or synthesis across sources, the skill directs the agent to `news`, `social`, `research`, or `docs-compare`.
-3. If both are needed, the skill directs the agent to run a source-first command first and then a live synthesis command for interpretation or freshness.
+1. 如果任务需要官方文档、API references、价格页、权威检索或提取页面正文，skill 指导 agent 使用 `docs`、`search`、`extract` 或 `similar`。
+2. 如果任务依赖时效性、公开讨论、突发更新、X/Twitter 讨论或跨来源综合分析，skill 指导 agent 使用 `news`、`social`、`research` 或 `docs-compare`。
+3. 如果两类能力都需要，skill 指导 agent 先运行 source-first 命令，再运行 live synthesis 命令进行解读或新鲜度补充。
 
 ## Error Handling
 
-- Missing provider API key:
-  - Return structured JSON with `ok: false`, `provider`, `error: "missing_api_key"`, and actionable config guidance.
-- Invalid config:
-  - Return `config_parse_error` with the config path and parse detail.
-- Unsupported command/provider combination:
-  - Return a CLI validation error before making network requests.
-- Exa rate limit, quota, or auth failure:
-  - Fail over to the next Exa profile and include all attempts in output.
-- Grok rate limit, quota, or auth failure:
-  - Fail over to the next Grok profile, write cooldown state when configured, and include cooldown metadata in output.
-- Network timeout:
-  - Return `request_failed` with elapsed time, provider, profile attempts, and timeout value.
-- Empty or malformed provider response:
-  - Return `response_parse_error`; include raw response only when debug mode is enabled or when already part of existing safe output.
-- All profiles unavailable:
-  - Return `all_profiles_failed` or `all_profiles_in_cooldown` with clear retry guidance.
+- 缺少 provider API key：
+  - 返回结构化 JSON，包含 `ok: false`、`provider`、`error: "missing_api_key"` 和可执行的配置指引。
+- 配置无效：
+  - 返回 `config_parse_error`，包含配置路径和解析详情。
+- 不支持的 command/provider 组合：
+  - 在发起网络请求前返回 CLI validation error。
+- Exa rate limit、quota 或 auth 失败：
+  - Fail over 到下一个 Exa profile，并在输出中包含所有 attempts。
+- Grok rate limit、quota 或 auth 失败：
+  - Fail over 到下一个 Grok profile，并在输出中包含所有 attempts。不写入 cooldown 状态。
+- 网络超时：
+  - 返回 `request_failed`，包含 elapsed time、provider、profile attempts 和 timeout 值。
+- Provider 响应为空或格式异常：
+  - 返回 `response_parse_error`；仅在 debug mode 启用或已有安全输出中包含 raw response。
+- 所有 profiles 不可用：
+  - 返回 `all_profiles_failed`，并给出清晰的重试指引。
 
 ## Testing
 
-- Unit test config precedence for:
+- 单元测试配置优先级：
   - CLI flags
-  - `WEB_ACCESS_*` environment variables
-  - provider-specific environment variables
-  - TOML config
-  - defaults
-- Unit test command-to-provider routing.
-- Unit test Exa request construction for `docs`, `search`, `extract`, and `similar`.
-- Unit test Grok prompt selection and request construction for `news`, `social`, `research`, and `docs-compare`.
-- Unit test output JSON shape for both provider families.
-- Unit test failover and cooldown behavior.
-- Add command smoke tests for `version` and help output.
-- Add release workflow verification for:
+  - `WEB_ACCESS_*` 环境变量
+  - provider-specific 环境变量
+  - TOML 配置
+  - 默认值
+- 单元测试 command-to-provider 路由。
+- 单元测试 `docs`、`search`、`extract` 和 `similar` 的 Exa request construction。
+- 单元测试 `news`、`social`、`research` 和 `docs-compare` 的 Grok prompt selection 和 request construction。
+- 单元测试两类 provider family 的 JSON 输出形状。
+- 单元测试 Exa 和 Grok failover 行为。
+- 单元测试命令专属 flag 默认值，尤其是 `extract` 默认文本提取和 `docs` 默认 domain filtering。
+- 增加 `version` 和 help output 的 command smoke tests。
+- 增加 release workflow 验证：
   - `go test`
   - formatting check
   - `go vet`
-  - build plus `version` execution on all release-test OSes.
-- Add or update eval cases under `evals/web-access/` for representative agent routing decisions and command examples.
+  - 在所有 release-test OS 上 build 并执行 `version`
+- 在 `evals/web-access/` 下新增或更新 eval cases，覆盖代表性的 agent 路由决策和命令示例。
 
 ## Open Questions
 
-None. Key decisions were confirmed during discovery.
+无。关键决策已在 discovery 阶段确认。
