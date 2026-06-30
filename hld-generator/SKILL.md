@@ -105,7 +105,7 @@ Transform detailed design.md content to overview level:
 A good overview document is scanned first, read second. Apply these principles:
 
 - **Visual-first**: Start sections with diagram or table, then explanation
-- **Lead with conclusion**: TL;DR at top (problem | solution | impact in 3 bullets)
+- **Lead with conclusion**: 核心要点 at top (problem | solution | impact in 3 bullets)
 - **One idea per paragraph**: Max 5 lines or 400 characters per paragraph
 - **Active voice**: "cursor 采用签名防篡改" not "cursor 被设计为采用签名以防篡改"
 - **Concrete terms**: "pending event + scanner 补偿" not "可靠消息投递机制"
@@ -253,7 +253,38 @@ Extract **overview-level** content from source and organize into template struct
 
 **Section transformation rules**:
 
-**TL;DR**: 
+**目录**（Table of Contents）:
+- Generate AFTER "核心要点", BEFORE "1. 背景说明"
+- Include all main sections (##) and subsections (###)
+- Use numbered list with anchor links
+- Mark optional sections with "（如有）"
+- Structure:
+  ```markdown
+  ## 目录
+  
+  - [核心要点](#核心要点)
+  - [1. 背景说明](#1-背景说明)
+  - [2. 目标阐述](#2-目标阐述)
+  - [3. 关键发现](#3-关键发现)（如有）
+  - [4. 设计决策](#4-设计决策)（如有）
+  - [5. 方案设计](#5-方案设计)
+    - [5.1 整体思路](#51-整体思路)
+    - [5.2 方案对比](#52-方案对比)（如有）
+  - [6. 设计说明](#6-设计说明)
+    - [6.1 核心组件](#61-核心组件)
+    - [6.2 数据模型](#62-数据模型)（如有）
+    - [6.3 接口设计](#63-接口设计)（如有）
+    - [6.4 关键流程](#64-关键流程)
+  - [7. 配置项](#7-配置项)（如有）
+  - [8. 错误处理](#8-错误处理)（如有）
+  - [9. 测试策略](#9-测试策略)（如有）
+  - [10. 影响范围与风险](#10-影响范围与风险)
+  - [11. 关键点说明](#11-关键点说明)
+  - [12. 待讨论/开放问题](#12-待讨论开放问题)（如有）
+  - [参考文档](#参考文档)
+  ```
+
+**核心要点**（原 TL;DR）: 
 - Extract 3 bullets (Problem | Solution | Impact)
 - Problem: 1 sentence from Background pain points
 - Solution: 1 sentence from Proposed Solution core approach
@@ -455,8 +486,9 @@ Write the file to the target path only after the user approves.
 ## Verification
 
 ### 概要质量检查
-- [ ] 【TL;DR】3 bullets (Problem | Solution | Impact), under 150 words
-- [ ] 【视觉化】每个主要章节 ≥1 图表或表格（除 TL;DR、References）
+- [ ] 【核心要点】3 bullets (Problem | Solution | Impact), under 150 words
+- [ ] 【目录】包含所有主要章节和子章节，标注可选项
+- [ ] 【视觉化】每个主要章节 ≥1 图表或表格（除核心要点、目录、References）
 - [ ] 【段落】无超 5 行段落，无代码/SQL/完整配置
 - [ ] 【引用】技术细节以"详见 design.md §X"结尾
 - [ ] 【长度】300-400 行（约 50% 源文档）
