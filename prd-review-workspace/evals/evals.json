@@ -1,0 +1,69 @@
+{
+  "skill_name": "prd-review",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "请评审这份优惠券系统的 PRD：evals/files/coupon-prd.md",
+      "expected_output": "在 evals/files/ 目录生成 coupon-prd-review.md，识别出优惠券领取/使用中的逻辑漏洞与边界缺失，并产出可直接转发给 PM 的澄清问题清单。",
+      "files": ["evals/files/coupon-prd.md"],
+      "expectations": [
+        "生成了 evals/files/coupon-prd-review.md 文件，与 PRD 位于同级目录",
+        "报告识别出领取规则的边界缺失，例如每个用户领取数量限制、库存/发放总量限制、是否可重复领取",
+        "报告识别出使用规则的逻辑漏洞，例如优惠券是否可叠加、是否有使用门槛、订单退款后优惠券如何返还、抵扣后金额为负如何处理",
+        "报告包含按风险级别（P0/P1/P2 三档）标注的风险点",
+        "报告末尾包含一个面向 PM 的澄清问题 Todo List，问题具体且可直接转发",
+        "每个风险点都引用了 PRD 的具体章节或内容，而非凭空臆测"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "评审 evals/files/coupon-prd.md，重点关注它有没有遗漏，不要纠结实现细节。",
+      "expected_output": "评审聚焦业务逻辑闭环与架构合理性，不质疑 UI 样式、字段命名、技术选型等实现细节。",
+      "files": ["evals/files/coupon-prd.md"],
+      "expectations": [
+        "报告聚焦业务逻辑闭环、边界与异常、状态一致性等逻辑层面的问题",
+        "报告没有质疑实现细节，例如按钮颜色/位置、错误提示用 toast 还是 modal、字段命名风格、用哪种数据库或缓存",
+        "报告质疑了并发场景下的问题，例如同一优惠券被并发使用、超发等"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "PM 已经回复了账号注销的几个问题：关联数据保留 30 天后匿名化，提供 7 天注销冷静期可撤销，存在进行中订单时不允许注销。请据此更新评审：evals/files/account-deletion-prd.md",
+      "expected_output": "识别到已存在 account-deletion-prd-review.md，进行增量更新而非重写：把 PM 已回答的问题标记为已解决，更新评审状态，并保留历史可追溯性。",
+      "files": [
+        "evals/files/account-deletion-prd.md",
+        "evals/files/account-deletion-prd-review.md"
+      ],
+      "expectations": [
+        "技能读取了已有的 account-deletion-prd-review.md 并进行增量更新，而不是从零重写一份全新报告",
+        "PM 已回答的问题（关联数据处理、注销冷静期、进行中订单）被标记为已解决",
+        "评审状态从 🔴 待澄清 更新为 🟡 部分确认 或 🟢 已通过",
+        "报告保留了历史可追溯性，例如包含变更记录或保留了原问题描述"
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "评审消息通知中心 PRD：evals/files/notification-prd.md",
+      "expected_output": "识别出群发性能、实时性定义模糊、用户设置与通知类型的边界等问题，并对模糊的量化指标向 PM 提出澄清。",
+      "files": ["evals/files/notification-prd.md"],
+      "expectations": [
+        "报告质疑了量化指标缺失，例如'实时到达'没有明确时延要求、全部用户群发的量级与吞吐没有定义",
+        "报告识别出技术可行性/架构风险，例如大促全量群发的削峰、限流或异步队列需求",
+        "报告识别出逻辑边界，例如系统安全类通知是否允许用户关闭、多渠道送达失败如何降级或重试",
+        "面向 PM 的澄清问题清单中包含对量化指标的具体提问"
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "评审 evals/files/coupon-prd.md",
+      "expected_output": "输出文件命名与位置正确：写入 PRD 同级目录、文件名为 <prd-basename>-review.md，不覆盖原 PRD。",
+      "files": ["evals/files/coupon-prd.md"],
+      "expectations": [
+        "输出文件名恰好为 coupon-prd-review.md（PRD 文件名去扩展名后加 -review.md）",
+        "输出文件写入 PRD 同级目录 evals/files/，而非其他位置",
+        "原始 PRD 文件 evals/files/coupon-prd.md 未被修改或覆盖",
+        "报告结构包含逻辑漏洞与边界、技术可行性与架构风险、PM 澄清 Todo List、评审结论等章节"
+      ]
+    }
+  ]
+}

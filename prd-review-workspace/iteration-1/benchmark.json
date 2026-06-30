@@ -1,0 +1,48 @@
+{
+  "skill_name": "prd-review",
+  "iteration": 1,
+  "label": "baseline (post progressive-disclosure)",
+  "skill_version": "SKILL.md 123 lines + 3 references + 1 template",
+  "model": "subagent (general-purpose)",
+  "evals": [
+    {
+      "id": 1,
+      "name": "first-time coupon review",
+      "passed": 6, "total": 6, "pass_rate": 1.0,
+      "risks": {"P0": 4, "P1": 5, "P2": 1}, "pm_questions": 12,
+      "notes": "All expectations pass. Found issuance idempotency, use-time state machine, stacking rules, refund return."
+    },
+    {
+      "id": 2,
+      "name": "scope discipline",
+      "passed": 3, "total": 3, "pass_rate": 1.0,
+      "notes": "No implementation-detail nitpicks; explicitly disclaims tech selection; flagged concurrency/over-issuance."
+    },
+    {
+      "id": 3,
+      "name": "iteration / incremental update",
+      "passed": 4, "total": 4, "pass_rate": 1.0,
+      "notes": "Updated in place; 3 PM answers marked [已解决]; status 🔴→🟡; 变更记录 section preserved history."
+    },
+    {
+      "id": 4,
+      "name": "notification quantitative gaps",
+      "passed": 4, "total": 4, "pass_rate": 1.0,
+      "risks": {"P0": 4, "P1": 5, "P2": 3}, "pm_questions": 10,
+      "notes": "Caught real-time-latency + fan-out scale undefined; queue/throttle architecture risk; mandatory-notification conflict."
+    },
+    {
+      "id": 5,
+      "name": "output contract",
+      "passed": 4, "total": 4, "pass_rate": 1.0,
+      "notes": "Exact filename coupon-prd-review.md, same dir, PRD unmodified, all 4 sections present."
+    }
+  ],
+  "summary": {
+    "evals_total": 5,
+    "evals_fully_passed": 5,
+    "expectations_passed": 21,
+    "expectations_total": 21,
+    "overall_pass_rate": 1.0
+  }
+}
