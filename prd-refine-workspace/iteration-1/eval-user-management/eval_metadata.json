@@ -1,0 +1,6 @@
+{
+  "eval_id": 1,
+  "eval_name": "user-management",
+  "prompt": "我们上周做了个用户管理系统的 PRD review,评审报告在 docs/user-system-prd-review.md。现在需要根据报告里的问题优化 PRD,主要是权限模型那块说得不够清楚,还有几个数据字段的定义也比较模糊。这个项目下个月中旬要上线,开发团队已经在等需求了,帮我快速处理下这些评审意见。",
+  "assertions": []
+}

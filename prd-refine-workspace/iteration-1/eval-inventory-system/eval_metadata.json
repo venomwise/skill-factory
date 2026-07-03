@@ -1,0 +1,6 @@
+{
+  "eval_id": 3,
+  "eval_name": "inventory-system",
+  "prompt": "docs 目录下有个 inventory-system-prd.md 和它的 review 报告,评审报告里提了一些库存扣减和并发的问题。我看了下代码,现在用的是 MySQL,没有用 Redis。你帮我看看这些问题怎么解决比较好,给我分析下不同方案的优劣。",
+  "assertions": []
+}

@@ -1,0 +1,125 @@
+{
+  "skill_name": "prd-refine",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "我们上周做了个用户管理系统的 PRD review,评审报告在 docs/user-system-prd-review.md。现在需要根据报告里的问题优化 PRD,主要是权限模型那块说得不够清楚,还有几个数据字段的定义也比较模糊。这个项目下个月中旬要上线,开发团队已经在等需求了,帮我快速处理下这些评审意见。",
+      "expected_output": "应该触发 prd-refine skill,生成 user-system-prd-refine.md 决策记录,逐项分析权限模型和数据字段问题,提供 2-3 个方案对比,在用户确认所有决策后询问是否写回 PRD",
+      "files": [],
+      "assertions": [
+        {
+          "name": "生成了 refine 决策记录文件",
+          "description": "应该生成 user-system-prd-refine.md 或类似命名的决策记录文件",
+          "check_type": "file_exists",
+          "check_details": "检查输出目录是否包含 *-refine.md 文件"
+        },
+        {
+          "name": "决策记录包含多个决策项",
+          "description": "应该将评审报告的 4 个问题转化为决策项(可能会合并相关问题)",
+          "check_type": "content_analysis",
+          "check_details": "refine 文件应该包含决策队列,至少有 2 个决策项(D1, D2...)"
+        },
+        {
+          "name": "每个决策项都有方案对比",
+          "description": "每个决策项应该提供 2-3 个可行方案,并分析优缺点",
+          "check_type": "content_analysis",
+          "check_details": "检查 refine 文件中是否包含'方案 A'、'方案 B'等字样,以及优缺点分析"
+        },
+        {
+          "name": "调研了项目上下文",
+          "description": "对于技术决策,应该调研现有代码或配置(虽然测试环境没有真实代码,但至少应该尝试)",
+          "check_type": "content_analysis",
+          "check_details": "检查是否有搜索代码、查看配置的痕迹,或者在决策分析中说明'当前项目...'"
+        },
+        {
+          "name": "决策有明确的推荐方案和理由",
+          "description": "每个决策项应该有推荐方案,并说明推荐理由",
+          "check_type": "content_analysis",
+          "check_details": "检查是否包含'推荐方案'、'推荐理由'等关键词"
+        },
+        {
+          "name": "在写回 PRD 前明确询问用户",
+          "description": "不应该直接修改 PRD,应该先生成预览并询问用户是否确认写回",
+          "check_type": "behavior_check",
+          "check_details": "检查最后是否有类似'是否确认写回 PRD?'的询问,或者决策记录状态为'待写回'"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "帮我处理一下 specs/payment-gateway/prd-review.md 里的评审意见,这个是支付网关的 PRD。review 报告里说支付回调处理那块写得太简单了,还有几个安全相关的问题。我们这个是金融项目,安全性要求很高,不能出错。麻烦你仔细分析下每个问题,给我几个方案我好跟老板汇报。",
+      "expected_output": "应该触发 prd-refine skill,读取 payment-gateway-prd.md 和 prd-review.md,重点关注支付回调和安全问题,调研项目现有的支付集成代码(如果有),提供多个方案对比并标注风险,强调金融项目的安全合规要求",
+      "files": [],
+      "assertions": [
+        {
+          "name": "生成了 refine 决策记录文件",
+          "description": "应该生成 payment-gateway-prd-refine.md 或类似命名的决策记录文件",
+          "check_type": "file_exists",
+          "check_details": "检查输出目录是否包含 *-refine.md 文件"
+        },
+        {
+          "name": "P0 阻断问题被优先处理",
+          "description": "评审报告有 2 个 P0 问题(幂等性、加密),应该在决策队列中标记为高优先级",
+          "check_type": "content_analysis",
+          "check_details": "检查决策队列是否包含幂等性和加密相关的决策项,并标记为 P0 或最高优先级"
+        },
+        {
+          "name": "方案分析考虑了安全风险",
+          "description": "用户强调'金融项目、安全性要求很高',方案分析应该突出安全风险和合规要求",
+          "check_type": "content_analysis",
+          "check_details": "检查方案分析中是否提到'安全'、'风险'、'合规'等关键词,风险分析是否充分"
+        },
+        {
+          "name": "提供了多个可行方案",
+          "description": "用户要求'给我几个方案我好跟老板汇报',每个决策应该有 2-3 个方案对比",
+          "check_type": "content_analysis",
+          "check_details": "检查关键决策(如幂等性设计、密钥管理)是否提供了多个方案和对比"
+        },
+        {
+          "name": "方案包含实现成本评估",
+          "description": "每个方案应该评估开发成本、维护成本,方便向老板汇报",
+          "check_type": "content_analysis",
+          "check_details": "检查方案分析是否包含成本、工作量、时间等维度的评估"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "docs 目录下有个 inventory-system-prd.md 和它的 review 报告,评审报告里提了一些库存扣减和并发的问题。我看了下代码,现在用的是 MySQL,没有用 Redis。你帮我看看这些问题怎么解决比较好,给我分析下不同方案的优劣。",
+      "expected_output": "应该触发 prd-refine skill,调研项目现有的数据库架构(检查是否有 Redis、数据库连接池配置等),针对库存扣减和并发问题提供基于现有技术栈的方案(如数据库锁、乐观锁)以及引入新技术的方案(如 Redis),对比实现成本和效果",
+      "files": [],
+      "assertions": [
+        {
+          "name": "生成了 refine 决策记录文件",
+          "description": "应该生成 inventory-system-prd-refine.md 或类似命名的决策记录文件",
+          "check_type": "file_exists",
+          "check_details": "检查输出目录是否包含 *-refine.md 文件"
+        },
+        {
+          "name": "调研了项目的技术栈",
+          "description": "用户提到'现在用的是 MySQL,没有用 Redis',应该调研 pom.xml 确认技术栈",
+          "check_type": "content_analysis",
+          "check_details": "检查决策记录中的'项目现状'部分是否提到 MySQL、Spring Boot、JPA 等技术栈信息"
+        },
+        {
+          "name": "方案考虑了现有技术栈约束",
+          "description": "应该基于现有技术栈(MySQL)提供方案,而不是一上来就推荐引入 Redis",
+          "check_type": "content_analysis",
+          "check_details": "检查是否有'基于 MySQL 的方案'(如悲观锁、乐观锁),以及对比'引入 Redis 的方案'"
+        },
+        {
+          "name": "分析了并发控制方案的优劣",
+          "description": "库存扣减的核心是并发控制,应该对比不同并发方案(行锁、乐观锁、Redis 分布式锁等)",
+          "check_type": "content_analysis",
+          "check_details": "检查是否分析了多种并发控制方案,并对比优缺点(性能、复杂度、一致性保证)"
+        },
+        {
+          "name": "方案包含性能和成本权衡",
+          "description": "PRD 要求支持 1000 QPS,方案应该评估性能和实现成本的权衡",
+          "check_type": "content_analysis",
+          "check_details": "检查方案分析是否提到性能目标(1000 QPS)、是否评估不同方案的性能差异和实现成本"
+        }
+      ]
+    }
+  ]
+}

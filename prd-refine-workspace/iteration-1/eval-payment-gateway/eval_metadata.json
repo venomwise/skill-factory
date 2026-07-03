@@ -1,0 +1,6 @@
+{
+  "eval_id": 2,
+  "eval_name": "payment-gateway",
+  "prompt": "帮我处理一下 specs/payment-gateway/prd-review.md 里的评审意见,这个是支付网关的 PRD。review 报告里说支付回调处理那块写得太简单了,还有几个安全相关的问题。我们这个是金融项目,安全性要求很高,不能出错。麻烦你仔细分析下每个问题,给我几个方案我好跟老板汇报。",
+  "assertions": []
+}

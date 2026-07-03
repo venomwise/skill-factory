@@ -1,0 +1,91 @@
+{
+  "skill_name": "prd-refine",
+  "timestamp": "2026-07-01T12:15:00",
+  "configurations": [
+    {
+      "name": "with_skill",
+      "description": "使用 prd-refine skill"
+    },
+    {
+      "name": "without_skill",
+      "description": "不使用 skill 的 baseline"
+    }
+  ],
+  "evals": [
+    {
+      "eval_id": 1,
+      "eval_name": "user-management",
+      "prompt": "我们上周做了个用户管理系统的 PRD review,评审报告在 docs/user-system-prd-review.md。现在需要根据报告里的问题优化 PRD,主要是权限模型那块说得不够清楚,还有几个数据字段的定义也比较模糊。这个项目下个月中旬要上线,开发团队已经在等需求了,帮我快速处理下这些评审意见。",
+      "results": {
+        "with_skill": {
+          "pass_rate": 0.67,
+          "total_assertions": 6,
+          "passed_assertions": 4,
+          "total_tokens": 46785,
+          "duration_seconds": 74.7
+        },
+        "without_skill": {
+          "pass_rate": 0.0,
+          "total_assertions": 6,
+          "passed_assertions": 0,
+          "total_tokens": null,
+          "duration_seconds": null
+        }
+      }
+    },
+    {
+      "eval_id": 2,
+      "eval_name": "payment-gateway",
+      "prompt": "帮我处理一下 specs/payment-gateway/prd-review.md 里的评审意见,这个是支付网关的 PRD。review 报告里说支付回调处理那块写得太简单了,还有几个安全相关的问题。我们这个是金融项目,安全性要求很高,不能出错。麻烦你仔细分析下每个问题,给我几个方案我好跟老板汇报。",
+      "results": {
+        "with_skill": {
+          "pass_rate": 1.0,
+          "total_assertions": 5,
+          "passed_assertions": 5,
+          "total_tokens": 52128,
+          "duration_seconds": 126.3
+        },
+        "without_skill": {
+          "pass_rate": 0.6,
+          "total_assertions": 5,
+          "passed_assertions": 3,
+          "total_tokens": 87868,
+          "duration_seconds": 570.8
+        }
+      }
+    },
+    {
+      "eval_id": 3,
+      "eval_name": "inventory-system",
+      "prompt": "docs 目录下有个 inventory-system-prd.md 和它的 review 报告,评审报告里提了一些库存扣减和并发的问题。我看了下代码,现在用的是 MySQL,没有用 Redis。你帮我看看这些问题怎么解决比较好,给我分析下不同方案的优劣。",
+      "results": {
+        "with_skill": {
+          "pass_rate": 1.0,
+          "total_assertions": 5,
+          "passed_assertions": 5,
+          "total_tokens": 87307,
+          "duration_seconds": 349.5
+        },
+        "without_skill": {
+          "pass_rate": 0.8,
+          "total_assertions": 5,
+          "passed_assertions": 4,
+          "total_tokens": null,
+          "duration_seconds": null
+        }
+      }
+    }
+  ],
+  "summary": {
+    "with_skill": {
+      "avg_pass_rate": 0.89,
+      "avg_tokens": 62073,
+      "avg_duration_seconds": 183.5
+    },
+    "without_skill": {
+      "avg_pass_rate": 0.47,
+      "avg_tokens": 87868,
+      "avg_duration_seconds": 570.8
+    }
+  }
+}
