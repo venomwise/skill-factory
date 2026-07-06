@@ -67,6 +67,10 @@ Stop when you can describe the project's purpose, tech stack, architecture style
 
 If any review finding touches data models, storage, schemas, or persistence → invoke the `db-explorer` skill to inspect the existing database. Understand tables, relationships, constraints, and existing migration patterns before proposing data-related decisions.
 
+**1d. Explore existing integration patterns when the design touches external systems:**
+
+如果决策涉及外部 API、第三方服务、跨系统协议、消息中间件等边界 → 先在项目内查找已有的集成模式（HTTP client 封装、重试/熔断策略、消息消费者注册、认证方式等），了解现有约定。避免提出与既有集成风格冲突的新方案。
+
 ### Step 2: Build the decision queue
 
 Convert review findings into a prioritized decision queue. **Group related findings** — don't mirror every review bullet.
@@ -75,11 +79,15 @@ Convert review findings into a prioritized decision queue. **Group related findi
 
 **Not every finding needs a decision.** Some findings may be wrong, irrelevant to current scope, or intentionally deferred. Flag these explicitly in the queue as `[驳回]` or `[延后]` with a one-line reason, so the user can confirm. Do not silently drop findings.
 
+驳回理由必须**引用具体来源**（PRD 原文、用户既定约束、设计目标等），不能只写"不需要"。用户可能不同意驳回并要求恢复讨论——遇到复杂场景（合并多项发现、驳回后恢复）参见 [references/examples.md](references/examples.md)。
+
 Prioritize:
 
 1. `[P0-阻断]` — 核心架构决策未确定、与现有系统冲突、缺少关键组件定义
 2. `[P1-需确认]` — 组件职责划分、接口定义、数据模型设计、错误处理策略
 3. `[P2-优化]` — 命名规范、配置管理、非关键性能优化
+
+**P0/P1 逐项讨论。P2 打包处理：** 一次性列出所有 P2 项（每项一行摘要），让用户勾选哪些进入 Step 3 讨论。未被勾选的 P2 项写入 `review.md` 末尾的 `## Deferred` 段落（标注 `[design-refine deferred]` 与一句原因），不进入 Decision Record。避免 P2 长尾拖长流程。
 
 Present the queue to the user. **Wait for the user to confirm, reorder, or skip items before proceeding to Step 3.**
 
@@ -97,6 +105,14 @@ For each decision, search the web for mature frameworks, libraries, or establish
 
 **搜索深度:** 每个决策至少尝试 2 组不同的关键词。第一组用技术术语（如 `"golang saga pattern rabbitmq"`），第二组用问题描述（如 `"microservice inventory reservation pattern"`）。两组都无结果才算 "no existing solution"。
 
+**豁免条件（跳过 3a 直接进入 3b）：** 当决策**完全在项目内部约定范围内**——无外部技术选型、无跨系统协议、无第三方集成——例如：
+- 内部模块/包命名与目录结构
+- 既有技术栈内的组件职责边界与接口划分
+- 项目自有数据模型的字段命名和取值规范
+- 已确定框架内部的配置组织方式
+
+这类决策的答案来自项目自身约定而非外部生态，外部搜索无信号。**跳过时须在 3b 显式声明"内部决策，跳过外部调研"**，避免与"忘了搜"混淆。
+
 This is the architect's "don't reinvent the wheel" reflex. Custom implementation is the last resort, not the default.
 
 **3b. Present analysis:**
@@ -111,52 +127,31 @@ This is the architect's "don't reinvent the wheel" reflex. Custom implementation
 - **推荐方案及理由**
 - **确认问题**（让用户决策，不要替用户决定）
 
-**Backtracking:** 如果用户在讨论中意识到之前的决策需要调整，回到那个决策项重新分析，同时更新对应的 Decision Record 和设计章节。不做线性流程的奴隶。
+**Backtracking:** 如果用户在讨论中意识到之前的决策需要调整，回到那个决策项重新分析。**revise 时保留原 Decision Record 段落不删**，在其末尾追加：
 
-**分析示例（展示 3a → 3b 完整流程）：**
+```markdown
+> **Revised** (<YYYY-MM-DD>): <新决定，一句话>
+> **修订理由**: <2-3 句：为什么原决定不再适用、新信息是什么>
+> （原设计章节已同步更新）
+```
 
-<details>
-<summary>示例：服务间通信方式选择</summary>
+同步更新对应的设计章节（Architecture/Components 等）以反映新决定。**不删除历史**——下游 spec-plan 和后续 review 需要看到决策演进轨迹，避免出现"这个字段为什么以前是这样"的追溯断链。
 
-**D1: 订单服务与库存服务通信 - 同步 RPC 还是异步消息？**
+**分析骨架（3a → 3b 最小结构）：**
 
-**问题来源：**
-- Review 报告 B2（D4 Project Fit）："设计使用同步 HTTP 调用库存服务，但项目已有 RabbitMQ 基础设施"
-- Review 报告 M3（D5 Blind Spots）："未考虑库存服务不可用时的降级策略"
+```
+D<n>: <决策标题>
+问题来源: Review <B#/M#>（<D#>），涉及 §<章节>
+项目现状: <2-3 行 Step 1 探索证据>
+3a 外部调研: <关键词 → 找到的方案 + 许可>（内部决策则声明"跳过：内部约定"）
+3b 方案对比:
+  方案 A: <一句话> — 优点/缺点/成本/架构影响
+  方案 B: <一句话> — 优点/缺点/成本/架构影响
+推荐: <A 或 B> — <2-3 句理由>
+需你确认: <1-3 个具体问题>
+```
 
-**项目现状（来自 Step 1 探索）：**
-- 项目: Go 单体服务，`clean-architecture` 目录结构，Gin + GORM 技术栈
-- 消息基础设施: `go.mod` 已有 `amqp091-go`，`infra/mq/` 有完整的连接管理和消费者注册
-- 现有模式: 日志、通知等横切关注点已使用 RabbitMQ 事件驱动
-- 数据层: 订单表状态字段 `created/paid/shipped/completed/cancelled`，无中间状态
-- 最近提交: 3 天前 `feat: add inventory audit consumer`，已注册 `inventory.decrement` 消费者
-
-**3a. 外部调研：**
-
-搜索 "golang saga pattern rabbitmq" → 找到 `github.com/dtm-labs/dtm`（Go Saga 框架，3.5k stars），以及 `watermill`（Go 事件驱动库，7k stars，原生支持 RabbitMQ）。两个都是 MIT 许可，与项目兼容。
-
-**3b. 方案分析：**
-
-方案 A: 同步 HTTP + 重试 + 熔断
-- 优点：逻辑简单，事务一致性好（1 人日）
-- 缺点：库存服务不可用时订单创建全部失败
-- 架构影响：与现有消息驱动风格不一致
-- 风险：中（可用性风险）
-
-方案 B: 异步消息 + Watermill 库 + Saga 补偿
-- 优点：解耦彻底，Watermill 封装了 RabbitMQ 的 publish/subscribe/retry 样板代码（4 人日）
-- 缺点：最终一致性模型增加复杂度，需幂等处理
-- 架构影响：统一为消息驱动架构，Watermill 与现有 `infra/mq/` 可共存
-- 外部依赖：`github.com/ThreeDotsLabs/watermill` v1.3+, MIT 许可
-
-**推荐方案：** 方案 B。理由：①复用已有 RabbitMQ + Watermill 减少样板代码；②订单创建天然适合异步；③方案 A 在库存不可用时完全不可用（review 指出的盲点）；④4 人日换来架构统一性。
-
-**需要你确认：**
-- 你是否同意用异步消息 + Watermill + Saga 补偿（方案 B）？
-- 最终一致性的用户体验是否可接受？
-- 是否要评估 dtm 作为替代（更重但 Saga 编排更完整）？
-
-</details>
+此骨架足以覆盖标准决策场景。若遇到需要合并多个 review 发现、回退已确认决策等复杂路径，参见 [references/examples.md](references/examples.md)。
 
 ### Step 4: Write decision directly into design.md
 
@@ -176,6 +171,13 @@ User confirms → **immediately write into `design.md`** in two parts:
 **约束**: <决策的前提条件或接受的取舍>
 ```
 
+**当用户决策与推荐不一致时，理由段必须记录用户提出的额外约束或偏好（尽量原话），而不是"用户选择方案 A"这种无信息表述。** 例如：
+
+- ❌ "**理由**: 用户选择方案 A。"
+- ✅ "**理由**: 团队目前无 K8s 运维经验，用户明确要求 V1 用最简部署方式（原话："先跑起来再说，别一上来就 K8s"）。方案 B 的容器编排优势在 V2 有运维团队后再评估。"
+
+用户偏好本身是决策依据的一部分，Decision Record 必须能让不在讨论现场的读者理解"为什么最终不是推荐方案"。
+
 **Part B — 设计章节更新（写"怎么做"）：**
 
 将最终方案的具体设计写入对应章节。以 Decision Record 为索引，逐项落地：
@@ -188,37 +190,68 @@ User confirms → **immediately write into `design.md`** in two parts:
 | 错误场景、异常处理 | Error Handling | 新增/修改的错误处理策略 |
 | 测试范围、测试策略 | Testing | 新增的测试要求或用例 |
 
+**章节不匹配的降级路径：** 表格假设 design.md 已有对应章节。如果目标章节不存在（例如项目使用不同的文档结构），**不要静默创建新章节**，先向用户确认：
+
+1. 现有 design.md 有哪些顶层章节？（列出）
+2. 目标内容应该：(a) 新增独立章节 `## <名称>`；(b) 并入既有相近章节（指名）；(c) 用户指定其他位置？
+
+用户确认后再写入。避免因文档结构不一致导致 spec-plan 读不到关键决策。
+
 写完一个决策对应的章节后，在 Decision Record 中追加一行 `> 已更新 §<章节名>`，形成交叉引用。
 
 **格式约束（保护下游 spec-plan）：**
 
-`design.md` 的下游消费者是 `spec-plan`——它会读取设计文档生成任务。被拒绝方案的实现细节会污染 spec-plan 的输出。
+`design.md` 的下游消费者是 `spec-plan`——它会读取设计文档生成任务。**被拒绝方案的实现细节会污染 spec-plan 的输出**，这是本 skill 最常见也最难察觉的错误模式。下面用一个真实的污染案例来校准直觉。
 
-| ❌ 危险（污染下游） | ✅ 安全 |
-|---|---|
-| "方案 A: Redis Cluster 3 节点，key `cache:user:{id}`" | "方案 A: Redis 缓存（被拒绝——V1 不需要，运维成本高）" |
-| "方案 B: LRU map + concurrentHashMap，max 10000" | "决定: 内存缓存。V1 单机部署，重启失效可接受。" |
-| 被拒绝方案的库名、端点、配置值、表结构 | 被拒绝方案只说"是什么"和"为什么被拒" |
+**❌ 坏 Decision Record（污染下游）：**
+
+```markdown
+### Decision: 缓存策略
+
+方案 A: Redis 缓存
+- Redis Cluster 3 节点，docker-compose 部署
+- key 格式: `cache:user:{id}`，TTL 3600s
+- 使用 go-redis/v9 客户端，连接池 10
+- Redis Sentinel 做高可用
+
+方案 B: 内存缓存（选择 ✅）
+- sync.Map 实现 LRU，max 10000 条
+
+决定: 选方案 B，V1 先简单。
+```
+
+**spec-plan 读这份文档后实际输出的任务：**
+
+```markdown
+### Requirement 3: 缓存层
+- 3.1 部署 Redis Cluster（3 节点）
+- 3.2 配置 go-redis/v9 客户端连接池
+- 3.3 设置 Redis Sentinel 高可用
+```
+
+spec-plan 无法按 ✓/✗ 标记过滤——它读到"Redis Cluster 3 节点"就当成设计的一部分，生成了本应被拒绝方案的实现任务。这就是污染。
+
+**✅ 正确写法：**
+
+```markdown
+### Decision: 缓存策略
+
+**来源**: Review M4 (D6)
+
+**决定**: V1 使用内存缓存（sync.Map + LRU），不引入外部缓存。
+
+**理由**: Redis 方案被拒绝——V1 单机部署且数据量 < 1 万条，引入 Redis Cluster 的运维成本远超收益。V2 如需要横向扩展再评估。
+
+**约束**: 缓存重启即失效；LRU 最大 10000 条；不做持久化。
+```
+
+关键差异：`Redis` 这个词只作为标识出现一次，没有 `Cluster`、`go-redis`、`Sentinel`、`docker-compose` 等实现细节。spec-plan 读完只会知道"Redis 被拒了，不做"，不会产生 Redis 相关任务。
 
 **规则：**
 - Decision Record 用**叙述段落**，不用对比表格
-- 被拒绝方案**不给实现级细节**
+- 被拒绝方案**只说"是什么"和"为什么被拒"**——不给库名、版本、端点、配置值、表结构
 - 最终方案的实现细节**写在 Architecture/Components/Data Flow 章节**，不在 Decision Record 展开
 - 无对比时只需一行："决定: X。理由: ..."
-
-**示例：**
-
-```markdown
-### Decision: 服务间通信
-
-**来源**: Review B2 (D4), M3 (D5)
-
-**决定**: 使用异步消息 + Saga 补偿模式，复用项目已有的 RabbitMQ 基础设施。
-
-**理由**: 同步 HTTP 方案（被拒绝）与项目现有消息驱动架构不一致，且库存服务不可用时订单创建全部失败。异步方案统一了架构风格，4 人日投入可接受。
-
-**约束**: 消息需幂等处理；接受最终一致性。
-```
 
 Then move to the next undecided item.
 
@@ -234,7 +267,7 @@ Summarize what was changed and where. Recommend next step: if the design is now 
 ## Guardrails
 
 - **Not a checklist.** 评审说"缺错误处理"不等于复制粘贴错误码列表。思考策略和范围。
-- **User decides.** 提供分析建议，最终决策权在用户。
+- **User decides, and their reasons matter.** 提供分析建议，最终决策权在用户。用户选择偏离推荐时，Decision Record 必须记录用户的理由/约束/原话，不能只写"用户选择 X"。
 - **Don't reinvent the wheel.** 提案前先搜索外部成熟方案。自定义实现是最后手段，不是默认选择。引用外部方案时标注许可兼容性。
 - **Grounded in reality.** 方案基于 Step 1 探索得到的项目现状，不发明未来需求。
 - **Respect existing architecture.** 优先与现有系统一致，而非技术新颖性。
@@ -247,8 +280,15 @@ Summarize what was changed and where. Recommend next step: if the design is now 
 - [ ] Decision Record 叙述体，被拒绝方案无实现细节
 - [ ] 每条决策对应的设计变更已在 Architecture/Components/Data Flow 等章节落地
 - [ ] 各设计章节之间无矛盾（组件名、接口名、数据格式一致）
-- [ ] **下游安全检查**：用 Grep 搜索 Decision Record 中是否出现了库名、API 端点、配置值等实现细节——如有，确认它们只在最终采纳方案的章节中，不在被拒绝方案的描述中
+- [ ] **下游安全检查**：用 Grep 搜索 Decision Record 中是否出现了库名、API 端点、配置值等实现细节——如有，确认它们只在最终采纳方案的章节中，不在被拒绝方案的描述中。参考搜索模式（在 Decision Record 章节内运行）：
+  - 端口/主机：`:[0-9]{2,5}\b`、`localhost|127\.0\.0\.1`
+  - 表/字段名：`\b(CREATE TABLE|table|column)\b`、`\w+_id\b`
+  - 库名与版本：`github\.com/\S+`、`npm:|@\w+/\w+`、`v[0-9]+\.[0-9]+`
+  - URL 与端点：`https?://`、`/api/v[0-9]`、`\.\w+\.(com|io|internal)`
+  - 配置常量：全大写常量 `\b[A-Z]{3,}_[A-Z_]+\b`、`env\.` / `process\.env`
+
+  命中不代表出错——检查上下文：若命中项位于"被拒绝方案"描述中，删除该细节，只保留"是什么 + 为什么被拒"。
 
 ## References
 
-- [示例与反例](references/examples.md) — 完整正例（数据模型决策 + db-explorer + 外部调研）、反例（被拒绝方案污染 spec-plan 的实际后果）、边界案例（驳回不适用发现的处理方式）
+- [边界案例集](references/examples.md) — 只收罕见/复杂路径：驳回不适用发现、多项发现合并讨论、决策回滚。**默认无需阅读**——SKILL.md 主体已覆盖标准流程与最常见错误模式（Step 4 的污染反例）。仅当 Step 2 遇到复杂驳回、或 Step 3 需要合并/回退多项决策时按需查阅。

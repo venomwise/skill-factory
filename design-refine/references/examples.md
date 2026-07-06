@@ -1,146 +1,115 @@
-# Design Refine 示例与反例
+# Design Refine 边界案例集
 
-完整的正例、反例和边界案例，展示决策分析的深度和格式规范。
+**用途**：只收 SKILL.md 主流程未覆盖的罕见/复杂路径。**默认无需阅读**——标准决策流程与污染反例已在 SKILL.md 中默认加载。仅在下列场景按需查阅。
 
-## 目录
+## 触发条件
 
-- [正例：数据模型设计决策](#正例数据模型设计决策)
-- [反例：被拒绝方案污染下游](#反例被拒绝方案污染下游)
-- [边界案例：驳回不适用发现](#边界案例驳回不适用发现)
-
----
-
-## 正例：数据模型设计决策
-
-展示从 review 发现 → 项目探索 → db-explorer → 外部调研 → 方案分析 → Decision Record → 设计章节更新的完整流程。
-
-### 输入
-
-**Review 发现：**
-- B1（D1 Completeness）："方案提到了用户表，但未定义表结构和字段"
-- M2（D5 Blind Spots）："未考虑用户数据与现有订单表的关联方式"
-- m3（D7 Optimization）："用户偏好设置可以独立成表，避免主表字段膨胀"
-
-**design.md 涉及章节：** §Components（UserService）、§Data Flow（注册/登录流程）
-
-### Step 1 探索结果
-
-**项目身份：**
-- Go + Gin + GORM，`cmd/server/main.go` 入口，`internal/` 下按 domain 分包
-- GORM AutoMigrate 管理 schema，migration 文件在 `migrations/`
-
-**db-explorer 输出：**
-- 现有 `users` 表：`id, email, password_hash, role, created_at, updated_at`
-- `role` 是 `ENUM('customer','merchant','admin')`，无默认值
-- 无唯一索引在 `email` 字段上（潜在 bug）
-- `orders` 表通过 `user_id BIGINT` 外键关联
-
-### 3a. 外部调研
-
-搜索 `"golang user preference storage pattern"` → 找到 `gorm.io/gorm` 的 JSON field 支持可直接存偏好为 JSON 列。
-
-搜索 `"user profile vs user table database design"` → 社区共识：偏好/ profile 应独立表，避免 `users` 表字段膨胀到 50+ 列。
-
-### 3b. 方案分析
-
-**方案 A: 所有字段放 users 表**
-- 优点：查询简单，无 JOIN（0.5 人日）
-- 缺点：用户表字段膨胀，`role` ENUM 扩展需 migration
-- 架构影响：users 表变成"上帝表"，后续加字段越来越重
-- 风险：低（当前字段少，短期没问题）
-
-**方案 B: users 核心字段 + user_profiles 扩展表（1:1）**
-- 优点：主表轻量，扩展字段隔离，符合归一化（1.5 人日）
-- 缺点：查询需要 JOIN，但 GORM Preload 可解决
-- 架构影响：遵循项目现有的 domain 分包模式
-- 外部参考：Rails Devise + Profile 模式，成熟方案
-
-**推荐：** 方案 B。理由：①项目已按 domain 分包，扩展表放在 `internal/user/` 下自然；②`role` ENUM 改为 VARCHAR + 应用层校验（顺便修 email 唯一索引缺失的 bug）；③社区共识明确——主表字段超过 15 列就该拆分。
-
-### Step 4 写入
-
-**Decision Record（叙述体，只写"为什么"）：**
-
-```markdown
-### Decision: 用户数据模型设计
-
-**来源**: Review B1 (D1), M2 (D5), m3 (D7)
-
-**决定**: users 表保留核心鉴权字段（id, email, password_hash, role），
-扩展信息放入 user_profiles 表（1:1 关联）。
-
-**理由**: 社区共识——主表超过 15 列应拆分，避免"上帝表"。
-GORM JSON field 可替代独立偏好表，但权衡后独立表更符合项目 domain 分包模式。
-同步修复 email 无唯一索引的 bug。
-
-**约束**: role 从 ENUM 改为 VARCHAR(32) + 应用层校验；
-GORM Preload 预加载 profile 避免 N+1；
-email 加 UNIQUE 索引。
-```
-
-**设计章节更新：**
-
-§Components → UserService 下新增 `UserProfile` 结构体定义和 GORM 关系：
-```go
-type User struct {
-    ID           uint   `gorm:"primaryKey"`
-    Email        string `gorm:"uniqueIndex;not null"`
-    PasswordHash string `gorm:"not null"`
-    Role         string `gorm:"type:varchar(32);default:'customer'"`
-    Profile      UserProfile `gorm:"foreignKey:UserID"`
-}
-
-type UserProfile struct {
-    ID        uint   `gorm:"primaryKey"`
-    UserID    uint   `gorm:"uniqueIndex"`
-    AvatarURL string
-    Nickname  string
-    Bio       string `gorm:"type:text"`
-}
-```
-
-> 已更新 §Components、§Data Flow
+| 遇到的场景 | 查看章节 |
+|---|---|
+| Review 发现不适用当前范围，需驳回 | [驳回不适用发现](#驳回不适用发现) |
+| 用户不同意驳回，要求恢复讨论 | [驳回后恢复决策](#驳回后恢复决策) |
+| 多个 review 发现指向同一决策，需合并 | [合并相关发现](#合并相关发现) |
+| 已确认的 Decision Record 需要回滚/修订 | [Backtracking 实操](#backtracking-实操) |
 
 ---
 
-## 反例：被拒绝方案污染下游
+## 驳回不适用发现
 
-展示一个**写坏了**的 Decision Record，以及它对 `spec-plan` 的实际影响。
+### 场景
 
-### ❌ 坏 Decision Record
+Review 报告 M5（D5 Blind Spots）："未考虑国际化/i18n——用户界面需要支持多语言"
 
-```markdown
-### Decision: 缓存策略
+但 PRD 明确写 V1 仅支持中文，目标用户全部在中国大陆。
 
-方案 A: Redis 缓存
-- Redis Cluster 3 节点，docker-compose 部署
-- key 格式: `cache:user:{id}`，TTL 3600s
-- 使用 go-redis/v9 客户端，连接池 10
-- Redis Sentinel 做高可用
+### 在决策队列中标记
 
-方案 B: 内存缓存（选择 ✅）
-- sync.Map 实现 LRU，max 10000 条
-- 重启即失效，单机部署无高可用
-
-决定: 选方案 B，V1 先简单。
+```
+- [x] D1: 缓存策略 → 方案 B（已确认）
+- [ ] D2: 错误处理策略
+- [~] M5: 国际化支持 [驳回 — PRD §2.3 明确 V1 仅中文，目标用户全部在中国大陆]
+- [ ] D3: API 版本策略
 ```
 
-### spec-plan 读到了什么
+**驳回理由格式：** `[驳回 — <来源引用> <一句话说明>]`
 
-spec-plan 会读到 "Redis Cluster 3 节点"、"docker-compose 部署"、"go-redis/v9 客户端"、"Redis Sentinel 高可用"——这些都是**被拒绝**的方案 A 的实现细节，但模型无法按 ✓/✗ 标记过滤。
+来源引用必须具体：PRD 章节号、用户既定约束、设计目标、上一轮决策记录等。**禁止的驳回理由：**"不需要"、"当前不做"、"以后再说"（无来源，无法追溯）。
 
-**实际 spec-plan 输出片段：**
+### 驳回条目**不**进入 Decision Record
 
-```markdown
-### Requirement 3: 缓存层
-- 3.1 部署 Redis Cluster（3 节点）
-- 3.2 配置 go-redis/v9 客户端连接池...
-- 3.3 设置 Redis Sentinel 高可用...
+不适用发现只在决策队列中标记，**不为其写 Decision Record**。原因：Decision Record 用于记录"做了什么设计决策"，"决定不做 X"如果没有对应的设计动作，写进去只会污染下游 spec-plan（模型可能误读为"需要显式排除 i18n 功能"）。
+
+例外：如果驳回本身对下游有约束意义（例如"决定不做多租户 → data schema 不加 tenant_id"），此时应写为一条正式决策：`Decision: 单租户模型`，而不是"驳回多租户"。**关注点从"拒绝什么"转到"设计成什么"。**
+
+---
+
+## 驳回后恢复决策
+
+### 场景
+
+用户看到 Step 2 队列后说："等等，虽然 PRD 没写 i18n，但我觉得还是应该预留能力，以后扩到东南亚成本会低很多。"
+
+### 处理动作
+
+1. 从决策队列中移除 `[~]` 标记，恢复为 `[ ]` 待决策项
+2. **重排优先级**：用户主动提出的关注点通常应上调至 P1，插入到当前讨论项之后
+3. 进入 Step 3 时按标准流程走 3a/3b，不要因为"这是补加的"就跳过外部调研
+4. 在 3b 的问题来源中记录用户原话，让 Decision Record 能追溯到"为什么这条从驳回变成决策"
+
+### 反模式
+
+- ❌ 直接接受用户的建议，跳过方案对比："好的，那就预留 i18n"——用户提出关注点不等于用户已经选好方案
+- ❌ 保留 `[~驳回]` 标记同时开始讨论——队列状态与实际动作不一致，后续 pickup 时会混乱
+
+---
+
+## 合并相关发现
+
+### 场景
+
+Review 报告了三条看似独立的发现：
+
+- B3: "缺少统一的错误响应格式定义"
+- M2: "订单服务错误码未列出"
+- m5: "建议错误日志包含 trace_id 便于排查"
+
+三条实际指向同一个决策：**错误处理策略**。
+
+### 决策队列中的合并写法
+
+```
+- [ ] D2: 错误处理策略
+      合并来源: B3（响应格式）+ M2（错误码枚举）+ m5（trace_id 日志）
 ```
 
-这就是污染——spec-plan 把被拒绝方案的细节当成了设计的一部分。
+Step 3 分析时，一次讨论覆盖三个子问题，Decision Record 的 **来源** 段列出所有原始编号：
 
-### ✅ 正确写法
+```markdown
+**来源**: Review B3, M2, m5（D6 Error Handling）
+```
+
+### 合并的判据
+
+- 同一子系统 + 同一关注维度 → 合并
+- 不同子系统但共享同一决策（如"是否引入统一 error middleware"影响所有服务）→ 合并
+- 同一子系统但关注维度不同（如订单服务的"错误处理" vs "性能"）→ **不合并**，分开讨论
+
+### 反模式
+
+- ❌ 把 P0 和 P2 合并——P2 的次要关注会稀释 P0 的讨论深度
+- ❌ 为了减少讨论轮次强行合并——如果两个决策的方案对比矩阵完全不同，合并只会让分析混乱
+
+---
+
+## Backtracking 实操
+
+### 场景
+
+D1 已经决定用 sync.Map 内存缓存。讨论到 D5（部署方案）时，用户提到"我们其实计划两个月内上 K8s 多副本"——这与 D1 的"单机部署，重启失效可接受"前提冲突。
+
+### 处理动作
+
+1. **不删除** D1 的原 Decision Record
+2. 在 D1 原段落末尾追加 Revised 块（格式见 SKILL.md Step 3）：
 
 ```markdown
 ### Decision: 缓存策略
@@ -149,37 +118,25 @@ spec-plan 会读到 "Redis Cluster 3 节点"、"docker-compose 部署"、"go-red
 
 **决定**: V1 使用内存缓存（sync.Map + LRU），不引入外部缓存。
 
-**理由**: Redis 方案被拒绝——V1 单机部署且数据量 < 1 万条，
-引入 Redis Cluster 的运维成本远超收益。V2 如需要横向扩展再评估。
+**理由**: Redis 方案被拒绝——V1 单机部署且数据量 < 1 万条，引入 Redis Cluster 的运维成本远超收益。
 
-**约束**: 缓存重启即失效；LRU 最大 10000 条；不做持久化。
+**约束**: 缓存重启即失效；LRU 最大 10000 条。
+
+> **Revised** (2026-07-06): 改用 Redis 单实例缓存。
+> **修订理由**: D5 讨论确认两个月内上 K8s 多副本，多副本下内存缓存会产生数据不一致。原"单机部署"前提失效。
+> （§Components 的 CacheService 已同步更新为 go-redis 客户端）
 ```
 
-关键：被拒绝方案只说"是什么"和"为什么被拒"——`Redis` 这个词只出现一次作为标识，没有 "Cluster"、"go-redis"、"Sentinel" 等实现细节。spec-plan 读了只会知道 "Redis 被拒绝了，不做"，不会产生 Redis 任务。
+3. 同步更新 §Components / §Architecture 中的实现描述——这一步容易漏，务必做完
+4. 在 D5 的 Decision Record 中反向提及："本决策触发了 D1 的修订"
 
----
+### 为什么保留历史
 
-## 边界案例：驳回不适用发现
+- **下游可追溯**：spec-plan 读到 Revised 块会用最新决定生成任务，但审计时能看到"为什么以前是那样"
+- **避免同样错误**：下一轮 review 如果又提"要不要用内存缓存"，能立刻看到已被 D5 的部署方案否决
+- **决策学习**：连续几个项目积累的 Revised 记录，能反向优化 Step 1 的探索清单（例如"以后 Step 1 必须问部署方案"）
 
-展示如何正确处理 review 中不适用或误判的发现。
+### 反模式
 
-### 场景
-
-Review 报告 M5（D5 Blind Spots）："未考虑国际化/i18n——用户界面需要支持多语言"
-
-### 处理方式
-
-在 Step 2 决策队列中标记为 `[驳回]`，不进入 Step 3 分析：
-
-```
-- [x] D1: 缓存策略 → 方案 B（已确认）
-- [ ] D2: 错误处理策略
-- [~] M5: 国际化支持 [驳回 — PRD 明确写 V1 仅支持中文，目标用户全部在中国大陆]
-- [ ] D3: API 版本策略
-```
-
-**驳回理由必须具体**——不能只写 "不需要"，要引用来源（PRD、用户原话、设计目标等）。
-
-### 如果用户不同意驳回
-
-用户说 "等等，虽然 PRD 没写，但我觉得还是应该预留 i18n 能力" → 恢复为正常决策项，进入 Step 3 分析方案（如"前端文案抽离到 i18n 文件 vs 硬编码中文，成本差异不大但预留成本很低"）。
+- ❌ 直接改 D1 的"决定"和"理由"，不留 Revised 块——history 丢失，后续无法追溯
+- ❌ 追加 Revised 但忘了同步 §Components——文档内部矛盾，下游读到冲突信号
