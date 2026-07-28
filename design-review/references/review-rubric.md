@@ -144,9 +144,9 @@ Select by domain; skip items that clearly do not apply. Do not walk every list m
 
 ## Verdict & spec-plan go/no-go rule
 
-- **Reject** → No-Go: one or more **Blocker** findings. Return to `brainstorming` to revise the design before planning.
-- **Revise** → Conditional: no Blockers, but one or more **Major** findings. The author should address the Majors; proceeding to `spec-plan` is at their discretion and risk.
-- **Pass** → Go: no Blockers and no Majors (Minors allowed). Ready for `spec-plan`.
+- **Reject** → No-Go: one or more **Blocker** findings. Run `/design-refine` to resolve the findings, then re-run `/design-review` before planning.
+- **Revise** → Conditional: no Blockers, but one or more **Major** findings. Run `/design-refine` to process the findings before planning.
+- **Pass** → Go: no Blockers and no Majors (Minors allowed). If Minor findings exist, run `/design-refine`; with no findings, proceed directly to `spec-plan`.
 
 ## Reviewing discipline
 

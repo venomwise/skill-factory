@@ -48,6 +48,30 @@
         "The response asks about constraints such as budget, team preferences, or deployment environment",
         "The response treats the 100k concurrent users figure as a constraint to clarify, not as a spec to immediately design around"
       ]
+    },
+    {
+      "id": 5,
+      "prompt": "我们已经完成并写好了 design.md：只在现有用户表单里沿用当前校验组件新增一个必填规则，不改 API、数据模型或权限逻辑，测试和回滚都很直接，也没有未决问题。现在下一步是什么？",
+      "expected_output": "Classify the completed design as simple, state why it is low risk, and ask whether to implement it directly without requiring a separate design review or spec-plan.",
+      "files": [],
+      "expectations": [
+        "The response classifies the design from its concrete implementation risks rather than the short prompt alone",
+        "The response identifies the design as simple and briefly grounds that classification",
+        "The response asks whether to begin direct implementation",
+        "The response does NOT require /design-review or spec-plan before implementation"
+      ]
+    },
+    {
+      "id": 6,
+      "prompt": "我们已经完成并写好了 design.md：要新增第三方身份提供商，调整登录 API 和权限映射，并迁移已有账号数据。设计已经明确，现在下一步是什么？",
+      "expected_output": "Classify the completed design as moderate or complex based on integration, contract, permission, and migration risks, then recommend running /design-review before planning or implementation.",
+      "files": [],
+      "expectations": [
+        "The response classifies the design as moderate or complex and names concrete risk signals",
+        "The response recommends running /design-review on the written design",
+        "The response does NOT begin implementation",
+        "The response does NOT invoke spec-plan automatically"
+      ]
     }
   ]
 }

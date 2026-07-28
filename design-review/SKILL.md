@@ -16,30 +16,31 @@ Independent quality gate for a `design.md`. Read the design and its surrounding 
 ## When not to use
 
 - Code or pull-request review → route to `code-review` / `review`.
-- Writing or revising the design itself → route to `brainstorming`.
+- Writing a design from scratch → route to `brainstorming`.
+- Revising a design from review findings → route to `design-refine`.
 - Trivial changes with no design doc, bug fixes, or typo-only edits.
 
 ## Inputs
 
-- Path to the `design.md` to review (or auto-probe `specs/<topic>/` and `.codex/specs/<topic>/`).
+- Path to the `design.md` to review (or auto-probe `specs/<topic>/`).
 - The project the design belongs to (explored for conformance and fit).
 
 ## Outputs
 
 - A `review.md` written to the **same directory as the reviewed `design.md`**, using `assets/review-template.md`.
 - An overall verdict (Pass / Revise / Reject), a `spec-plan` go/no-go, and findings tagged Blocker / Major / Minor.
-- A recommended next step derived from the verdict.
+- A recommended next step derived from the findings and verdict.
 - The `design.md` and project files are never modified — `review.md` is the only artifact written.
 
 ## Workflow
 
-1. **Locate the design.md.** If the user gave a path, use it. Otherwise probe `specs/` and `.codex/specs/` for a `design.md`; if exactly one matches, use it; if several or none match, ask the user for the path. Confirm before reviewing when ambiguous.
+1. **Locate the design.md.** If the user gave a path, use it. Otherwise probe `specs/` for a `design.md`; if exactly one matches, use it; if several or none match, ask the user for the path. Confirm before reviewing when ambiguous.
 2. **Read the design.md fully.** Hold the canonical section set it is expected to follow (Summary, Goals, Primary Users / Roles, Non-Goals, Context, Discovery, Decision Record, Proposed Solution with Architecture / Components / Data Flow, Error Handling, Testing, Open Questions) — see [the rubric](references/review-rubric.md) for the authoritative list.
 3. **Explore the target project** in priority order: README / CLAUDE.md / AGENTS.md, project config (package.json / pyproject.toml / Cargo.toml / go.mod / pom.xml), entry points, recent commits (up to 10), then any existing specs or design docs. Stop when you can ground the conformance, project-fit, optimization, and over-engineering checks in real evidence. Use `db-explorer` when the design depends on stored data or schema. Do not assume — when a claim in the design can be checked against the codebase, check it.
 4. **Evaluate against the 7-dimension rubric** in [references/review-rubric.md](references/review-rubric.md). For every finding, record: a concrete **location** (`design.md §section` and/or a project file path), the **evidence**, a concrete **recommendation**, and a **severity**. Ground every finding — no vague criticism. Judge over-engineering against the design's **own** stated Goals and Non-Goals, not your taste. Frame blind spots as "worth checking", not as defects the author definitely missed.
 5. **Compute the verdict and the `spec-plan` go/no-go** from the severity counts (see the rubric for the exact rule).
 6. **Write review.md** to the `design.md` sibling directory using `assets/review-template.md`. Preserve the template's English structural headings; write the finding content in the design's current language (infer it from the `design.md` and the conversation; do not ask solely to determine it).
-7. **Summarize and recommend.** Give the user the verdict, the finding counts, and the top blockers in a few lines, then recommend the next step from the verdict: return to `brainstorming` to resolve blockers, or proceed to `spec-plan` when clean. Do not modify `design.md`; do not invoke `spec-plan` yourself.
+7. **Summarize and recommend.** Give the user the verdict, the finding counts, and the top blockers in a few lines. If any Blocker, Major, or Minor finding exists, recommend running `/design-refine` with the reviewed `design.md` and generated `review.md` to discuss the findings and update the design; for a Reject verdict, also recommend re-running `/design-review` after refinement. Only recommend proceeding directly to `spec-plan` when there are no findings. Do not modify `design.md` or invoke any downstream skill yourself.
 
 ## Review dimensions
 
@@ -67,7 +68,7 @@ Severity (Blocker / Major / Minor) and verdict (Pass / Revise / Reject) definiti
 - [ ] Blind spots are framed as considerations, grounded in the domain checklists
 - [ ] The `design.md` and all project files are unchanged
 - [ ] Structural headings are in English; finding content is in the design's current language
-- [ ] A recommended next step is given and follows from the verdict
+- [ ] The recommended next step follows from the findings and verdict: `/design-refine` when findings exist, `spec-plan` only when none exist
 
 ## Safety & guardrails
 
@@ -77,9 +78,10 @@ Severity (Blocker / Major / Minor) and verdict (Pass / Revise / Reject) definiti
 - Severity discipline. Reserve Blocker for issues that truly stop implementation or contradict the project; do not inflate to look thorough.
 - Respect the design's scope. Over-engineering and optimization are measured against the design's Goals and Non-Goals, not a different solution you would have preferred.
 - Scale to complexity. A small design gets a short review; do not pad with ceremony.
-- No implementation, no planning. This skill reviews and recommends only — it does not write code, scaffold, or invoke `spec-plan`.
+- No implementation, planning, or refinement. This skill reviews and recommends only — it does not write code, edit the design, or invoke `design-refine` or `spec-plan`.
 
 ## References
 
 - [Design review rubric](references/review-rubric.md) — 7-dimension checklists, severity and verdict definitions, canonical section set, blind-spot and over-engineering signals
 - [Review report template](assets/review-template.md)
+- [Design refine skill](../design-refine/SKILL.md) — discusses review findings with the user and writes confirmed decisions back to `design.md`

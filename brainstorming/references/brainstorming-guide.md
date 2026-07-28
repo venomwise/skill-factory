@@ -42,14 +42,15 @@
 - Refactors are allowed only when they unblock the current goal.
 - Prefer changes that reduce coupling without altering unrelated behavior.
 
-## Review gate checklist
+## Post-design complexity examples
 
-This is the user-facing lens for the step 8 review — what to look at when reading the written doc. SKILL.md's Verification section is the agent's own complete self-check; this list is a subset framed for human review.
+Classify from the completed design, not the size of the user's initial prompt. The simple route is intentionally narrow.
 
-- The design doc covers architecture, components, data flow, error handling, and testing.
-- The Decision Record records the alternatives weighed and why the chosen one won.
-- Open Questions contains only surfaced unresolved questions, or explicitly says none remain.
-- Scope matches a single sub-project with explicit non-goals.
+**Usually simple:** a localized validation rule, one UI-state adjustment, or a small command behavior change that follows an existing pattern and has focused tests.
+
+**Moderate or complex:** a schema or data migration, a new external service, authentication or permission changes, a public API contract change, cross-component workflows, concurrency or consistency requirements, operational rollout risk, or any unresolved design question.
+
+When signals are mixed, recommend `/design-review`. The cost of review is justified when an incorrect design would be difficult to reverse or would affect multiple consumers.
 
 ## Fuzziness diagnosis
 

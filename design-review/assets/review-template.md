@@ -59,10 +59,10 @@ Status: ✓ sound · △ has findings to address · ✗ blocking issue.
 
 ## Recommended Next Step
 
-<Derived from the verdict:
-- Reject → return to `brainstorming` to resolve the Blockers, then re-review.
-- Revise → address the Major findings; proceed to `spec-plan` at the author's discretion.
-- Pass → proceed to `spec-plan`.>
+<Derived from the findings and verdict:
+- Any findings → run `/design-refine` with this `review.md` and the reviewed `design.md` to resolve them.
+- Reject → after refinement, run `/design-review` again.
+- No findings → proceed to `spec-plan`.>
 
 ## Accepted / Deferred Risks
 

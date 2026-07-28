@@ -27,7 +27,7 @@ description: Turn ideas into validated designs and specs through collaborative d
 ## Outputs
 
 - Validated design doc at `specs/<topic>/design.md`
-- Confirmed next step to use `spec-plan`
+- A complexity-matched next step: ask to implement a simple design directly, or recommend `/design-review` for a moderate or complex design
 
 ## Workflow
 
@@ -50,27 +50,27 @@ description: Turn ideas into validated designs and specs through collaborative d
    Once all conditions are met, summarize what brainstorming revealed: the refined problem statement, request-fit findings, challenged assumptions, discovered blind spots, and trimmed scope. Then propose 1-3 approaches with trade-offs. Lead with your recommendation. If only one approach is viable, explain why alternatives were ruled out. Ask the user to confirm the problem summary and select an approach before continuing.
 6. Present the design scaled to complexity. For simple projects, present the full design at once and ask for approval. For moderate or complex projects, present by section and ask for approval after each. Cover architecture, components, data flow, error handling, and testing.
 7. Write the design doc to `specs/<topic>/design.md` using the template in `assets/design-doc-template.md`. Preserve the template's English headings and structural labels exactly, while writing the section content in the user's current language. Infer that language from the conversation; do not ask solely to determine it. Name `<topic>` using kebab-case derived from the project or feature name (e.g., `user-auth`, `payment-integration`). Confirm the path with the user if ambiguous. Fill the Decision Record section from the approach comparison produced in step 5: record each option that was actually weighed with its key trade-offs, then the chosen approach and the concrete reasons it won (or, if only one approach was viable, why the alternatives were ruled out). This comparison was generated live in step 5 and is the main thing worth preserving for later review, so do not drop it; if it has scrolled out of the recent conversation, go back and recover it rather than reconstructing from memory. Do not fabricate alternatives that were never discussed. Open Questions must contain only unresolved questions already surfaced to the user; if none remain, write that no open questions remain.
-8. User review gate. Ask the user to review the written doc. On feedback:
-   - Wording or detail changes: edit the doc and re-confirm.
-   - Scope or approach changes: return to step 5.
-   - Missing context: return to step 4.
-   Proceed only after the user approves the written document.
-9. Invoke `spec-plan` as the only next step. Pass the following context: project name (`<topic>`), target directory (`specs/<topic>/`), scope summary (Summary + Non-Goals + Discovery / Scope Decisions if present), constraints (Context + Discovery / Key Discoveries when they contain confirmed constraints, risks, or assumptions), and primary users and goals (Primary Users / Roles + Goals). If a Discovery section exists, treat it as input context for requirements and task planning, especially for confirmed assumptions, surfaced risks, and explicit scope decisions. Do not invoke any implementation skill.
+8. Classify the completed design by implementation risk, using the design itself rather than the apparent simplicity of the initial request. Treat it as **simple** only when all of these are true: the change is localized to one component or behavior; it follows established project patterns; it introduces no data migration, external integration, security/permission boundary, concurrency/reliability concern, or public contract change; testing and rollback are straightforward; and no open question remains. If any condition is false or uncertain, classify it as **moderate or complex**. See [the guide](references/brainstorming-guide.md) for examples.
+9. Route the next step by that classification:
+   - **Simple:** state the design path and briefly explain why it is low risk, then ask whether to begin implementing the written design directly. Do not require a separate document-review round or `spec-plan`. If the user agrees, that response both approves the design and authorizes implementation; proceed with implementation. If the user gives feedback instead, update the doc, return to step 4 or 5 when the feedback changes intent or approach, and reassess complexity before asking again.
+   - **Moderate or complex:** state the design path and the concrete risk signals behind the classification, then recommend that the user run `/design-review` on that path before planning or implementation. Do not invoke `design-review`, `spec-plan`, or an implementation skill automatically. If the user supplies feedback directly, handle it as in the simple path, then reassess complexity.
 
 ## Verification
 
-- [ ] `specs/<topic>/design.md` exists and the user approved it
+- [ ] `specs/<topic>/design.md` exists
 - [ ] The design doc includes the template headings from `assets/design-doc-template.md`
 - [ ] The design doc keeps template headings in English and writes section content in the user's current language
 - [ ] The design covers architecture, components, data flow, error handling, and testing
 - [ ] If brainstorming surfaced notable discoveries, they are recorded in the design doc's Discovery section
 - [ ] The Decision Record captures the approaches compared in step 5 and the rationale for the chosen one (or why alternatives were ruled out when only one was viable)
 - [ ] Open Questions contains only surfaced unresolved questions, or explicitly says none remain
-- [ ] `spec-plan` has been invoked as the terminal action
+- [ ] Complexity was assessed from the completed design using the step 8 risk signals
+- [ ] A simple design ends by asking for direct-implementation confirmation; a moderate or complex design ends with a `/design-review` recommendation
 
 ## Safety & guardrails
 
-- No implementation before approval. Do not write code, scaffold projects, or invoke any implementation skill until the design is approved.
+- No implementation before explicit confirmation. Only the simple-design route may proceed directly, and only after the user agrees to implement the written design.
+- Moderate and complex designs stop at recommending `/design-review`; do not auto-continue into review, planning, or implementation.
 - Even simple projects require a design; keep it short when the scope is small.
 - Scale the process to complexity. Simple projects may complete steps 4-6 in a few exchanges; do not pad the process with unnecessary ceremony.
 - Pace questions correctly. Ask one question per turn and wait for the answer before the next (cadence), but keep going until intent and constraints are clear — the number of questions is set by the gaps you find, not minimized for its own sake. Full rules live in step 4.

@@ -1,6 +1,6 @@
 # Brainstorming Skill Test Cases
 
-Use these prompts to manually validate that the `brainstorming` skill diagnoses ambiguity correctly, controls scope, and converges before handing off to `spec-plan`.
+Use these prompts to manually validate that the `brainstorming` skill diagnoses ambiguity correctly, controls scope, converges on a design, and selects a complexity-matched next step.
 
 ## Test 1 — Fuzzy request: notifications
 
@@ -90,6 +90,45 @@ Use these prompts to manually validate that the `brainstorming` skill diagnoses 
 - Delay architecture decisions until the shape of the problem is known
 - Decomposition after clarification when needed
 
+## Test 5 — Simple completed design: direct execution
+
+**Prompt**
+
+> 我们已经完成并写好了 design.md：只在现有用户表单里沿用当前校验组件新增一个必填规则，不改 API、数据模型或权限逻辑，测试和回滚都很直接，也没有未决问题。现在下一步是什么？
+
+**Expected behavior**
+
+- Classify the design as simple from the concrete risk signals.
+- Briefly explain that it is localized, follows an existing pattern, and has straightforward testing and rollback.
+- Ask whether to begin implementing the written design directly.
+- Do not require a separate document review or `spec-plan`.
+- Do not start implementation until the user confirms.
+
+**Primary coverage**
+
+- Post-design complexity classification
+- Simple-design direct-execution confirmation
+- Explicit implementation authorization
+
+## Test 6 — Risk-bearing completed design: design review
+
+**Prompt**
+
+> 我们已经完成并写好了 design.md：要新增第三方身份提供商，调整登录 API 和权限映射，并迁移已有账号数据。设计已经明确，现在下一步是什么？
+
+**Expected behavior**
+
+- Classify the design as moderate or complex.
+- Ground the classification in the external integration, public contract, permission, and data-migration risks.
+- Recommend running `/design-review` on the written design before planning or implementation.
+- Do not automatically invoke `design-review`, `spec-plan`, or implementation.
+
+**Primary coverage**
+
+- Conservative escalation on mixed or high-risk signals
+- Review recommendation grounded in design risk
+- No automatic downstream action
+
 ## Coverage Matrix
 
 | Test | Main ambiguity type | Main behavior being validated |
@@ -98,6 +137,8 @@ Use these prompts to manually validate that the `brainstorming` skill diagnoses 
 | 2 | Boundaries unclear + oversized scope | Split into sub-projects before design |
 | 3 | Solution unclear | Compare approaches and recommend |
 | 4 | Problem unclear + oversized scope | Clarify scale constraints before architecture |
+| 5 | Design complete + low risk | Ask to implement directly |
+| 6 | Design complete + material risk | Recommend `/design-review` |
 
 ## Pass Criteria
 
@@ -107,4 +148,6 @@ A successful run of the skill should consistently:
 - ask focused questions one at a time
 - avoid premature architecture decisions
 - reduce scope when the request is too large
-- converge to a design-worthy problem statement before invoking `spec-plan`
+- converge to a design-worthy problem statement before writing the design
+- route simple designs to explicit direct-implementation confirmation
+- route moderate or complex designs to a grounded `/design-review` recommendation

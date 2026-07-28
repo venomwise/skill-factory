@@ -89,7 +89,7 @@ Prioritize:
 
 **P0/P1 逐项讨论。P2 打包处理：** 一次性列出所有 P2 项（每项一行摘要），让用户勾选哪些进入 Step 3 讨论。未被勾选的 P2 项写入 `review.md` 末尾的 `## Deferred` 段落（标注 `[design-refine deferred]` 与一句原因），不进入 Decision Record。避免 P2 长尾拖长流程。
 
-Present the queue to the user. **Wait for the user to confirm, reorder, or skip items before proceeding to Step 3.**
+**Present the queue to the user.**
 
 ### Step 3: Analyze one decision at a time
 

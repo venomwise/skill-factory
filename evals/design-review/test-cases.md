@@ -16,6 +16,7 @@ Each case points the skill at a fixture under `fixtures/<case>/design.md`.
 - Verdict **Pass**, spec-plan readiness **Go**.
 - Zero Blockers and zero Majors; do not invent issues to look thorough.
 - All 7 dimensions marked sound (or with only Minor notes).
+- If Minor findings exist, recommend `/design-refine`; if there are no findings, recommend `spec-plan` directly.
 - Leave the original `design.md` unchanged.
 
 **Primary coverage**
@@ -37,6 +38,7 @@ Each case points the skill at a fixture under `fixtures/<case>/design.md`.
 - Flag the empty/placeholder Decision Record and the missing Open Questions section.
 - Flag the in-app notification goal that has no design support.
 - Every finding cites a concrete location and gives a recommendation.
+- Recommend `/design-refine` with the `design.md` and `review.md` paths, then another `/design-review` after refinement.
 
 **Primary coverage**
 
@@ -57,6 +59,7 @@ Each case points the skill at a fixture under `fixtures/<case>/design.md`.
 - Point out the design contradicts the Non-Goals (single value, theme only, no custom themes) and that the Decision Record justifies the framework with speculative future needs.
 - Recommend the simpler `single column users.theme` already listed in Options Considered.
 - Judge over-engineering against the design's own Goals/Non-Goals. Verdict **Revise** (no fabricated Blocker).
+- Recommend `/design-refine` with the `design.md` and `review.md` paths.
 
 **Primary coverage**
 
@@ -80,6 +83,7 @@ Each case points the skill at a fixture under `fixtures/<case>/design.md`.
   - No conflict resolution for locally edited contacts; no monitoring/alerting on failure.
 - Flag that Open Questions says "None" when real unknowns remain (deletion + conflict policy) — a D3 finding.
 - Frame blind spots as worth checking rather than certain defects. Verdict **Revise**.
+- Recommend `/design-refine` with the `design.md` and `review.md` paths.
 
 **Primary coverage**
 
@@ -107,3 +111,5 @@ A successful run of the skill should consistently:
 - judge over-engineering against the design's own Goals/Non-Goals
 - frame blind spots as considerations, not as certain defects
 - reserve Blocker for genuine blockers and not inflate severities
+- recommend `/design-refine` with both document paths whenever findings exist
+- recommend `spec-plan` directly only when no findings exist
