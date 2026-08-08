@@ -149,7 +149,7 @@ Prioritize:
 **3c. Present analysis:**
 
 - **Source and current state**（来自 review 哪条，涉及 design.md 哪些章节，Step 1 探索得到的项目现状证据）
-- **2-3 个可行方案**，prioritize 引用外部成熟方案。Each includes：
+- **可行方案（通常 2-3 个）**，prioritize 引用外部成熟方案。简单决策可能只有 1 个成熟方案，复杂决策可适当增加对比项。Each includes：
   - 优点、缺点、风险
   - 实现成本（是否需要新依赖、兼容性）
   - 架构影响（对现有系统的影响范围）
@@ -163,14 +163,14 @@ Prioritize:
 
 ```
 D<n>: <决策标题>
-Source: Review <B#/M#> (<Dimension>),  §<章节>
-Current state: <2-3 行 Step 1 探索证据>
+Source: Review <B#/M#> ([D1-完整性/D2-可用性/D3-规范性/D4-符合项目规范/D5-盲点/D6-过度设计/D7-优化的]),  §<章节>:<行数>
+Current state: <Step 1 探索证据>
 3a Premises: <已明确的前提> 或 <向用户提问>
 3b External research: <关键词 → 找到的方案 + 许可>（内部决策则声明 "Skip: internal convention"）
 3c Options:
-  Option A: <一句话> — 优点/缺点/成本/架构影响
-  Option B: <一句话> — 优点/缺点/成本/架构影响
-Recommendation: <A 或 B> — <2-3 句理由>
+  Option A: <一句话概括> — 优点/缺点/成本/架构影响
+  Option B: <一句话概括> — 优点/缺点/成本/架构影响
+Recommendation: <A 或 B> — <理由>
 ```
 
 This skeleton covers standard decision scenarios. **For complex paths** (merging multiple findings, rolling back confirmed decisions), see [references/examples.md](references/examples.md).
@@ -188,7 +188,7 @@ User confirms → **immediately write into `design.md`** in two parts:
 
 **Decision**: <一句话：选了哪个方案>
 
-**Rationale**: <2-4 句：为什么选这个、为什么拒绝其他方案>
+**Rationale**: <为什么选这个、为什么拒绝其他方案>
 
 **Constraints**: <决策的前提条件或接受的取舍>
 ```
