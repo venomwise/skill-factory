@@ -94,9 +94,39 @@ Prioritize:
 
 ### Step 3: Analyze one decision at a time
 
-**逐项讨论，一项一项来。** 每项决策在提出方案之前，MUST 先做外部调研，只有方向对了，决策才会有意义：
+**逐项讨论，一项一项来。** 每项决策按此顺序：
 
-**3a. Web search for existing solutions** (before proposing options):
+**3a. Identify and clarify premises:**
+
+每个决策开始前，识别其依赖的前提条件。**前提问题不依赖外部调研结果，而是决策本身的性质决定的。**
+
+| 前提类型 | 例子 | 如何识别 |
+|---------|------|---------|
+| 部署环境 | 单机/多副本/Serverless/边缘节点 | 影响缓存、存储、会话管理方案 |
+| 性能量级 | QPS、数据规模、延迟要求、并发数 | 影响同步/异步、单库/分片、连接池大小 |
+| 团队能力 | 技术栈熟悉度、运维能力、团队规模 | 影响新技术引入可行性 |
+| 业务优先级 | 快速上线 vs 长期维护 vs 成本优先 | 影响 MVP vs 完整架构 |
+| 成本约束 | 预算、机器规模、云服务额度 | 影响自建 vs 托管服务 |
+| 合规/安全 | 数据主权、审计要求、加密标准 | 影响存储位置、传输方式 |
+
+**检查前提来源（按此顺序）：**
+1. **Step 1 探索已确认哪些？** README、git log、package.json、现有架构证据
+2. **design.md 已写明哪些？** Goals、Constraints、Background 章节
+3. **还有哪些只有用户知道？** → 列出具体问题，先问用户
+
+**如果所有前提都已明确（来自 Step 1 或 design.md），直接进入 3b。**
+
+**如果存在未明确的关键前提，先停下来问：**
+
+> 这个决策依赖以下前提信息：
+> 1. <具体问题 1>（影响 <方案方向 A vs B>）
+> 2. <具体问题 2>（影响 <成本/复杂度差异>）
+> 
+> 请明确后我再继续分析方案。
+
+等用户回答后，再进入 3b/3c。**不要在前提未明确时就提出方案，然后附带提问**——那会导致方案方向错误。
+
+**3b. Web search for existing solutions** (内部决策可跳过):
 
 对每个决策，在网上搜索成熟的框架、库或既定模式来解决问题。Ask: **"Is there already a well-maintained solution that fits?"** Priority：
 
@@ -106,17 +136,17 @@ Prioritize:
 
 **搜索深度:** 每个决策至少尝试 2 组不同的关键词。第一组用技术术语（如 `"golang saga pattern rabbitmq"`），第二组用问题描述（如 `"microservice inventory reservation pattern"`）。两组都无结果才算 **"no existing solution"**。
 
-**豁免条件（跳过 3a 直接进入 3b）：** When 决策**完全在项目内部约定范围内**——无外部技术选型、无跨系统协议、无第三方集成——for example：
+**豁免条件（跳过 3b 直接进入 3c）：** When 决策**完全在项目内部约定范围内**——无外部技术选型、无跨系统协议、无第三方集成——for example：
 - 内部模块/包命名与目录结构
 - 既有技术栈内的组件职责边界与接口划分
 - 项目自有数据模型的字段命名和取值规范
 - 已确定框架内部的配置组织方式
 
-这类决策的答案来自项目自身约定 not 外部生态，外部搜索无信号。跳过时 **MUST 在 3b 显式声明"内部决策，跳过外部调研"**，avoid 与"忘了搜"混淆。
+这类决策的答案来自项目自身约定 not 外部生态，外部搜索无信号。跳过时 **MUST 在 3c 显式声明"内部决策，跳过外部调研"**，avoid 与"忘了搜"混淆。
 
 这是架构师的 **"不要重复造轮子"** 反射。**Custom implementation is the last resort, not the default.**
 
-**3b. Present analysis:**
+**3c. Present analysis:**
 
 - **Source and current state**（来自 review 哪条，涉及 design.md 哪些章节，Step 1 探索得到的项目现状证据）
 - **2-3 个可行方案**，prioritize 引用外部成熟方案。Each includes：
@@ -129,18 +159,18 @@ Prioritize:
 
 **Backtracking:** IF 用户在讨论中意识到之前的决策需要调整，THEN 回到那个决策项重新分析
 
-**Analysis skeleton (3a → 3b minimal structure):**
+**Analysis skeleton (3a → 3b → 3c minimal structure):**
 
 ```
 D<n>: <决策标题>
 Source: Review <B#/M#> (<Dimension>),  §<章节>
 Current state: <2-3 行 Step 1 探索证据>
-3a External research: <关键词 → 找到的方案 + 许可>（内部决策则声明 "Skip: internal convention"）
-3b Options:
+3a Premises: <已明确的前提> 或 <向用户提问>
+3b External research: <关键词 → 找到的方案 + 许可>（内部决策则声明 "Skip: internal convention"）
+3c Options:
   Option A: <一句话> — 优点/缺点/成本/架构影响
   Option B: <一句话> — 优点/缺点/成本/架构影响
 Recommendation: <A 或 B> — <2-3 句理由>
-Need your confirmation: <1-3 个具体问题>
 ```
 
 This skeleton covers standard decision scenarios. **For complex paths** (merging multiple findings, rolling back confirmed decisions), see [references/examples.md](references/examples.md).
