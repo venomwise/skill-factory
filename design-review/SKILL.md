@@ -5,42 +5,42 @@ description: Critically review a design.md (from the brainstorming skill or hand
 
 # Design Review
 
-Independent quality gate for a `design.md`. Read the design and its surrounding project, evaluate against a 7-dimension rubric, then write a standalone `review.md` with a verdict and severity-graded findings. This skill is a critic: it points out problems for the author to fix — it does not fill the gaps itself and never edits the design.
+对 `design.md` 的独立质量关卡。读取设计及其周围项目，根据 7 维度评估标准进行评估，然后编写独立的 `review.md`，包含裁决和按严重性分级的发现。This skill is a critic：它指出问题供作者修复——它 not 自己填补空白，never 编辑设计。
 
 ## When to use
 
-- A `design.md` exists (from the `brainstorming` skill or hand-written) and you want it reviewed before planning.
-- As a gate between `brainstorming` and `spec-plan` — catch gaps before they become tasks.
-- The user asks to check a design for blind spots, over-engineering, or fit with the project's conventions.
+- 存在 `design.md`（来自 `brainstorming` skill 或手写），并且你想在规划前对其进行评审。
+- As a gate between `brainstorming` and `spec-plan` —— 在它们变成任务之前捕获空白。
+- 用户要求检查设计的盲点、过度设计、或与项目约定的契合度。
 
 ## When not to use
 
-- Code or pull-request review → route to `code-review` / `review`.
-- Writing a design from scratch → route to `brainstorming`.
-- Revising a design from review findings → route to `design-refine`.
-- Trivial changes with no design doc, bug fixes, or typo-only edits.
+- Code or pull-request review → route to `code-review` / `review`。
+- 从头编写设计 → route to `brainstorming`。
+- 根据评审结果修订设计 → route to `design-refine`。
+- 没有设计文档的琐碎更改、bug 修复、或仅修改拼写错误。
 
 ## Inputs
 
-- Path to the `design.md` to review (or auto-probe `specs/<topic>/`).
-- The project the design belongs to (explored for conformance and fit).
+- 要评审的 `design.md` 路径（或自动探测 `specs/<topic>/`）。
+- 设计所属的项目（为契合性和适配性探索）。
 
 ## Outputs
 
-- A `review.md` written to the **same directory as the reviewed `design.md`**, using `assets/review-template.md`.
-- An overall verdict (Pass / Revise / Reject), a `spec-plan` go/no-go, and findings tagged Blocker / Major / Minor.
-- A recommended next step derived from the findings and verdict.
-- The `design.md` and project files are never modified — `review.md` is the only artifact written.
+- 写入**与被评审的 `design.md` 相同目录**的 `review.md`，使用 `assets/review-template.md`。
+- 整体裁决（Pass / Revise / Reject）、`spec-plan` go/no-go、以及标记为 Blocker / Major / Minor 的发现。
+- 从发现和裁决派生的推荐下一步。
+- `design.md` 和项目文件 never 被修改——`review.md` is the only artifact written。
 
 ## Workflow
 
-1. **Locate the design.md.** If the user gave a path, use it. Otherwise probe `specs/` for a `design.md`; if exactly one matches, use it; if several or none match, ask the user for the path. Confirm before reviewing when ambiguous.
-2. **Read the design.md fully.** Hold the canonical section set it is expected to follow (Summary, Goals, Primary Users / Roles, Non-Goals, Context, Discovery, Decision Record, Proposed Solution with Architecture / Components / Data Flow, Error Handling, Testing, Open Questions) — see [the rubric](references/review-rubric.md) for the authoritative list.
-3. **Explore the target project** in priority order: README / CLAUDE.md / AGENTS.md, project config (package.json / pyproject.toml / Cargo.toml / go.mod / pom.xml), entry points, recent commits (up to 10), then any existing specs or design docs. Stop when you can ground the conformance, project-fit, optimization, and over-engineering checks in real evidence. Use `db-explorer` when the design depends on stored data or schema. Do not assume — when a claim in the design can be checked against the codebase, check it.
-4. **Evaluate against the 7-dimension rubric** in [references/review-rubric.md](references/review-rubric.md). For every finding, record: a concrete **location** (`design.md §section` and/or a project file path), the **evidence**, a concrete **recommendation**, and a **severity**. Ground every finding — no vague criticism. Judge over-engineering against the design's **own** stated Goals and Non-Goals, not your taste. Frame blind spots as "worth checking", not as defects the author definitely missed.
-5. **Compute the verdict and the `spec-plan` go/no-go** from the severity counts (see the rubric for the exact rule).
-6. **Write review.md** to the `design.md` sibling directory using `assets/review-template.md`. Preserve the template's English structural headings; write the finding content in the design's current language (infer it from the `design.md` and the conversation; do not ask solely to determine it).
-7. **Summarize and recommend.** Give the user the verdict, the finding counts, and the top blockers in a few lines. If any Blocker, Major, or Minor finding exists, recommend running `/design-refine` with the reviewed `design.md` and generated `review.md` to discuss the findings and update the design; for a Reject verdict, also recommend re-running `/design-review` after refinement. Only recommend proceeding directly to `spec-plan` when there are no findings. Do not modify `design.md` or invoke any downstream skill yourself.
+1. **定位 design.md。** If 用户给了路径，使用它。Otherwise 探测 `specs/` 中的 `design.md`；if exactly 一个匹配，使用它；if 多个或没有匹配，向用户询问路径。When ambiguous 在评审前确认。
+2. **完整阅读 design.md。** Hold 它预期遵循的规范章节集（Summary, Goals, Primary Users / Roles, Non-Goals, Context, Discovery, Decision Record, Proposed Solution with Architecture / Components / Data Flow, Error Handling, Testing, Open Questions）—— see [the rubric](references/review-rubric.md) for the authoritative list。
+3. **按优先级顺序探索目标项目**：README / CLAUDE.md / AGENTS.md、项目配置（package.json / pyproject.toml / Cargo.toml / go.mod / pom.xml）、入口点、最近的 commits（最多 10 个）、然后任何现有的 specs 或设计文档。Stop when 你能将 conformance、project-fit、optimization、and over-engineering 检查建立在真实证据上。When the design 依赖存储的数据或 schema 时使用 `db-explorer`。Do not assume —— when 设计中的声明可以根据代码库检查，check it。
+4. **根据 [references/review-rubric.md](references/review-rubric.md) 中的 7 维度评估标准进行评估。** For every finding，记录：具体的 **location**（`design.md §section` and/or 项目文件路径）、**evidence**、具体的 **recommendation**、and a **severity**。Ground every finding —— no vague criticism。Judge over-engineering against the design's **own** stated Goals and Non-Goals，not 你的品味。Frame blind spots as "值得检查"，not as 作者肯定遗漏的缺陷。
+5. **从严重性计数计算裁决和 `spec-plan` go/no-go**（see the rubric for the exact rule）。
+6. **写入 review.md** 到 `design.md` 同级目录，使用 `assets/review-template.md`。Preserve the template's English structural headings；write the finding content in the design's current language（从 `design.md` 和对话中推断；do not ask solely to determine it）。
+7. **总结并推荐。** Give the user 裁决、发现计数、and the top blockers in a few lines。If any Blocker, Major, or Minor finding exists，推荐使用被评审的 `design.md` 和生成的 `review.md` 运行 `/design-refine` 来讨论发现并更新设计；for a Reject verdict，also 推荐在 refinement 后重新运行 `/design-review`。Only recommend proceeding directly to `spec-plan` when 没有发现。Do not modify `design.md` or invoke any downstream skill yourself。
 
 ## Review dimensions
 
@@ -60,25 +60,25 @@ Severity (Blocker / Major / Minor) and verdict (Pass / Revise / Reject) definiti
 
 ## Verification
 
-- [ ] `review.md` exists in the same directory as the reviewed `design.md`
-- [ ] The report states an overall verdict, a `spec-plan` go/no-go, and Blocker / Major / Minor counts
-- [ ] All 7 dimensions appear in the Dimension Summary
-- [ ] Every finding cites a concrete location, gives evidence and a recommendation, and carries a severity tag
+- [ ] `review.md` 存在于与被评审的 `design.md` 相同的目录中
+- [ ] 报告陈述了整体裁决、`spec-plan` go/no-go、以及 Blocker / Major / Minor 计数
+- [ ] All 7 dimensions 出现在 Dimension Summary 中
+- [ ] Every finding 引用具体位置、给出证据和推荐、并携带严重性标签
 - [ ] Over-engineering findings are judged against the design's own Goals / Non-Goals
-- [ ] Blind spots are framed as considerations, grounded in the domain checklists
-- [ ] The `design.md` and all project files are unchanged
-- [ ] Structural headings are in English; finding content is in the design's current language
-- [ ] The recommended next step follows from the findings and verdict: `/design-refine` when findings exist, `spec-plan` only when none exist
+- [ ] Blind spots are framed as considerations，grounded in the domain checklists
+- [ ] `design.md` 和所有项目文件 are unchanged
+- [ ] Structural headings are in English；finding content is in the design's current language
+- [ ] The recommended next step follows from the findings and verdict：`/design-refine` when findings exist，`spec-plan` only when none exist
 
 ## Safety & guardrails
 
-- Read-only on the design and the project. The only file written is `review.md`; never edit `design.md` or any project file.
-- Evidence over opinion. Every finding points to a concrete location and states what supports it. No unsubstantiated criticism.
-- Do not fabricate. Do not invent alternatives, requirements, or blind spots that do not apply; review what is there against the design's own stated scope.
-- Severity discipline. Reserve Blocker for issues that truly stop implementation or contradict the project; do not inflate to look thorough.
-- Respect the design's scope. Over-engineering and optimization are measured against the design's Goals and Non-Goals, not a different solution you would have preferred.
-- Scale to complexity. A small design gets a short review; do not pad with ceremony.
-- No implementation, planning, or refinement. This skill reviews and recommends only — it does not write code, edit the design, or invoke `design-refine` or `spec-plan`.
+- 对设计和项目保持只读。The only file written is `review.md`；never edit `design.md` or any project file。
+- 证据优先于观点。Every finding 指向具体位置并陈述支持它的内容。No unsubstantiated criticism。
+- Do not fabricate。Do not invent alternatives, requirements, or blind spots that do not apply；review 存在的内容 against the design's own stated scope。
+- 严重性纪律。Reserve Blocker for issues that truly stop implementation or contradict the project；do not inflate to look thorough。
+- 尊重设计的范围。Over-engineering and optimization are measured against the design's Goals and Non-Goals，not a different solution you would have preferred。
+- 根据复杂度调整规模。A small design gets a short review；do not pad with ceremony。
+- 无实现、规划或修订。This skill reviews and recommends only —— it does not write code, edit the design, or invoke `design-refine` or `spec-plan`。
 
 ## References
 
