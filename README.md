@@ -79,6 +79,8 @@ The `description` is especially important because it helps determine **when the 
 | [exa-search](./exa-search/) | Source-first web research for docs, APIs, and structured content retrieval. |
 | [git-commit](./git-commit/) | Generate and submit git commits aligned with repo history and conventions. |
 | [grok-search](./grok-search/) | Real-time web research for fresh updates, discourse, and multi-source synthesis. |
+| [hackernews-digest](./hackernews-digest/) | Fetch top/newest/Ask/Show stories from Hacker News with comment sentiment and phone-friendly digests. |
+| [munger-decision](./munger-decision/) | Apply Charlie Munger's mental models and 25 psychological biases to major decisions. |
 | [skill-authoring](./skill-authoring/) | Best practices for creating and improving AI agent skills. |
 | [skill-creator](./skill-creator/) | Create, benchmark, and iteratively improve skills. |
 | [skill-factory](./skill-factory/) | A systematic workflow for creating or optimizing skills with checkpoints and tooling. |
@@ -95,6 +97,8 @@ The `description` is especially important because it helps determine **when the 
 ├── exa-search/
 ├── git-commit/
 ├── grok-search/
+├── hackernews-digest/
+├── munger-decision/
 ├── skill-authoring/
 ├── skill-creator/
 ├── skill-factory/

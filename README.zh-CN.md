@@ -79,6 +79,8 @@ description: 这个技能做什么，以及代理应该在什么场景下使用�
 | [exa-search](./exa-search/) | 面向官方文档和 API 的 source-first 检索与内容提取。 |
 | [git-commit](./git-commit/) | 根据仓库上下文生成并提交规范的 Git Commit。 |
 | [grok-search](./grok-search/) | 面向实时信息、社区讨论和多源汇总的网络研究。 |
+| [hackernews-digest](./hackernews-digest/) | 抓取 Hacker News 的热门/最新/Ask/Show 内容，支持评论情绪分析和手机友好的摘要。 |
+| [munger-decision](./munger-decision/) | 用查理·芒格的多元思维模型 + 25 种心理倾向辅助重大决策。 |
 | [skill-authoring](./skill-authoring/) | AI Agent Skill 的编写与优化最佳实践。 |
 | [skill-creator](./skill-creator/) | 用于创建、评测和迭代优化技能。 |
 | [skill-factory](./skill-factory/) | 带有检查点和工具链的系统化技能创建/优化流程。 |
@@ -95,6 +97,8 @@ description: 这个技能做什么，以及代理应该在什么场景下使用�
 ├── exa-search/
 ├── git-commit/
 ├── grok-search/
+├── hackernews-digest/
+├── munger-decision/
 ├── skill-authoring/
 ├── skill-creator/
 ├── skill-factory/
