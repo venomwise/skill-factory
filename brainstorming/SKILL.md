@@ -1,6 +1,6 @@
 ---
 name: brainstorming
-description: Turn ideas into validated designs and specs through collaborative dialogue. Use before creating features, components, or behavior changes when requirements need scoping and trade-offs. Not for bug fixes, typo-only changes, or clear single-step execution tasks.
+description: 识别用户的开发需求，对需求进行头脑风暴，确立出完整的需求背景以及边界，落地需求开发阶段的规格，提供一套完整的需求分析，探索，设计，落地的规范化流程。在进行功能开发、bug 修复、优化处理但没指明具体实现方案时进行调用此技能。
 ---
 
 # Brainstorming Ideas Into Designs
@@ -31,9 +31,15 @@ description: Turn ideas into validated designs and specs through collaborative d
 
 ## Workflow
 
-1. 按优先级探索项目上下文：README/CLAUDE/AGENTS.md，项目配置（package.json / pyproject.toml / Cargo.toml / go.mod / pom.xml），入口点，然后是近期提交（需要时最多 10 个）。Stop when 你能用 2-3 句话描述项目的目的、技术栈和结构。If 项目复杂或不熟悉，consult [the guide](references/brainstorming-guide.md) for exploration priorities。
-2. 在接受请求的形态之前，先验证请求与当前项目的契合度。检查请求将触及的现有行为、数据和接口，基于真实证据而非假设进行验证——当请求依赖存储的数据或 schema 时，use available tools such as `db-explorer`。If 请求看起来冗余、与现有内容冲突、解决了错误的问题、或有更简单的替代方案，pause，告诉用户你的发现和推荐路径，然后询问是否继续。
-3. 评估范围。If 请求跨越多个独立子系统，propose 一个拆解方案，包含子项目、依赖关系和构建顺序，然后请求用户确认后再继续。Only brainstorm 第一个确认的子项目；每个都有自己的 spec 周期。
+### STEP 1: Explore project context
+按优先级探索项目上下文：README/CLAUDE/AGENTS.md，项目配置（package.json / pyproject.toml / Cargo.toml / go.mod / pom.xml），入口点，然后是近期提交（需要时最多 10 个）。
+Stop when 你能用 2-3 句话描述项目的目的、技术栈和结构。IF 项目复杂或不熟悉，consult [the guide](references/brainstorming-guide.md) for exploration priorities。
+
+### STEP 2: Check the rationality of requirements
+通过 STEP 1 的探索发现，验证需求与当前项目的契合度，检查需求是否合理。IF 需求看起来冗余、与现有内容冲突、会导致错误的问题、或有更简单的替代方案，PAUSE 告诉用户你的发现和推荐路径，然后明确下一步的探索方向。
+
+### STEP 3: Check scope
+评估范围。IF 需求很大，跨越多个独立子系统或者涉及多个模块，Attention：需求大是前提，如果仅仅在多个子系统/模块修改一点小改动的话就不算。THEN 提出一个拆解方案，包含子项目、依赖关系和构建顺序，然后请求用户确认后再继续。Only brainstorm 第一个确认的子项目；每个都有自己的 spec 周期。
 4. 通过迭代轮次与用户进行 brainstorming。Do not 预先承诺你会问多少个问题或在探索（步骤 1-3）完成之前就决定要问什么主题——问题的数量和主题由你实际发现的空白和盲点决定，not 预先估计。首先诊断请求的模糊程度（见 guide 中的标准），然后应用匹配的技术：
    - Problem unclear -> reframe：帮助用户阐明他们实际要解决的问题，not just 他们想要什么功能。
    - Direction unclear -> explore：在缩小范围之前，先勾勒几个有代表性的方向，使用"假设"场景和视角切换等技术。
