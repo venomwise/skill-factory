@@ -2,123 +2,127 @@
 
 ## Context exploration priorities
 
-1. README, CLAUDE.md, or equivalent project docs.
-2. Project config: package.json, pyproject.toml, Cargo.toml, go.mod.
-3. Entry points: main files, index files, route definitions.
-4. Recent commits (up to 10) for current momentum and conventions.
-5. Stop when you can state the project's purpose, tech stack, and directory structure.
+1. README、CLAUDE.md 或等效的项目文档。
+2. 项目配置：package.json、pyproject.toml、Cargo.toml、go.mod。
+3. 入口点：主文件、索引文件、路由定义。
+4. 最近提交（最多 10 条），用于了解当前进展和惯例。
+5. STOP when 你能说明项目的目的、技术栈和目录结构。
 
 ## Decomposition heuristics
 
-- Split when the request spans multiple domains or independent capabilities.
-- Split when parts would require different data models or external integrations.
-- Split when parts could be owned by different teams or deployed separately.
-- When splitting, list sub-projects, dependencies, and a recommended order.
+- 请求跨越多个领域或独立能力时，拆分。
+- 各部分需要不同的数据模型或外部集成时，拆分。
+- 各部分可以由不同团队拥有或单独部署时，拆分。
+- 拆分时，列出子项目、依赖关系和推荐顺序。
 
 ## Good scope split examples
 
-- "Chat + file storage + billing" becomes three sub-projects with their own specs.
-- "Redesign UI + add analytics" becomes a UI sub-project and a metrics sub-project.
+- "Chat + file storage + billing" 变成三个子项目，各有自己的 spec。
+- "Redesign UI + add analytics" 变成一个 UI 子项目和一个 metrics 子项目。
 
 ## Question patterns
 
-- Purpose: who is the user and what decision does this enable?
-- Constraints: latency, scale, security, compliance, or operational limits.
-- Success criteria: how will we know it worked?
-- Data: inputs, outputs, and the source of truth.
-- Risks: key failure modes or edge cases to handle.
+- Purpose: 谁是用户，这使什么决策成为可能？
+- Constraints: latency, scale, security, compliance, 或运营限制。
+- Success criteria: 我们如何知道它起作用了？
+- Data: inputs, outputs, 以及 source of truth。
+- Risks: 要处理的关键失败模式或边缘情况。
 
 ## Design depth guidance
 
-- Simple changes still use all sections, but keep each section to a few sentences.
-- Moderate changes include a step-by-step data flow and key error cases.
-- Complex changes include primary happy path plus 2-3 critical failure scenarios.
+仅适用于落地为设计文档的路线（中等/复杂，见 SKILL.md 的 `STEP 7`）：
+
+- 中等变更：包含逐步的 data flow 和关键错误场景。
+- 复杂变更：包含主路径和 2-3 个关键失败场景。
 
 ## Existing codebase tactics
 
-- Identify seams to reuse and respect local patterns.
-- Challenge whether the requested shape fits current behavior before designing it.
-- Ground the check in real evidence rather than assumptions — use available tools such as `db-explorer` when the request depends on stored data or schema.
-- Refactors are allowed only when they unblock the current goal.
-- Prefer changes that reduce coupling without altering unrelated behavior.
+- 识别可重用的接缝并尊重本地模式。
+- 在设计之前，先质疑需求形态是否契合当前行为。
+- 该检查应基于真实证据而非假设——当需求依赖存储的数据或 schema 时，使用 `db-explorer` 等可用工具。
+- 仅当重构能解除当前目标的阻塞时才允许重构。
+- 优先选择减少耦合且不改变无关行为的变更。
 
 ## Post-design complexity examples
 
-Classify from the completed design, not the size of the user's initial prompt. The simple route is intentionally narrow.
+应根据已完成的设计进行分类，而不是根据用户初始提示词的篇幅。简单路径被刻意定义得很窄。
 
-**Usually simple:** a localized validation rule, one UI-state adjustment, or a small command behavior change that follows an existing pattern and has focused tests.
+**通常为简单：** 局部校验规则、单个 UI 状态调整，或遵循既有模式且有聚焦测试的小型命令行为变更。
 
-**Moderate or complex:** a schema or data migration, a new external service, authentication or permission changes, a public API contract change, cross-component workflows, concurrency or consistency requirements, operational rollout risk, or any unresolved design question.
+**中等或复杂：** 数据库结构或数据迁移、新的外部服务、认证或权限变更、公共 API 契约变更、跨组件工作流、并发或一致性要求、运营上线风险，或任何尚未解决的设计问题。
 
-When signals are mixed, recommend `/design-review`. The cost of review is justified when an incorrect design would be difficult to reverse or would affect multiple consumers.
+当风险信号混杂时，建议使用 `/design-review`。如果错误的设计难以回滚，或会影响多个使用方，那么投入评审成本就是值得的。
 
 ## Fuzziness diagnosis
 
-Assess the user's request against these levels before choosing a strategy:
+在选择策略之前，根据这些级别评估用户的请求：
 
-| Level | Signal | Example | Strategy |
-|-------|--------|---------|----------|
-| Problem unclear | User describes symptoms, not goals; "it feels wrong" | "The system is hard to use" | Reframe the problem |
-| Direction unclear | User has a goal but no sense of approach | "I want better user engagement" | Explore possibilities |
-| Boundaries unclear | User knows what they want but not the edges | "I want user auth" | Scan for blind spots |
-| Solution unclear | User knows what and scope, needs technical approach | "I want SSO with SAML" | Confirm intent, priorities, and constraints first, then compare approaches |
+| Level              | Signal                                 | Example                        | Strategy                                         |
+| ------------------ | -------------------------------------- | ------------------------------ | ------------------------------------------------ |
+| Problem unclear    | 用户描述的是症状而非目标；“感觉不对劲” | “系统很难用”                   | 重新界定问题                                     |
+| Direction unclear  | 用户有目标但没有实现思路               | “我想提高用户参与度”           | 探索可行方向                                     |
+| Boundaries unclear | 用户知道想要什么，但不清楚边界         | “我想要用户认证”               | 排查盲点                                         |
+| Solution unclear   | 用户知道需求和范围，需要技术方案       | “我想实现基于 SAML 的单点登录” | 先确认意图、优先级和约束条件，然后再比较各种方案 |
 
 ## Assumption challenging
 
-For non-trivial requests, identify potential assumptions and offer them to the user for confirmation. Frame them as "worth checking" rather than "you missed this".
+对于不简单的请求，识别潜在的假设，并提出给用户确认。表述时应将其描述为“值得确认的事项”，而不是“你遗漏了这一点”。
 
-1. Identify 1-3 assumptions the user may be implicitly making.
-2. For each, ask: "Is this necessarily true? What if it were not?"
-3. Common assumptions worth checking:
-   - "Users will use this feature the way I imagine"
-   - "The current architecture can support this without changes"
-   - "This needs to be done in one release"
-   - "Performance or scale will not be an issue"
-   - "The existing data model is sufficient"
+1. 识别用户可能隐含做出的 1 到 3 个假设。
+2. 针对每个假设提问：“这一定成立吗？如果不成立会怎样？”
+3. 值得确认的常见假设包括：
+   - “用户会按照我设想的方式使用这个功能”
+   - “现有架构无需改动即可支持此需求”
+   - “这需要在一次发布中完成”
+   - “性能或规模不会成为问题”
+   - “现有数据模型已经足够”
 
 ## Blind spot scanning
 
-Pick the 1-2 checklists most relevant to the project's domain. Do not walk through every list; select by domain and skip items that clearly do not apply.
+选择与项目领域最相关的几个检查清单。不要逐一遍历所有清单；按领域选择，并跳过明显不适用的项。
 
-**Any user-facing feature:**
-- Empty states, loading states, error states
-- Permissions and access control
-- Undo or rollback
-- Offline behavior
-- Accessibility
-- Internationalization or localization
-- Mobile or responsive behavior
+**任何面向用户的功能：**
 
-**Any data feature:**
-- Data migration from existing state
-- Consistency and conflict resolution
-- Retention and cleanup policies
-- Privacy and compliance (GDPR, etc.)
-- Backup and recovery
+- 空状态、加载状态、错误状态
+- 权限与访问控制
+- 撤销或回滚
+- 离线行为
+- 无障碍访问
+- 国际化或本地化
+- 移动端或响应式行为
 
-**Any integration:**
-- Rate limits and quotas
-- Authentication and credential rotation
-- Failure modes and fallback behavior
-- Versioning and backwards compatibility
-- Monitoring and alerting
+**任何数据功能：**
+
+- 从现有状态迁移数据
+- 一致性与冲突解决
+- 保留与清理策略
+- 隐私与合规（如 GDPR 等）
+- 备份与恢复
+
+**任何集成：**
+
+- 速率限制与配额
+- 认证与凭证轮换
+- 故障模式与回退行为
+- 版本控制与向后兼容
+- 监控与告警
 
 ## Divergent exploration techniques
 
-Use these during brainstorming to expand the problem space:
+在头脑风暴期间使用以下方法来拓展问题空间：
 
-- **Constraint removal**: "If we had no technical, time, or budget limits, what would the ideal look like?" Then add constraints back one at a time.
-- **Negative brainstorming**: "What would make this feature fail completely?" Flip each failure into a requirement.
-- **Perspective switching**: Consider the same feature from different roles (end user, admin, ops engineer, new hire, power user).
-- **Time horizon**: "How will this need to evolve in 6 months? A year?" Identify which decisions are hard to reverse.
-- **Priority forcing**: "If you could ship only 3 things, which 3?" This forces the user to reveal what truly matters.
-- **Analogy**: "How do similar products or domains solve this?" Borrow proven patterns.
+- **解除约束**：“如果我们不受任何技术、时间或预算的限制，最理想的方案是什么样的？”然后再逐个加回约束条件。
+- **反向头脑风暴**：“什么会导致这个功能彻底失败？”将每一个失败原因转化为一条（防御性）需求。
+- **切换视角**：从不同角色（终端用户、管理员、运维工程师、新入职员工、高级用户）的角度来审视同一功能。
+- **时间跨度**：“这个需求在 6 个月或 1 年后将如何演进？”找出哪些决策是难以逆转的。
+- **强制确定优先级**：“如果你只能交付 3 个功能，会是哪 3 个？”这能促使用户暴露出对他们真正重要的事情。
+- **类比借鉴**：“类似的产品或领域是如何解决这个问题的？”借鉴那些经过验证的成熟模式。
 
 ## When to stop brainstorming
 
-The authoritative exit condition lives in SKILL.md step 4; do not duplicate or override it here. Use these as supporting signals that the condition is likely met:
+权威的退出条件定义在 SKILL.md 的 `STEP 4` 中；请勿在此重复或覆盖该条件。可将以下情况视为条件大概率已满足的辅助信号：
 
-- The user can state what they want, why they want it, and what they do not want.
-- Key constraints and success criteria are known or explicitly recorded as assumptions.
-- For non-trivial requests, at least one assumption has been confirmed and one blind spot has been considered.
-- The problem statement is stable and has not changed in the last 2 exchanges.
+- 能够说明用户想要什么、为什么想要，以及明确不想要什么。
+- 关键约束条件和成功标准已知，或已作为假设条件明确记录在案。
+- 对于非简单请求，至少已确认一项假设并考量了一个盲点。
+- 问题陈述已趋于稳定，且在最近两次交互中未发生变化。

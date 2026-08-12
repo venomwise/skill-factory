@@ -2,70 +2,70 @@
 
 ## Summary
 
-One paragraph on what we are building and why.
+一段话说明我们在构建什么以及为什么。
 
 ## Goals
 
-- Primary outcomes and measurable success indicators.
+- 主要成果和可衡量的成功指标。
 
 ## Primary Users / Roles
 
-- Who uses this and their key goals.
+- 谁使用这个以及他们的关键目标。
 
 ## Non-Goals
 
-- Explicitly out of scope to prevent creep.
+- 明确的范围外内容，以防止范围蔓延。
 
 ## Context
 
-- Relevant existing behavior, constraints, and related modules.
+- 相关的现有行为、约束和相关模块。
 
 ## Discovery (recommended for non-trivial or ambiguous requirements)
 
 ### Key Discoveries
 
-- Notable assumptions tested and blind spots surfaced during brainstorming.
+- 在 brainstorming 期间测试的值得注意的假设和浮现的盲点。
 
 ### Scope Decisions
 
-- What was explicitly included and excluded, with reasoning.
+- 明确包含和排除的内容及其理由。
 
 ## Decision Record
 
-Capture the alternatives that were weighed and why the chosen one won, so the decision can be revisited later. Record the options actually compared during brainstorming; do not invent alternatives that were never on the table.
+捕获权衡过的替代方案以及为什么选择的方案获胜，以便以后可以重新审视该决策。记录在 brainstorming 期间实际比较的选项；不要编造从未摆上台面的替代方案。
 
 ### Options Considered
 
-- One entry per approach evaluated, each with its key trade-offs (pros, cons, cost, risk). If only one approach was viable, state that here.
+- 每个评估过的方案一个条目，每个都有其关键权衡（pros, cons, cost, risk）。若仅一个方案可行，在此说明。
 
 ### Decision & Rationale
 
-- The chosen approach and the concrete reasons it won over the others. If only one approach was viable, record why the alternatives were ruled out. Note any decisions the user explicitly made or constraints that forced the choice.
+- 选定的方案以及它胜过其他方案的具体原因。若仅一个方案可行，记录其他方案被排除的原因。同时记录用户明确做出的决策或强制选择的约束。
 
 ## Proposed Solution
 
-High-level approach and the reason it fits the constraints.
+高层方法以及它为什么适合约束。
 
 ### Architecture
 
-Key building blocks and their relationships.
+关键构建块及其关系。
 
 ### Components
 
-List components with responsibilities and interfaces.
+列出组件及其职责和接口。
 
 ### Data Flow
 
-Step-by-step flow for the primary path.
+主路径的逐步流程。
 
 ## Error Handling
 
-Top failure modes and how they are handled.
+主要失败模式以及如何处理它们。
 
 ## Testing
 
-Critical test cases and where they run.
+关键测试用例以及它们在哪里运行。
 
 ## Open Questions
 
-Only unresolved questions already surfaced during discovery. If none remain, write: "None. Key decisions were confirmed during discovery."
+仅列出在 discovery 期间已浮现的未解决问题；若没有遗留问题，明确写明没有遗留问题（关键决策已在 discovery 期间确认）。

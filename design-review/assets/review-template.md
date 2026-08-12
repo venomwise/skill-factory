@@ -1,51 +1,51 @@
 # <Topic> Design Review
 
-> Review of `<path/to/design.md>` against the 7-dimension rubric. Structural headings are in English; finding content is in the design's current language.
+> 按 7 维度 rubric 对 `<path/to/design.md>` 的评审。结构标题为英文；发现内容使用设计当前的语言。
 
 ## Verdict
 
 - **Overall**: <Pass | Revise | Reject>
 - **spec-plan readiness**: <Go | Conditional | No-Go>
 - **Findings**: <N> Blocker · <N> Major · <N> Minor
-- **Summary**: <one sentence — the single most important thing the author should know>
+- **Summary**: <一句话——作者应该知道的最重要的事>
 
 ## Scope Reviewed
 
 - **Reviewed file**: `<path/to/design.md>`
-- **Project context consulted**: <key files/dirs explored — e.g., `CLAUDE.md`, `src/...`, recent commits>
+- **Project context consulted**: <探索过的关键文件/目录——例如 `CLAUDE.md`、`src/...`、近期提交>
 - **Rubric**: 7 dimensions (D1 Completeness · D2 Usability · D3 Document Conformance · D4 Project Fit · D5 Blind Spots · D6 Over-Engineering · D7 Optimization)
 
 ## Findings
 
-Findings carry IDs (`B#` Blocker, `M#` Major, `m#` Minor) so the Dimension Summary can reference them. Group by severity. Omit a group if it is empty.
+发现携带 ID（`B#` Blocker、`M#` Major、`m#` Minor），以便 Dimension Summary 引用。按严重性分组；空分组省略。
 
 ### Blockers
 
-#### [B1] <short title> — <Dimension, e.g. D1 Completeness>
+#### [B1] <简短标题> — <维度，例如 D1 Completeness>
 
-- **Location**: `design.md §<section>` <and/or project file path>
-- **Issue**: <what is wrong/missing, with the evidence that supports it>
-- **Recommendation**: <concrete fix, or the question the author must resolve>
+- **Location**: `design.md §<section>` <和/或项目文件路径>
+- **Issue**: <什么是错误/缺失的，以及支持它的证据>
+- **Recommendation**: <具体修复，或作者必须解决的问题>
 
 ### Major
 
-#### [M1] <short title> — <Dimension>
+#### [M1] <简短标题> — <维度>
 
-- **Location**: `design.md §<section>` <and/or project file>
-- **Issue**: <evidence-grounded description; for a blind spot, frame as "worth checking">
-- **Recommendation**: <concrete fix or consideration>
+- **Location**: `design.md §<section>` <和/或项目文件>
+- **Issue**: <基于证据的描述；盲点表述为"值得检查">
+- **Recommendation**: <具体修复或考虑事项>
 
 ### Minor
 
-#### [m1] <short title> — <Dimension>
+#### [m1] <简短标题> — <维度>
 
 - **Location**: `design.md §<section>`
-- **Issue**: <description>
-- **Recommendation**: <suggested improvement>
+- **Issue**: <描述>
+- **Recommendation**: <建议改进>
 
 ## Dimension Summary
 
-Status: ✓ sound · △ has findings to address · ✗ blocking issue.
+状态：✓ 无问题 · △ 有发现待处理 · ✗ 存在阻塞问题。
 
 | Dimension | Status | Finding refs |
 |-----------|--------|--------------|
@@ -59,11 +59,11 @@ Status: ✓ sound · △ has findings to address · ✗ blocking issue.
 
 ## Recommended Next Step
 
-<Derived from the findings and verdict:
-- Any findings → run `/design-refine` with this `review.md` and the reviewed `design.md` to resolve them.
-- Reject → after refinement, run `/design-review` again.
-- No findings → proceed to `spec-plan`.>
+<从发现和裁决推导：
+- 有发现 → 用这份 `review.md` 和被评审的 `design.md` 运行 `/design-refine` 来解决它们。
+- Reject → refine 之后重新运行 `/design-review`。
+- 无发现 → 进入 `spec-plan`。>
 
 ## Accepted / Deferred Risks
 
-<Optional. Items flagged by the review that the author may intentionally defer, with the reason. Omit this section if there are none.>
+<可选。评审中标记出来、但作者可能故意延后的项目，附理由。若没有则省略本节。>

@@ -1,81 +1,128 @@
 ---
 name: brainstorming
-description: Turn ideas into validated designs and specs through collaborative dialogue. Use before creating features, components, or behavior changes when requirements need scoping and trade-offs. Not for bug fixes, typo-only changes, or clear single-step execution tasks.
+description: 识别用户的开发需求，对需求进行头脑风暴，确立出完整的需求背景以及边界，落地需求开发阶段的规格，提供一套完整的需求分析，探索，设计，落地的规范化流程。在进行功能开发、bug 修复、优化处理但没指明具体实现方案时进行调用此技能。
 ---
 
 # Brainstorming Ideas Into Designs
 
 ## When to use
 
-- Creating new features or components
-- Modifying existing system behavior
-- Requirements are unclear and need scoping
-- Multiple implementation approaches are possible
+- 创建新功能或组件
+- 修改现有系统行为
+- 需求不明确，需要澄清范围
+- 存在多种实现方式
 
 ## When not to use
 
-- Bug fixes with clear root cause and steps
-- Typo or formatting-only changes
-- Clear, single-step execution tasks
-- The user explicitly declines the design process
+- 有明确根因和步骤的 bug 修复
+- 仅涉及拼写或格式的修改
+- 明确的单步执行任务
+- 用户明确拒绝设计流程
 
 ## Inputs
 
-- User's idea or goal, possibly vague
-- Existing project context (files, docs, recent commits)
+- 用户的想法或目标（可能模糊）
+- 现有项目上下文（文件、文档、近期提交）
 
 ## Outputs
 
-- Validated design doc at `specs/<topic>/design.md`
-- A complexity-matched next step: ask to implement a simple design directly, or recommend `/design-review` for a moderate or complex design
+- 已验证的设计文档，位于 `specs/<topic>/design.md`（仅中等/复杂路线落地；简单路线不产出文档）
+- 根据复杂度匹配的下一步：简单设计建议直接实现，中等/复杂设计推荐先运行 `/design-review`
 
 ## Workflow
 
-1. Explore project context in priority order: README/CLAUDE/AGENTS.md, project config (package.json / pyproject.toml / Cargo.toml / go.mod / pom.xml), entry points, then recent commits (up to 10 if needed). Stop when you can describe the project's purpose, tech stack, and structure in 2-3 sentences. If the project is complex or unfamiliar, consult [the guide](references/brainstorming-guide.md) for exploration priorities.
-2. Validate request fit against the current project before accepting the requested shape. Inspect the existing behavior, data, and interfaces the request would touch, grounding the check in real evidence rather than assumptions — use available tools such as `db-explorer` when the request depends on stored data or schema. If the request looks redundant, conflicts with what exists, solves the wrong problem, or has a simpler alternative, pause, tell the user the finding and your recommended path, then ask whether to proceed.
-3. Assess scope. If the request spans multiple independent subsystems, propose a decomposition with sub-projects, dependencies, and build order, then ask the user to confirm before proceeding. Brainstorm only the first confirmed sub-project; each gets its own spec cycle.
-4. Brainstorm with the user through iterative rounds. Do not pre-commit to how many questions you will ask or to a single topic to ask about before exploration (steps 1-3) is complete — the number and subject of questions are determined by the gaps and blind spots you actually surface, not estimated up front. First diagnose the fuzziness level of the request (see the guide for criteria), then apply matched techniques:
-   - Problem unclear -> reframe: help the user articulate what problem they are actually solving, not just what feature they want.
-   - Direction unclear -> explore: sketch a few representative directions before narrowing, using techniques like "what if" scenarios and perspective switching.
-   - Boundaries unclear -> scan: use the domain-relevant blind-spot checklist from the guide to surface potential gaps for the user to consider.
-   - Solution unclear -> the technical approach still needs comparison, but first confirm intent, priorities, and constraints below before moving to step 5. A request full of specific technical terms does NOT mean intent is confirmed; familiarity with the technology is not knowledge of what the user wants.
-   For non-trivial or ambiguous requests, surface at least one assumption worth confirming and one potential blind spot for the user to consider.
-   Ask one question per turn and wait for the answer before asking the next — this is about cadence, not a cap on how many questions you ask in total. Prefer multiple-choice when it helps the user choose between meaningful options. Do not ask a question and then answer it yourself with an assumption in the same turn. Treat unknown intent, priorities, trade-off preferences, and acceptance criteria as things to ask about, not to assume — these live only in the user's head and cannot be retrieved by inspecting the project.
-   Continue asking until the exit condition is met. Exit condition: the user can clearly state what they want, why they want it, and what they explicitly do not want; key constraints and success criteria are known or explicitly recorded as assumptions; and the problem statement has been stable for the last 2 exchanges. Before leaving this step, verify: can you summarize the user's intent, priorities, and constraints in 2-3 sentences using their own words? If not, ask more questions.
-5. Converge and propose. Admission gate — check all three conditions before entering:
-   1. Have you asked the user at least one clarifying question in this session? If no, go back to step 4.
-   2. Can the user now state what they want, why they want it, and what they explicitly do not want? If no, go back to step 4 and ask more questions.
-   3. Are key constraints and success criteria known or explicitly recorded as assumptions? If no, go back to step 4 and ask more questions.
-   Note: A request being technically detailed does not satisfy these conditions. Technical detail says nothing about the user's intent, priorities, or trade-off preferences.
-   Once all conditions are met, summarize what brainstorming revealed: the refined problem statement, request-fit findings, challenged assumptions, discovered blind spots, and trimmed scope. Then propose 1-3 approaches with trade-offs. Lead with your recommendation. If only one approach is viable, explain why alternatives were ruled out. Ask the user to confirm the problem summary and select an approach before continuing.
-6. Present the design scaled to complexity. For simple projects, present the full design at once and ask for approval. For moderate or complex projects, present by section and ask for approval after each. Cover architecture, components, data flow, error handling, and testing.
-7. Write the design doc to `specs/<topic>/design.md` using the template in `assets/design-doc-template.md`. Preserve the template's English headings and structural labels exactly, while writing the section content in the user's current language. Infer that language from the conversation; do not ask solely to determine it. Name `<topic>` using kebab-case derived from the project or feature name (e.g., `user-auth`, `payment-integration`). Confirm the path with the user if ambiguous. Fill the Decision Record section from the approach comparison produced in step 5: record each option that was actually weighed with its key trade-offs, then the chosen approach and the concrete reasons it won (or, if only one approach was viable, why the alternatives were ruled out). This comparison was generated live in step 5 and is the main thing worth preserving for later review, so do not drop it; if it has scrolled out of the recent conversation, go back and recover it rather than reconstructing from memory. Do not fabricate alternatives that were never discussed. Open Questions must contain only unresolved questions already surfaced to the user; if none remain, write that no open questions remain.
-8. Classify the completed design by implementation risk, using the design itself rather than the apparent simplicity of the initial request. Treat it as **simple** only when all of these are true: the change is localized to one component or behavior; it follows established project patterns; it introduces no data migration, external integration, security/permission boundary, concurrency/reliability concern, or public contract change; testing and rollback are straightforward; and no open question remains. If any condition is false or uncertain, classify it as **moderate or complex**. See [the guide](references/brainstorming-guide.md) for examples.
-9. Route the next step by that classification:
-   - **Simple:** state the design path and briefly explain why it is low risk, then ask whether to begin implementing the written design directly. Do not require a separate document-review round or `spec-plan`. If the user agrees, that response both approves the design and authorizes implementation; proceed with implementation. If the user gives feedback instead, update the doc, return to step 4 or 5 when the feedback changes intent or approach, and reassess complexity before asking again.
-   - **Moderate or complex:** state the design path and the concrete risk signals behind the classification, then recommend that the user run `/design-review` on that path before planning or implementation. Do not invoke `design-review`, `spec-plan`, or an implementation skill automatically. If the user supplies feedback directly, handle it as in the simple path, then reassess complexity.
+### STEP 1: Explore project context
+
+按优先级探索项目上下文：README/CLAUDE/AGENTS.md，项目配置（package.json / pyproject.toml / Cargo.toml / go.mod / pom.xml），入口点，然后是近期提交（需要时最多 10 个）。
+
+STOP when 你能用 2-3 句话描述项目的目的、技术栈和结构。IF 项目复杂或不熟悉，按 [the guide](references/brainstorming-guide.md) 中的探索优先级进行。
+
+### STEP 2: Check the rationality of requirements
+
+通过 STEP 1 的探索发现，验证需求与当前项目的契合度，检查需求是否合理。IF 需求看起来冗余、与现有内容冲突、会导致错误的问题、或有更简单的替代方案，PAUSE 告诉用户你的发现和推荐路径，然后明确下一步的探索方向。
+
+### STEP 3: Check scope
+
+评估范围。IF 需求很大，跨越多个独立子系统或者涉及多个模块，THEN 提出一个拆解方案，包含子项目、依赖关系和构建顺序，然后请求用户确认后再继续。
+
+Attention：「大需求」是前提，如果仅仅在多个子系统/模块修改一点小改动的话就不算。
+
+### STEP 4: Brainstorming
+
+与用户进行 brainstorming。首先诊断请求的模糊程度（见 [the guide](references/brainstorming-guide.md) 中的标准）：
+
+- Problem unclear -> 重新界定问题：帮助用户澄清他们实际要解决的问题，不仅仅是他们想要什么功能。
+- Direction unclear -> 探索可行方向：在缩小范围之前，先勾勒出几个有代表性的方向，使用"假设"场景和视角切换等技术。
+- Boundaries unclear -> 排查盲点：使用 guide 中与领域相关的盲点检查清单，帮助用户考虑潜在的空白。
+- Solution unclear -> 技术方案仍需比较，即使用户的请求中充满具体的技术术语，也不意味着意图已确认。熟悉技术不等于知道用户想要什么。
+
+**每轮只问一个问题并等待答案**: 这是核心节奏。当多选题能帮助用户在有意义的选项间做选择时，优先使用多选题。不要在同一轮里提出问题，又用假设代替用户作答。将未知的意图、优先级、权衡偏好和验收标准视为需要询问的内容。**不要假设这些仅存在于用户头脑中的内容**。
+
+**持续提问直到满足退出条件**:
+
+- 能清楚地陈述用户想要什么、为什么想要、以及他们明确不想要什么；
+- 已明确关键约束和成功标准；
+- 离开此步骤前，Verify：你能总结出用户的意图、优先级和约束吗？If no，继续提问。
+
+### STEP 5: Converge and propose
+
+收敛思路并提出建议:
+
+1. 在本次会话中，你是否至少向用户提出了一个澄清性问题？If no，回到 `STEP 4`;
+2. 知道用户想要什么、为什么想要、以及明确不想要什么吗？If no，回到 `STEP 4` 并继续提问;
+3. 已知关键约束条件和成功标准了吗？If no，回到 `STEP 4` 并继续提问。
+
+Note：一个需求在技术上很详细，并不意味着它满足这些条件，技术细节本身无法说明用户的意图、优先级，或在取舍上的偏好。
+
+所有条件都满足后，总结头脑风暴所揭示的内容：精炼后的问题陈述、需求匹配度的发现、被质疑的假设、发现的盲点，以及经过裁剪的范围。然后提出 1 到 3 种方案，并说明各自的权衡取舍。优先给出你的推荐方案。如果只有一种方案可行，请说明其他备选方案为何被排除。
+
+在继续之前，请让用户确认问题总结，并选择一种方案。
+
+Attention: 如果用户不认可提出的方案或对方案提出了修正意见，必须重新呈现更新后的总结并再次向用户确认，直到用户确认了方案可行为止。
+
+### STEP 6: Classify the design
+
+根据实现风险对设计方案进行分类，分类依据的应该是**设计本身**，而不是初始请求表面上的简单程度。只有当以下所有条件都为真时，才将其归类为**简单**:
+
+- 变更仅局限于单个组件或单个行为；
+- 遵循项目既有模式；
+- 不涉及数据迁移、外部集成、安全/权限边界、并发/可靠性问题；
+- 不涉及公共契约变更；
+- 测试和回滚都很直接；
+- 没有任何未解决的问题
+
+如果有任何一项条件为 FALSE 或不确定，则将其归类为**中等或复杂**。示例见 [the guide](references/brainstorming-guide.md)
+
+### STEP 7: Route the next step by that classification
+
+根据设计分类决定下一步：
+
+- **简单**：简要解释为何为低风险设计，然后询问是否直接开始实施。如果用户同意，则该回复表示授权实施，随即进入实施。如果用户提出疑问，则基于当前设计对疑问进行解答，如果提出了反馈，则更新对应的设计内容，但**若反馈改变了意图或方案**，则回退到 `STEP 4` 或 `STEP 5` 重新设计方案。
+- **中等或复杂**：说明当前设计的风险，陈述设计的核心逻辑，然后询问用户是否落地设计方案。如果用户同意，则根据 [design doc template](assets/design-doc-template.md) 这个模板，将设计文档写入 `specs/<topic>/design.md`。`<topic>` 使用从项目名或功能名派生的 kebab-case 命名（例如：`user-auth`、`payment-integration`）。IF `specs/` 下已存在同名目录或路径有歧义，先与用户确认是重命名还是沿用。Decision Record 章节必须从 `STEP 5` 实际生成的方案对比中恢复；IF 对比内容已滚出近期对话，THEN 回头重读对话原文并如实恢复，不要凭印象重建，也不要编造未讨论过的备选方案。如果用户不认可或者提出了疑问或者补充了说明，则需要判断**反馈是否改变了意图或方案**：若是，回退到 `STEP 4` 或 `STEP 5` 重新设计；否则只需要更新相应的设计内容。设计文档落地后，推荐用户执行 `/design-review` 这个 skill 对设计文档和方案进行 review。(虽然这里推荐执行 `/design-review`, 但是如果用户想要执行 `/spec-plan` 甚至要求直接实现,也是可以的.以用户的实际指令为主)
+
+回退路由标准（两条路线通用）：意图或边界重新变得模糊时，回 `STEP 4` 重新澄清；只是方案选择需要重来时，回 `STEP 5` 重新收敛。
 
 ## Verification
 
-- [ ] `specs/<topic>/design.md` exists
-- [ ] The design doc includes the template headings from `assets/design-doc-template.md`
-- [ ] The design doc keeps template headings in English and writes section content in the user's current language
-- [ ] The design covers architecture, components, data flow, error handling, and testing
-- [ ] If brainstorming surfaced notable discoveries, they are recorded in the design doc's Discovery section
-- [ ] The Decision Record captures the approaches compared in step 5 and the rationale for the chosen one (or why alternatives were ruled out when only one was viable)
-- [ ] Open Questions contains only surfaced unresolved questions, or explicitly says none remain
-- [ ] Complexity was assessed from the completed design using the step 8 risk signals
-- [ ] A simple design ends by asking for direct-implementation confirmation; a moderate or complex design ends with a `/design-review` recommendation
+仅针对有落地 `specs/<topic>/design.md` 设计文档的需求：
+
+- [ ] `specs/<topic>/design.md` 存在
+- [ ] 设计文档包含 `assets/design-doc-template.md` 中的模板标题
+- [ ] 设计文档保持模板标题为英文，章节内容使用用户当前的语言
+- [ ] 设计涵盖 architecture、components、data flow、error handling 和 testing
+- [ ] 如果 brainstorming 浮现了值得注意的发现，它们已记录在设计文档的 Discovery 章节中
+- [ ] Decision Record 记录了 `STEP 5` 中所比较的方案以及选择方案的理由（或当仅一个方案可行时，其他方案被排除的原因）
+- [ ] Open Questions 仅包含已浮现的未解决问题，或明确说明没有遗留问题
+- [ ] 使用 `STEP 6` 的设计复杂度分类
+- [ ] 简单设计以询问直接实现确认结束；中等或复杂设计以推荐 `/design-review` 结束
 
 ## Safety & guardrails
 
-- No implementation before explicit confirmation. Only the simple-design route may proceed directly, and only after the user agrees to implement the written design.
-- Moderate and complex designs stop at recommending `/design-review`; do not auto-continue into review, planning, or implementation.
-- Even simple projects require a design; keep it short when the scope is small.
-- Scale the process to complexity. Simple projects may complete steps 4-6 in a few exchanges; do not pad the process with unnecessary ceremony.
-- Pace questions correctly. Ask one question per turn and wait for the answer before the next (cadence), but keep going until intent and constraints are clear — the number of questions is set by the gaps you find, not minimized for its own sake. Full rules live in step 4.
-- YAGNI at the right time. While diverging (surfacing options and blind spots), explore freely and do not dismiss ideas prematurely. While converging and designing, cut ruthlessly - remove anything that is not essential to the core goal.
-- Design for isolation. Break the system into units with one clear purpose and well-defined interfaces. See [the guide](references/brainstorming-guide.md) for details.
+- 未经明确确认，不得开始实施。只有走简单设计路径时才可直接进入实施，且必须在 `STEP 7` 得到用户的同意。
+- 流程强度与需求规模匹配：简单明确的请求允许在少数几轮交流内完成 `STEP 4`–`STEP 5`，不要为凑流程而追加提问或拉长环节；「简单」的判断可参考 `STEP 6` 的分类标准。
+- 把握提问节奏，每次交互只问一个问题，并等待回答后再问下一个（控制节奏），但要持续提问，直到意图和约束条件清晰为止——提问的数量取决于你发现的缺口，完整的规则见 `STEP 4`。
+- 在恰当的时机践行 YAGNI（不需要就不做）原则。在发散阶段（发掘选项和盲点）时，自由探索，不要过早否定想法。在收敛和设计阶段，则要大刀阔斧地删减——去掉任何对核心目标非必需地内容。
+- 面向隔离进行设计。将系统拆分为具有单一明确目标和定义良好接口的单元。详见 [the guide](references/brainstorming-guide.md)
 
 ## References
 

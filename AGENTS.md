@@ -132,6 +132,29 @@ See `.github/workflows/QUICKSTART.md` for release workflow details.
 ## Coding Style & Naming Conventions
 Use 4-space indentation in Python and keep functions, variables, and files in `snake_case`. Keep Markdown concise, instructional, and structured with clear headings. Every skill must expose a `SKILL.md` with YAML frontmatter, especially `name` and `description`. Place reusable templates in `assets/`, supporting docs in `references/`, and executable helpers in `scripts/`.
 
+### Skill Document Language Style
+
+Skill documents (`SKILL.md`, `assets/` templates, `references/` docs) use a refined Chinese-English mix: the body is natural Chinese, and English is kept only as structural or semantic anchors. Never code-switch English verbs or clauses mid-sentence.
+
+Keep English for: control markers (`STEP`, `IF`, `THEN`, `STOP`, `PAUSE`, `Verify`, `Attention`), technical terms and template section names (architecture, data flow, Decision Record, Open Questions), paths / field names / enum labels (`specs/<topic>/design.md`, kebab-case, `Problem unclear`), and skill or binary names (`/design-review`, `db-explorer`).
+
+Good — English as anchors, Chinese as body:
+
+```
+STOP when 你能用 2-3 句话描述项目的目的、技术栈和结构。
+IF 需求跨越多个独立子系统，THEN 先与用户确认拆解方案。
+将设计文档写入 `specs/<topic>/design.md`。
+设计涵盖 architecture、components、data flow、error handling 和 testing。
+```
+
+Bad — mid-sentence code-switching:
+
+```
+If 项目复杂或不熟悉，consult the guide for exploration priorities。
+prefer 多选题。
+If not，ask more questions。
+```
+
 ## Skill File Format
 `SKILL.md` files use YAML frontmatter followed by Markdown:
 
