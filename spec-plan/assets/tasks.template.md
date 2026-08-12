@@ -10,7 +10,7 @@ This implementation plan is driven by the requirements in [requirements.md](requ
      - Key technical decisions (language, frameworks, dependencies)
 -->
 
-<Summarize the implementation strategy: number of phases, execution order rationale, and key technical decisions.>
+<总结实现策略：阶段数量、执行顺序理由和关键技术决策。>
 
 ## Tasks
 
@@ -50,29 +50,29 @@ This implementation plan is driven by the requirements in [requirements.md](requ
 -->
 
 - [ ] 1. Phase 1: Example Phase (replace)
-  - [ ] 1.1 Example task title
-    - Create `src/module/file.py` with `function_name` implementing <behavior>
+  - [ ] 1.1 任务标题示例
+    - Create `src/module/file.py` with `function_name` implementing <行为描述>
     - Integrate with existing `src/other/module.py` by importing `ExistingClass`
     - _Requirements: 1.1, 1.2_
-  - [ ] 1.2 Another implementation task
+  - [ ] 1.2 另一个实现任务
     - Modify `src/module/config.py` to add `<new_setting>` with default value
     - Update `src/module/__init__.py` to export the new component
     - _Requirements: 1.3, 1.4_
-  - [ ]* 1.3 Write unit tests for <feature>
-    - Test <normal scenario>
-    - Test <error scenario>
-    - Test <boundary condition>
+  - [ ]* 1.3 为 <功能> 编写单元测试
+    - Test <正常场景>
+    - Test <错误场景>
+    - Test <边界条件>
     - _Requirements: 1.1, 1.2, 1.3_
 
 - [ ] 2. Phase 2: <Phase Title> (replace)
-  - [ ] 2.1 <Task Title>
-    - Create/modify `src/<module>/<file>` with `<function/class>` implementing <behavior>
-    - <Additional concrete steps or deliverables>
+  - [ ] 2.1 <任务标题>
+    - Create/modify `src/<module>/<file>` with `<function/class>` implementing <行为描述>
+    - <具体步骤或交付物>
     - _Requirements: 2.1_
-  - [ ]* 2.2 Write unit tests for <Phase 2 feature>
-    - Test <normal scenario>
-    - Test <error scenario>
-    - Test <boundary condition>
+  - [ ]* 2.2 为 <Phase 2 功能> 编写单元测试
+    - Test <正常场景>
+    - Test <错误场景>
+    - Test <边界条件>
     - _Requirements: 2.1_
 
 - [ ] 3. Checkpoint - Verify <scope>
@@ -82,8 +82,8 @@ This implementation plan is driven by the requirements in [requirements.md](requ
   - Stop only if requirement validation fails, the spec is inconsistent, required resources are unavailable, or execution would require changing approved requirements
 
 - [ ]* 4. Optional Phase: <Phase Title>
-  - [ ] 4.1 <Task Title>
-    - <Concrete steps or deliverables>
+  - [ ] 4.1 <任务标题>
+    - <具体步骤或交付物>
     - _Requirements: 4.1_
 
 ## Notes

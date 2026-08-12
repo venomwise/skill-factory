@@ -33,7 +33,7 @@
 
 ### Requirement 1: Example Capability (replace)
 
-**User Story:** As a client developer, I want to fetch a unified list of tools, so that I can discover capabilities across all upstream services.
+**User Story:** <用户故事内容>
 
 #### Acceptance Criteria
 
@@ -44,15 +44,13 @@
      Aim for 3-8 acceptance criteria per requirement.
 -->
 
-1. WHEN a client requests tools/list, THEN the system SHALL aggregate tools from all configured upstreams.
-2. WHEN aggregation completes, THEN the system SHALL return a single combined list.
-3. WHEN a tool name collides after prefixing, THEN the system SHALL skip the duplicate and log a warning.
-4. IF no upstreams are available, THEN the system SHALL return error -32000 with message "No upstreams available".
-5. IF an upstream fails to respond within the timeout, THEN the system SHALL skip that upstream and continue with remaining ones.
+1. WHEN <正常条件>, THEN the system SHALL <预期行为>.
+2. WHEN <边界情况条件>, THEN the system SHALL <安全行为>.
+3. IF <错误条件>, THEN the system SHALL return error <code> with message "<description>".
 
 ### Requirement 2: <Short Title> (replace)
 
-**User Story:** As a <role>, I want <goal>, so that <benefit>.
+**User Story:** <用户故事内容>
 
 #### Acceptance Criteria
 
@@ -62,16 +60,16 @@
      - Boundary conditions (empty list, max size, concurrent access)
 -->
 
-1. WHEN <normal condition>, THEN the system SHALL <expected behavior>.
-2. WHEN <edge-case condition>, THEN the system SHALL <safe behavior>.
-3. IF <error condition>, THEN the system SHALL return error <code> with message "<description>".
+1. WHEN <正常条件>, THEN the system SHALL <预期行为>.
+2. WHEN <边界情况条件>, THEN the system SHALL <安全行为>.
+3. IF <错误条件>, THEN the system SHALL return error <code> with message "<description>".
 
 ### Requirement N: Error Handling (example - replace or remove)
 
-**User Story:** As a client application, I want to receive clear error messages when operations fail, so that I can diagnose and handle issues appropriately.
+**User Story:** <用户故事内容>
 
 #### Acceptance Criteria
 
-1. WHEN a required parameter is missing, THEN the system SHALL return error with code and descriptive message.
-2. WHEN an upstream returns an HTTP error, THEN the system SHALL return error with status code and response text.
-3. WHEN an exception occurs during request handling, THEN the system SHALL log exception details but not expose them to clients.
+1. WHEN <缺少必需参数>, THEN the system SHALL return error with code and descriptive message.
+2. WHEN <上游返回 HTTP 错误>, THEN the system SHALL return error with status code and response text.
+3. WHEN <请求处理期间发生异常>, THEN the system SHALL log exception details but not expose them to clients.
