@@ -5,7 +5,6 @@ on:
     paths:
       - 'db-explorer-go/**'
       - 'db-explorer/**'
-      - 'evals/db-explorer/**'
       - '.github/workflows/db-explorer-test.yml'
       - '.github/workflows/db-explorer-release.yml'
       - '.github/workflows/db-explorer-update-skill.yml'
@@ -65,8 +64,3 @@ jobs:
           fi
           go build -o "$BINARY" ./cmd/db-explorer
           ./$BINARY version
-
-      - name: Run SQLite evals
-        if: matrix.os == 'ubuntu-latest'
-        shell: bash
-        run: python3 evals/db-explorer/run_comparison.py

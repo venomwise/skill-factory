@@ -259,6 +259,6 @@ Mode B 逐项执行，Mode A 在 STEP 5 自查：
 
 ## References
 
-- [失效模式库](references/optimization-lessons.md) — 从设计链技能真实迭代中沉淀的 16 个失效模式，含症状、反例、修法。**写新技能和审计前都建议先读**
+- [失效模式库](references/optimization-lessons.md) — 从设计链技能真实迭代中沉淀的 17 个失效模式，含症状、反例、修法。**写新技能和审计前都建议先读**
 - [语言风格规范](references/language-style.md) — 中英文混合规则、英文保留范围、执行时对话语气（口语化、有温度）、正反例
 - [SKILL.md 骨架模板](assets/skill-template.md) — Mode A STEP 4 的起点

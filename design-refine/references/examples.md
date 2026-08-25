@@ -1,141 +1,133 @@
-# Design Refine 边界案例集
+# Design Refine Examples
 
-**用途**：只收 SKILL.md 主流程未覆盖的罕见/复杂路径。**默认无需阅读**——标准决策流程与污染反例已在 SKILL.md 中默认加载。仅在下列场景按需查阅。
+本文件只覆盖主流程之外的边界场景。标准分类和写入规则以 `SKILL.md` 为准。
 
-## 触发条件
+## Direct repair batch
 
-| 遇到的场景 | 查看章节 |
-|---|---|
-| Review 发现不适用当前范围，需驳回 | [驳回不适用发现](#驳回不适用发现) |
-| 用户不同意驳回，要求恢复讨论 | [驳回后恢复决策](#驳回后恢复决策) |
-| 多个 review 发现指向同一决策，需合并 | [合并相关发现](#合并相关发现) |
-| 已确认的 Decision Record 需要回滚/修订 | [Backtracking 实操](#backtracking-实操) |
+Review 有以下 findings：
 
----
+- F-004：Testing 漏掉一个已存在 AC 的验证映射。
+- F-006：Interfaces 中新增 PATCH 被错误标为 MODIFY。
+- F-009：Data Model 字段长度与已核实 SQL 不一致。
 
-## 驳回不适用发现
+三项都能从现有 Decision、AC 和 SQL 唯一推导，不需要新设计选择。
 
-### 场景
-
-Review 报告 M5（D5-盲点）："未考虑国际化/i18n——用户界面需要支持多语言"
-
-但 PRD 明确写 V1 仅支持中文，目标用户全部在中国大陆。
-
-### 在决策队列中标记
-
-```
-- [x] 缓存策略（来源: M4）→ 已确认
-- [ ] 错误处理策略（来源: B3+M2+m5）
-- [~] 国际化支持（来源: M5）[驳回 — PRD §2.3 明确 V1 仅中文，目标用户全部在中国大陆]
-- [ ] API 版本策略（来源: m6）
-```
-
-**驳回理由格式：** `[驳回 — <来源引用> <一句话说明>]`
-
-来源引用必须具体：PRD 章节号、用户既定约束、设计目标、上一轮决策记录等。**禁止的驳回理由：**"不需要"、"当前不做"、"以后再说"（无来源，无法追溯）。
-
-### 驳回条目**不**进入 Decision Record
-
-不适用发现只在决策队列中标记，**不为其写 Decision Record**。原因：Decision Record 用于记录"做了什么设计决策"，"决定不做 X"如果没有对应的设计动作，写进去只会污染下游 spec-plan（模型可能误读为"需要显式排除 i18n 功能"）。
-
-例外：如果驳回本身对下游有约束意义（例如"决定不做多租户 → data schema 不加 tenant_id"），此时应写为一条正式决策：`Decision: 单租户模型`，而不是"驳回多租户"。**关注点从"拒绝什么"转到"设计成什么"。**
-
----
-
-## 驳回后恢复决策
-
-### 场景
-
-用户看到 Step 2 队列后说："等等，虽然 PRD 没写 i18n，但我觉得还是应该预留能力，以后扩到东南亚成本会低很多。"
-
-### 处理动作
-
-1. 从决策队列中移除 `[~]` 标记，恢复为 `[ ]` 待决策项
-2. **重排优先级**：用户主动提出的关注点通常应上调至 P1，插入到当前讨论项之后
-3. 进入 Step 3 时按标准流程走 3a/3b，不要因为"这是补加的"就跳过外部调研
-4. 在 3b 的问题来源中记录用户原话，让 Decision Record 能追溯到"为什么这条从驳回变成决策"
-
-### 反模式
-
-- ❌ 直接接受用户的建议，跳过方案对比："好的，那就预留 i18n"——用户提出关注点不等于用户已经选好方案
-- ❌ 保留 `[~驳回]` 标记同时开始讨论——队列状态与实际动作不一致，后续恢复时会混乱
-
----
-
-## 合并相关发现
-
-### 场景
-
-Review 报告了三条看似独立的发现：
-
-- B3: "缺少统一的错误响应格式定义"
-- M2: "订单服务错误码未列出"
-- m5: "建议错误日志包含 trace_id 便于排查"
-
-三条实际指向同一个决策：**错误处理策略**。
-
-### 决策队列中的合并写法
-
-```
-- [ ] 错误处理策略（合并来源: B3 响应格式 + M2 错误码枚举 + m5 trace_id 日志）
-```
-
-Step 3 将三个发现作为同一个决策范围，最终写入同一条 Decision Record，并在 **Source** 段列出所有原始编号及其维度。合并发现不代表批量提问：IF 其中存在需要用户确认且相互依赖的前提，THEN 仍按 Interaction protocol 每轮只问一个原子问题，并在回答后重新评估其余前提。
+向用户展示：
 
 ```markdown
-**Source**: Review B3, M2 (D1-完整性), m5 (D5-盲点), affects §Error Handling
+以下 3 项属于 Direct repair：
+
+1. F-004：§Testing 补充 AC 引用。
+2. F-006：§Interfaces 把 metadata PATCH 标为 ADD。
+3. F-009：§Data Model 按 SQL 修正字段长度。
+
+是否统一应用这 3 项修复？
 ```
 
-### 合并的判据
+确认后更新章节，三个 finding 分别指向实际章节，不创建 Decision。
 
-- 同一子系统 + 同一关注维度 → 合并
-- 不同子系统但共享同一决策（如"是否引入统一 error middleware"影响所有服务）→ 合并
-- 同一子系统但关注维度不同（如订单服务的"错误处理" vs "性能"）→ **不合并**，分开讨论
+## Explicit boundary rejection
 
-### 反模式
+### Scenario
 
-- ❌ 把 P0 和 P2 合并——P2 的次要关注会稀释 P0 的讨论深度
-- ❌ 为了减少讨论轮次强行合并——如果两个决策的方案对比矩阵完全不同，合并只会让分析混乱
+F-012 建议为无状态 preview 增加 Redis session、claim 和聚合配额。
+用户确认 preview 只处理当前请求，commit 不消费 preview 结果，并明确拒绝该建议。
 
----
-
-## Backtracking 实操
-
-### 场景
-
-"缓存策略"决策已经定下用 sync.Map 内存缓存。讨论到"部署方案"决策时，用户提到"我们其实计划两个月内上 K8s 多副本"——这与缓存策略"单机部署，重启失效可接受"的前提冲突。
-
-### 处理动作
-
-1. **不删除**"缓存策略"的原 Decision Record
-2. 在原段落末尾追加 Revised 块（格式见下方示例）：
+### Persisted decision
 
 ```markdown
-### Decision: 缓存策略
+### DR-preview-remains-stateless
 
-**Source**: Review M4 (D6), affects §Components
+**Decision**: preview 不保存服务端会话，commit 不消费 preview 结果。
 
-**Decision**: V1 使用内存缓存（sync.Map + LRU），不引入外部缓存。
+**Rationale**: preview 只承担当前请求的解析和校验；跨请求状态不解决当前业务问题。
 
-**Rationale**: Redis 方案被拒绝——V1 单机部署且数据量 < 1 万条，引入 Redis Cluster 的运维成本远超收益。
+**Constraints**: commit 必须根据自身完整请求独立校验。
 
-**Constraints**: 缓存重启即失效；LRU 最大 10000 条。
+**Rejected concern**: 不为 preview 增加 session、claim、租约或聚合配额。
 
-> **Revised** (2026-07-06): 改用 Redis 单实例缓存。
-> **修订理由**: "部署方案"讨论确认两个月内上 K8s 多副本，多副本下内存缓存会产生数据不一致。原"单机部署"前提失效。
-> （§Components 的 CacheService 已同步更新为 go-redis 客户端）
+**Revisit when**: preview 结果需要被 commit 消费，或服务端开始跨请求保存状态。
 ```
 
-3. 同步更新 §Components / §Architecture 中的实现描述——这一步容易漏，务必做完
-4. 在"部署方案"的 Decision Record 中反向提及："本决策触发了『缓存策略』决策的修订"
+F-012 状态设为 `rejected`，Resolution ref 指向 `DR-preview-remains-stateless`。
+后续 reviewer 在 Revisit 条件未触发时不得重新提出同一 concern。
 
-### 为什么保留历史
+## Reusing an existing boundary
 
-- **下游可追溯**：spec-plan 读到 Revised 块会用最新决定生成任务，但审计时能看到"为什么以前是那样"
-- **避免同样错误**：下一轮 review 如果又提"要不要用内存缓存"，能立刻看到已被部署方案否决
-- **决策学习**：连续几个项目积累的 Revised 记录，能反向优化 Step 1 的探索清单（例如"以后 Step 1 必须问部署方案"）
+下一轮 F-018 再次建议增加 preview TTL，但 `DR-preview-remains-stateless` 仍有效。
 
-### 反模式
+处理方式：
 
-- ❌ 直接改原记录的"决定"和"理由"，不留 Revised 块——历史丢失，后续无法追溯
-- ❌ 追加 Revised 但忘了同步 §Components——文档内部矛盾，下游读到冲突信号
+1. 不创建新 Decision。
+2. 如果 F-018 与 F-012 是同一根因，沿用 F-012，而不是保留 F-018。
+3. Closure 说明已有 Decision 覆盖且 Revisit 条件未触发。
+4. 必要时原位补强现有 Decision 的措辞。
+
+## Merging findings into one decision
+
+以下 findings 指向同一个设计选择：
+
+- F-021：错误响应格式未确定。
+- F-022：批量错误是否逐项返回未确定。
+- F-024：客户端重试需要稳定错误分类。
+
+队列合并为：
+
+```text
+统一错误契约（来源: F-021, F-022, F-024）
+```
+
+用户只需确认一次错误契约。三个 finding 保留独立状态，共同指向同一个
+`DR-import-error-contract` 和对应 Interfaces / Error Handling 章节。
+
+## Updating an existing decision
+
+已有：
+
+```markdown
+### DR-cache-location
+
+**Decision**: 使用进程内缓存。
+
+**Rationale**: 当前为单实例部署。
+
+**Constraints**: 不支持多副本共享缓存。
+```
+
+后续项目事实变为多副本部署时，原位更新同一个 ID：
+
+```markdown
+### DR-cache-location
+
+**Decision**: 使用共享 Redis 缓存。
+
+**Rationale**: 多副本必须读取一致缓存；原进程内方案的单实例前提已失效。
+
+**Constraints**: Redis 不可用时按 Error Handling 的降级规则处理。
+```
+
+不要保留旧正文后再追加 `Revised`。旧选择及变化原因由 review Closure 和版本历史追踪。
+
+## Closure origins
+
+### refine-regression
+
+F-030 的修复新增状态 `RECONCILING`，但 State Machines 没有该状态。
+新 finding 可以使用 `refine-regression`，证据是 changed section 引入了未传播状态。
+
+### dependency-unlocked
+
+F-031 先确定存储事实源。只有该决策完成后，才能判断回滚是否需要 backfill 版本。
+后续 finding 可以使用 `dependency-unlocked`，并说明依赖关系。
+
+### baseline-miss
+
+接口字段在 R1 前已经含糊，但 R1 漏检。Closure 必须明确标记 `baseline-miss`，
+不能把 reviewer 漏检包装成 refine 新问题。
+
+### context-change
+
+上轮后项目从单实例改为多副本。与缓存一致性相关的新 finding 使用
+`context-change`，并引用项目配置或提交证据。
+
+无法归入以上 Origin 的自由优化建议不进入 Closure Findings。

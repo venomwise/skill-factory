@@ -14,16 +14,15 @@ skill-factory/
 ├── grok-search/           # Real-time web research
 ├── hld-generator/         # High-level (technical) design documentation
 ├── skill-authoring/       # Guide for creating AI agent skills
-├── spec-plan/             # Generate requirements.md + tasks.md from a design
-├── spec-exec/             # Execute tasks from tasks.md
+├── spec-plan/             # Generate tasks.md from an approved design
+├── spec-exec/             # Execute tasks against design acceptance criteria
 ├── springcloud-init/      # Spring Cloud project initialization
 ├── web-access/            # Unified web access (Exa + Grok)
 ├── db-explorer-go/        # Go source for the db-explorer binary
 ├── exa-search-go/         # Go source for the exa-search binary
 ├── grok-search-go/        # Go source for the grok-search binary
 ├── web-access-go/         # Go source for the web-access binary
-├── evals/                 # Evaluation cases, organized by skill name
-└── specs/                 # Spec outputs (design/requirements/tasks per topic)
+└── specs/                 # Spec outputs (design/tasks per topic)
 ```
 
 Each top-level directory that contains a `SKILL.md` is a skill. A skill folder follows this layout:
@@ -32,7 +31,7 @@ Each top-level directory that contains a `SKILL.md` is a skill. A skill folder f
 - `references/` — supporting reference docs
 - `scripts/` — executable helpers (optional)
 
-The Go-based skills (`db-explorer`, `exa-search`, `grok-search`, `web-access`) ship pre-compiled binaries in their own `bin/` directory; the source lives in the matching `*-go/` project. Evaluation cases live in `evals/<skill>/`. This file (`AGENTS.md`) is the single repo-level source of truth for all conventions below.
+The Go-based skills (`db-explorer`, `exa-search`, `grok-search`, `web-access`) ship pre-compiled binaries in their own `bin/` directory; the source lives in the matching `*-go/` project. This file (`AGENTS.md`) is the single repo-level source of truth for all conventions below.
 
 ## Build, Test, and Development Commands
 There is no monolithic build step; work is usually skill-specific.
@@ -45,7 +44,6 @@ go test ./...
 go build -o db-explorer ./cmd/db-explorer
 ./db-explorer version
 cd ..
-python3 evals/db-explorer/run_comparison.py
 
 # Build exa-search from source
 cd exa-search-go
@@ -178,23 +176,28 @@ The `description` field is critical — it determines when the skill is invoked.
 
 ## Skill Pairing & Spec Conventions
 Several skills are designed to chain into a spec pipeline, all rooted at `specs/<topic>/`:
-- **brainstorming** turns an idea into a validated `specs/<topic>/design.md`, then hands off to spec-plan.
-- **spec-plan** consumes the approved `design.md` and produces `requirements.md` + `tasks.md`.
-- **spec-exec** consumes `tasks.md`, implements each task, and updates checkboxes as they complete; it consults `requirements.md` for acceptance criteria and `design.md` only as background context.
+- **brainstorming** turns an idea into a validated `specs/<topic>/design.md`; the design contains the authoritative Acceptance Criteria.
+- **design-review** optionally reviews the design before planning. If `review.md` exists,
+  `spec-plan` reads `## Current Readiness`: only `Overall: ready` with
+  `spec-plan readiness: Go`, terminal `F-###` findings, and resolvable evidence may proceed.
+  Any other state requires `design-refine` or a Closure Review first.
+- **spec-plan** consumes the approved `design.md` and produces `tasks.md` only. It never creates or edits acceptance criteria.
+- **spec-exec** consumes `design.md` + `tasks.md`, implements each task, validates referenced ACs, and updates checkboxes as tasks complete.
 
 Spec output conventions:
 - Default spec location: `specs/<topic>/` (`<topic>` in kebab-case, e.g. `user-auth`).
-- `requirements.md` uses `Requirement N` headings; acceptance criteria are referenced as `N.M` in tasks.
-- `tasks.md` uses checkbox list items for phases: `- [ ] Phase N: Title` (never `###` headings).
+- `design.md` contains `## Acceptance Criteria`; each criterion uses a stable semantic ID such as `AC-config-precedence` and an EARS-style `WHEN` / `IF`, `THEN`, `SHALL` rule.
+- Every task uses `_Acceptance: AC-..._`, `_Design: <section path>_`, or both. Every AC must be covered by at least one task or Checkpoint.
+- `tasks.md` uses checkbox list items for phases: `- [ ] N. Phase N: Title` (never `###` headings).
 - Optional tasks: `[optional]` suffix (claude-code) or `- [ ]*` marker (codex).
-- Checkpoints: `- [ ] Checkpoint: Verify <scope>` — pause points between phases.
+- Checkpoints: `- [ ] N. Checkpoint - Verify <scope>` — evidence-based validation tasks between phases.
 - Completed tasks: `- [x]` (claude-code) or `- [✅]` / `- [✅]*` (codex).
+- The legacy `_Requirements:` protocol is unsupported. Historical `specs/**/requirements.md` files may remain as records but are not consumed by current skills.
 
 ## Adding a New Skill
 1. Create `<skill-name>/SKILL.md` at the root level with frontmatter `name` and `description`.
 2. Add `assets/` templates and `references/` docs if needed.
 3. Add `scripts/` for executable helpers if the skill requires automation.
-4. Create corresponding eval cases under `evals/<skill-name>/` for testing.
 
 ## Skill Design Principles
 
@@ -285,9 +288,6 @@ Example of good abstraction:
 // AI doesn't need to know database driver internals for routine exploration
 ```
 
-## Testing Guidelines
-This repo does not currently enforce a global coverage threshold. Instead, add focused eval data under `evals/<skill>/` and run the relevant script or workflow manually. For database work, prefer deterministic checks through `evals/db-explorer/run_comparison.py`. Name new eval artifacts descriptively, following existing patterns such as `evals.json`, `grades.json`, and `benchmark.md`.
-
 ## Commit & Pull Request Guidelines
 Recent history follows lightweight Conventional Commit patterns, usually with a scope and Chinese subject line, for example `fix(db-explorer): 修复 URL 解码问题` or `docs(db-explorer): 将 SKILL.md 从中文改写为英文`.
 
@@ -301,4 +301,4 @@ Format: `[<emoji>] <type>(<scope>): <subject>`
 
 Full emoji list and examples: `git-commit/references/commit-convention.md`.
 
-Keep each commit focused on one change. PRs should summarize the affected skill(s), explain behavior changes, list verification commands, and include sample outputs when a prompt flow, script result, or eval expectation changes.
+Keep each commit focused on one change. PRs should summarize the affected skill(s), explain behavior changes, list verification commands, and include sample outputs when a prompt flow or script result changes.

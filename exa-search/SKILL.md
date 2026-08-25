@@ -135,7 +135,6 @@ bin/exa-search-<platform> search --query "test" --debug
 - **Source code**: See `exa-search-go/` for the Go implementation
 - **Query examples**: See [query-recipes.md](references/query-recipes.md) for ready-made patterns
 - **Configuration**: See [CONFIG.md](references/CONFIG.md) for advanced setup and failover
-- **Evaluations**: See `evals/exa-search/test_cases.json` for test scenarios
 
 ## Notes
 

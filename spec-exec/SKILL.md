@@ -1,185 +1,167 @@
 ---
 name: spec-exec
-description: Implement code tasks from specs/<topic>/tasks.md and track progress by updating checkboxes. Use when implementing a spec plan, resuming spec execution, or checking spec progress.
-# metadata:
-#   short-description: Spec exec (tasks.md)
+description: >
+  按照 specs/<topic>/tasks.md 和 design.md 实现任务，并通过更新 checkbox 跟踪进度。
+  当用户提到执行 spec、实施任务计划、继续执行 spec、恢复执行、检查 spec 进度时，
+  必须使用此技能。
 ---
 
 # Spec Exec Skill
 
 ## When to use
 
-- 实现 spec `tasks.md` 中 `## Tasks` 下列出的任务
-- 通过更新任务 checkbox 状态跟踪执行进度
+- 实现 `tasks.md` 中 `## Tasks` 下列出的任务
+- 依据 `design.md` 的 Acceptance Criteria 验证行为
+- 通过更新任务 checkbox 跟踪进度
 
 ## When not to use
 
-- 你只需要编辑单个任务行而不执行工作
-- Spec 没有 `tasks.md` 或没有 `## Tasks` 段落
+- 只需要编辑任务文本而不执行工作
+- Spec 没有 `design.md`、`tasks.md` 或 `## Tasks`
 
-## Inputs
+## Inputs / Outputs
 
-- Spec root: `specs/`
-- Target: `specs/<topic>/tasks.md`
-- Acceptance criteria: `specs/<topic>/requirements.md`
+**Inputs:**
+
+- 执行计划：`specs/<topic>/tasks.md`
+- 权威设计与验收标准：`specs/<topic>/design.md`
+
+**Outputs:**
+
+- 完成的实现和验证证据
+- 更新后的 `tasks.md`：普通任务使用 `- [✅]`，可选任务使用 `- [✅]*`
 
 ## Expected tasks.md format
 
-```
+```markdown
 - [ ] 1. Phase 1: Title
-  - [ ] 1.1 Sub-task title
+  - [ ] 1.1 Implement behavior
     - Description line
-    - _Requirements: 1.1, 1.2_
-  - [ ]* 1.2 Optional sub-task
+    - _Acceptance: AC-config-precedence_
+    - _Design: Proposed Solution / Components_
+  - [ ]* 1.2 Optional test task
+    - _Design: Testing_
 - [ ] 2. Checkpoint - Verify scope
-- [ ]* 3. Optional Phase: Title
-  - [ ] 3.1 Sub-task under optional phase
+  - _Acceptance: AC-config-precedence_
 ```
 
-Key rules:
-- 任务行是带数字前缀的 checkbox 列表项：Phase 用 `N.`，sub-task 用 `N.M`。已完成 (`[✅]`) 和可选 (`*`) 变体遵循相同结构。
-- 缩进的描述行和 `_Requirements:` 行是元数据，not tasks。
-- Phase 标题上的 `_Requirements:` 行是可追溯性摘要；使用各个 sub-task 上的行作为可执行指导。
-- 可选 Phase 下的 sub-tasks 继承 Phase 的可选状态，在 MVP 模式下与它一起跳过。
+关键规则：
 
-## Outputs
-
-- 更新的 `tasks.md`，带有完成标记：
-  - Normal task: `- [✅]`
-  - Optional task: `- [✅]*`
+- Phase 使用 `N.`，sub-task 使用 `N.M`；已完成和可选变体遵循相同结构。
+- 缩进描述、`_Acceptance:` 和 `_Design:` 是任务元数据，不是任务。
+- `_Acceptance:` 引用 `design.md` 中的 AC；`_Design:` 引用实际存在的设计章节。
+- 每个可执行 sub-task 和独立 Checkpoint 至少包含一种追踪元数据；可同时包含两种。包含子任务的 Phase 行只是容器，不需要元数据。
+- 可选 Phase 下的子任务继承可选状态。
 
 ## Execution stance
 
-在 spec 执行期间，作为自主实现 agent 行动。
+将 `tasks.md` 视为执行计划，将 `design.md` 视为已批准行为和设计方案的唯一权威来源。IF 当前任务及其引用清晰且可执行，THEN 自主推进，不请求常规确认。
 
-将 `tasks.md` 视为执行计划，将 `requirements.md` 视为验收真相来源。If 当前任务和引用的 requirements 清晰且可执行，proceed without asking the user for confirmation。
+Acceptance Criteria 只定义可观察结果；验证命令来自任务、Checkpoint、`Testing` 章节和项目工具链。不要把缺失的行为或 AC 当作实现偏好自行补齐。
 
-When `requirements.md` 对所需细节存在歧义或保持沉默，consult `specs/<topic>/design.md`（if present）作为背景上下文。Never 使用 `design.md` 作为 `requirements.md` 中验收标准的替代品；if 标准本身缺失，按 *Blocker escalation* 升级（type: underspecified task）。
+## Strict contract gate
 
-一次性设置选择（例如 Workflow step 6 中的 MVP vs. Full 模式）not 常规确认，may 在运行开始时询问一次。
+开始执行前必须验证：
+
+1. `design.md` 包含 `## Acceptance Criteria`，AC ID 唯一且符合 `AC-<domain>-<behavior>`。
+2. `tasks.md` 不包含 `_Requirements:`；命中即视为不受支持的旧格式。
+3. 每个未完成的可执行 sub-task 和独立 Checkpoint 至少包含 `_Acceptance:` 或 `_Design:`；Phase 容器除外。
+4. 所有 `_Acceptance:` ID 和 `_Design:` 章节路径都能在 `design.md` 中解析。
+5. 任务内容与引用的 AC、设计章节没有冲突。
+
+IF 任一检查失败，THEN 在修改代码前按 *Blocker escalation* 报告并停止。不要迁移旧 spec，也不要补写 AC。
 
 ## Checkpoints
 
-Checkpoint tasks 是验证任务，not 用户批准门。
+Checkpoint 是验证任务，不是用户批准门。执行其中的命令，使用 `_Acceptance:` 定位必须验证的 AC，并以可观察证据判断通过条件。
 
-对于 checkpoint，验证其范围内已完成任务引用的 requirements 是否正确实现。使用 `tasks.md` 识别相关的 requirement IDs，使用 `requirements.md` 作为验收来源。
-
-If validation passes，标记 checkpoint complete and continue。Stop only if validation fails, required resources are unavailable, or the spec is inconsistent。
+IF 验证通过，THEN 标记完成并继续。仅当验证失败、必需资源不可用或 spec 内部不一致时停止。
 
 ## Evidence-based validation
 
-Before marking a task or checkpoint complete，尽可能使用具体证据验证：
+在标记任务或 Checkpoint 完成前，尽可能：
 
-- Run 任务中列出的显式验证命令。
-- Run 相关测试、类型检查、linters 或冒烟测试（if available）。
-- Inspect 修改的文件以确保请求的行为存在。
-- Compare 实现与引用的验收标准。
-- If 验证命令 cannot be run，explain why and use 最强的可用替代检查。
+- 执行任务或 Checkpoint 中的显式验证命令。
+- 运行相关测试、类型检查、lint 或冒烟测试。
+- 检查修改文件，确认引用的设计内容已实现。
+- 将结果与 `_Acceptance:` 引用的 AC 逐条对比。
+- IF 命令无法运行，THEN 说明原因并使用最强的替代检查。
 
-Do not 仅基于未经支持的假设就标记任务完成。
+不要仅凭任务文本或未经验证的假设标记完成。
 
 ## Blocker escalation
 
-Do not 询问用户常规确认、实现偏好或继续的权限。
+仅在真正阻塞时停下，例如：
 
-Stop and ask the user only if 执行真正被阻塞，such as:
+- Spec 使用旧 `_Requirements:` 格式或缺少 Acceptance Criteria。
+- 引用的 AC 或设计章节不存在、含糊或互相冲突。
+- 任务无法从 `tasks.md` 和引用的 `design.md` 内容确定。
+- 验证失败且无法在当前任务范围内安全修复。
+- 完成任务需要改变已批准 AC 或设计。
+- 需要破坏性操作，或缺少凭证、服务、文件、环境依赖。
 
-- `tasks.md` 和 `requirements.md` 相互冲突。
-- 下一个任务规格不足，cannot 从 `tasks.md` 和 `requirements.md` 解决。
-- 针对引用 requirements 的验证失败，且失败 cannot 在当前任务内安全修复。
-- 完成任务 would require 更改已批准的 requirements。
-- 任务需要破坏性或不可逆操作，such as 删除用户数据、重写历史、删除数据库表或移除大量不相关代码。
-- Required credentials, services, files, or environment dependencies are unavailable。
-
-When blocked，do not 询问模糊问题如 "Should I continue?"
-
-Instead，使用此结构化模板报告：
+使用以下结构报告：
 
 ```yaml
 blocker:
   task: "<N.M> <title>"
-  type: <conflict | underspecified | validation_failure | scope_change | destructive_op | missing_dependency>
+  type: <legacy_spec | conflict | underspecified | validation_failure | scope_change | destructive_op | missing_dependency>
   context:
     task_excerpt: "<relevant lines from tasks.md>"
-    requirements: "<referenced requirement IDs and their criteria>"
+    acceptance: "<referenced AC IDs and criteria>"
+    design: "<referenced design sections>"
   tried:
     - "<what you already attempted>"
   risk: "<why proceeding would violate the spec>"
   options:
-    - "<option A the user can pick>"
-    - "<option B the user can pick>"
+    - "<option A>"
+    - "<option B>"
   needed_from_user: "<minimum decision or input>"
 ```
 
 ## Workflow
 
-1. 解析目标 tasks 文件。
-   - If 用户提供了 `specs/<topic>/tasks.md`，使用它。
-   - If 用户 did not provide tasks 路径，精确回复：`请指定 tasks.md 文件路径（例如 specs/<topic>/tasks.md）。` Then 结束流程。Do not 搜索、列举或推断 spec。
-   - If 用户提供的路径 does not exist，结束流程并推荐先运行 **`spec-plan`** skill 以产出 `specs/<topic>/tasks.md`。
-2. 打开 `specs/<topic>/tasks.md` 并定位 `## Tasks` 段落。
-   Also 打开 `specs/<topic>/requirements.md`（通常在 Overview 中链接）以获取验收标准。
-   `_Requirements: N.M_` 行引用 `requirements.md` 中的验收标准，must be met。
-3. 扫描进度并恢复：
-   - 计数已完成 `[✅]` 和剩余 `[ ]` 任务。
-   - 识别第一个未完成的任务并从那里恢复。
-   - If all tasks are complete，报告并停止。
-4. 通过搜索包含 `[ ]*` 的 checkbox 行（at any indentation level — both Phase and sub-task lines）检测 `## Tasks` 内的可选任务。
-5. If any optional tasks exist，询问：
-   `当前任务列表将部分任务（如：单元测试、文档编写）标记为可选，以便集中精力优先实现核心功能。A. 保留可选任务 (MVP) B. 执行所有任务`
-6. **Triage** — For each task in `## Tasks` order，确定其处置：
-   > **REMINDER**: After completing each task you MUST update its checkbox in `tasks.md` before starting the next one. Never accumulate multiple completed tasks without writing them back.
-   - Skip tasks already marked `- [✅]`。
-   - If MVP mode was chosen，skip tasks marked with `- [ ]*`。
-   - If an optional Phase (`- [ ]*`) is skipped，skip all nested sub-tasks under that Phase。
-   - Identify checkpoint/verification tasks by keywords such as **"Checkpoint"**, **"Verify"**, or **"检查点"**。Handle them per the *Checkpoints* section above。
-   - Otherwise，proceed to step 7 to implement the task。
-7. **Implement & Validate** — For the current task:
-   - Read 标题下方的缩进描述行，并使用 `_Requirements: ..._` 行作为显式指导。
-   - Review referenced files/modules before changes to understand current behavior and constraints。
-   - Implement the task in the codebase following project conventions。
-   - Validate the result per the *Evidence-based validation* section。If validation fails，follow *Blocker escalation* (type: validation_failure)。
-   - When marking a checkpoint or validation-only task complete，briefly record the validation evidence (command run + key result) in your reply，so the audit trail survives interruption。
-8. **Mark completion** — **CRITICAL: Update `tasks.md` NOW, before doing anything else.**
-   > This is the most important step in the loop. You MUST write the checkbox change to `tasks.md` for the task you just completed BEFORE moving on to the next task. Failing to do so means progress is lost on interruption.
-   - Normal task: change `- [ ]` to `- [✅]`
-   - Optional task: change `- [ ]*` to `- [✅]*`
-   - Do not mark tasks that failed, were interrupted, or were skipped。
-   - **ONE task, ONE write.** Never accumulate multiple completed tasks into a single `tasks.md` update。
-   - Then return to step 6 for the next task。
-9. When all sub-tasks under a Phase are completed，mark the Phase line as `- [✅]`。
-    - In MVP mode，a Phase is complete when all non-optional sub-tasks are done。
-    - If a Phase has no sub-tasks (e.g., a Checkpoint)，mark it only after it is completed。
-10. After all required tasks are complete，perform repository guidance sync:
-    - In MVP mode，treat execution as complete when all non-optional tasks are finished；unchecked optional tasks do not block this step。
-    - Check whether the project root contains `AGENTS.md`。
-    - If `AGENTS.md` exists，review the work completed in this run and update the file to reflect any changed contributor guidance，such as project structure, development commands, verification flow, or repository conventions introduced by the implementation。
-    - Keep the update scoped to guidance affected by the completed work；do not rewrite unrelated sections。
+1. **定位 tasks.md。**
+   - IF 用户提供了路径，THEN 使用它。
+   - IF 未提供，THEN 精确回复：`请指定 tasks.md 文件路径（例如 specs/<topic>/tasks.md）。`然后结束流程。不要搜索、列举或推断 spec。
+   - IF 路径不存在，THEN 推荐先运行 `spec-plan`。
+2. **读取完整 spec。** 打开 `tasks.md` 和同目录 `design.md`，定位 `## Tasks`、`## Acceptance Criteria`、`## Testing` 及任务引用的设计章节。
+3. **执行严格关卡。** 按 *Strict contract gate* 检查；失败时在修改代码前停止。
+4. **扫描并恢复进度。** 计数 `[✅]` 与 `[ ]`，从首个未完成任务继续；全部完成时报告并停止。
+5. **选择执行模式。** IF 存在 `[ ]*`，THEN 仅询问一次：`当前任务列表包含可选任务。A. 保留可选任务（MVP） B. 执行所有任务`。
+6. **Triage。** 按顺序处理任务：
+   - 跳过 `[✅]`。
+   - MVP 模式跳过 `[ ]*`；可选 Phase 被跳过时连同其子任务一起跳过。
+   - 包含 sub-task 的 Phase 是容器，不直接实施；按顺序处理其子任务，并在步骤 9 汇总状态。
+   - 通过 `Checkpoint`、`Verify`、`检查点` 识别验证任务。
+   - 其他任务进入步骤 7。
+7. **Implement & Validate。**
+   - 阅读任务描述和 `_Acceptance:` / `_Design:` 元数据。
+   - 修改前阅读相关文件与模块，理解现有行为。
+   - 按项目约定实施，并按 *Evidence-based validation* 验证。
+   - IF 失败，THEN 按 *Blocker escalation* 处理。
+8. **立即写回进度。** 每完成一个任务，先把它改为 `[✅]` 或 `[✅]*`，再做任何其他动作。一个任务一次写入；失败、跳过或中断的任务不得标记完成。
+9. **更新 Phase。** 一个 Phase 的适用子任务全部完成后标记 Phase；MVP 模式下未执行的可选子任务不阻塞 Phase 完成。无子任务的 Checkpoint 只在验证通过后标记。
+10. **同步仓库指导。** 所有必需任务完成后，IF 根目录存在 `AGENTS.md`，THEN 只在本次实现改变项目结构、命令、验证流程或仓库约定时更新相关内容，不重写无关章节。
 
 ## Verification
 
-- Before marking a task as `[✅]`，perform the validation described in step 7 or confirm the code is runnable。
-- Validation tasks (e.g., checkpoints, verify tasks, or manual smoke tests) must be executed。
-- Checkpoint tasks are completed by evidence-based validation，not by user confirmation。
-- Do not ask the user to confirm successful checkpoints unless execution is blocked。
-- Only items under `## Tasks` are modified。
-- Optional tasks remain unchecked when MVP mode is chosen。
-- Phase items are marked only after all their sub-tasks are completed (step 9)。
-- After all required tasks are finished，if the project root contains `AGENTS.md`，it has been reviewed and updated to match the completed work。In MVP mode，this check happens after non-optional tasks are done。
+- [ ] 执行前通过严格 contract gate
+- [ ] 每个可执行 sub-task 和独立 Checkpoint 依据可解析的 `_Acceptance:` 或 `_Design:` 执行
+- [ ] 标记完成前有测试、命令、文件检查或其他具体证据
+- [ ] Checkpoint 实际执行且按引用的 AC 验证
+- [ ] 每完成一个任务立即写回 checkbox
+- [ ] MVP 模式下可选任务保持未勾选
+- [ ] Phase 仅在其适用子任务完成后标记
+- [ ] 必需任务完成后按需同步 `AGENTS.md`
 
 ## Safety & guardrails
 
-- Never auto-select a `tasks.md`。The path must come from the user。
-- Never mark tasks as done unless execution completed successfully。
-- Do not alter task numbering, titles, or descriptions。
-- Do not use user interaction as a substitute for reading `tasks.md` and referenced requirements。
-- Do not introduce requirement changes during execution。If a requirement change seems necessary，stop and report it as a blocker。
-- Do not ask for permission to continue after successful validation。
-- Stop and ask the user only if execution is blocked by a blocker defined above。
-- If a task fails，keep it as `- [ ]` and escalate via the *Blocker escalation* template (type: validation_failure)，offering at minimum these options: (a) fix in place now, (b) defer and continue to the next task, (c) abort the run。
-- If a failed task produces artifacts required by later tasks，include this cascade risk in the blocker `risk` field so the user can choose accordingly。
-
-## References
-
-- [Spec Plan Skill](../spec-plan/SKILL.md) — tasks.md 格式规范
-- [Tasks template](../spec-plan/assets/tasks.template.md) — tasks.md 结构模板
+- 不自动选择 `tasks.md`。
+- 不支持旧 `_Requirements:` 协议，不读取 `requirements.md`，也不迁移旧 spec。
+- 不更改任务编号、标题、描述、AC 或设计内容。
+- 不用用户交互替代阅读 `tasks.md`、`design.md` 和引用内容。
+- 执行期间不引入需求或设计变更；需要变更时作为 blocker 报告。
+- 验证成功后不请求继续许可。
+- 失败任务保持 `[ ]`，并至少提供立即修复、延后继续、中止运行三个选项。
+- IF 失败产物阻塞后续任务，THEN 在 blocker 的 `risk` 中说明级联影响。

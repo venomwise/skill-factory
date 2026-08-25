@@ -1,87 +1,230 @@
 ---
 name: design-review
-description: 对 design.md（来自 brainstorming 技能或手写）进行批判性评审，并在其旁边写入 review.md 裁决报告。当用户想评审设计文档、为规划做质量关卡，或检查完整性、可用性、规范性、盲点、过度设计、项目契合度时调用。触发词包括"评审设计"、"review design"、"design review"、"检查设计文档"、"设计盲点"、"design.md review"。不评审代码或 PR；不编写设计（归 brainstorming）；不根据评审结果修订设计（归 design-refine）。
+description: >
+  对 design.md 进行独立、证据化的设计评审，并在同目录写入 review.md。
+  当用户要求评审设计、检查完整性、可实施性、项目契合度、盲点或过度设计时调用。
+  触发词包括“评审设计”“review design”“design review”“检查 design.md”
+  “设计盲点”。不修改设计；根据评审结果修订设计应使用 design-refine。
 ---
 
 # Design Review
 
-对 `design.md` 的独立质量关卡。读取设计及其周围项目，按 7 维度评估标准评估，然后写入独立的 `review.md`，包含裁决和按严重性分级的发现。本技能是批评者：指出问题供作者修复——不自己填补空白，也从不编辑设计。
+对 `design.md` 执行独立质量关卡。首轮执行 Full Review；完成 refine 后默认执行
+Closure Review。唯一写入产物是同目录的 `review.md`。
 
 ## When to use
 
-- 存在 `design.md`（来自 `brainstorming` 技能或手写），并且想在规划前对其进行评审。
-- 作为 `brainstorming` 与 `spec-plan` 之间的关卡——在问题变成任务之前捕获它们。
-- 用户要求检查设计的盲点、过度设计、或与项目约定的契合度。
+- 规划或实施前评审 `design.md`。
+- 检查设计完整性、可实施性、项目契合度、盲点和过度设计。
+- refine 后复核 finding 是否真正闭合。
 
 ## When not to use
 
-- 代码或 pull request 级别的评审不在本技能范围内，应交回相应的代码评审工具。
-- 从头编写设计 → 使用 `brainstorming`。
-- 根据评审结果修订设计 → 使用 `design-refine`。
-- 没有设计文档的琐碎更改、bug 修复、或仅修改拼写错误。
+- 代码或 pull request 评审。
+- 从零构建设计，应使用 `brainstorming`。
+- 根据 finding 修改设计，应使用 `design-refine`。
+- 没有设计文档的琐碎修改。
 
-## Inputs
+## Inputs / Outputs
 
-- 要评审的 `design.md` 路径（或自动探测 `specs/<topic>/`）。
-- 设计所属的项目（用于契合性和适配性探索）。
+**Inputs:**
 
-## Outputs
+- `design.md` 路径或可唯一定位的 `specs/<topic>/`。
+- 同目录可选的历史 `review.md`。
+- 设计所属项目的代码、配置、数据库和约束。
 
-- 写入**与被评审的 `design.md` 相同目录**的 `review.md`，使用 `assets/review-template.md`。
-- 整体裁决（Pass / Revise / Reject）、`spec-plan` go/no-go、以及标记为 Blocker / Major / Minor 的发现。
-- 从发现和裁决派生的推荐下一步。
-- `design.md` 和项目文件一律不修改——`review.md` 是唯一写入的产物。
+**Outputs:**
+
+- 同目录 `review.md`，使用 [review template](assets/review-template.md)。
+- 评审时 Verdict、当前 readiness、证据化 findings 和推荐下一步。
+- 不修改 `design.md` 或项目文件。
+
+## Authoritative contracts
+
+开始评审前必须读取：
+
+- [Canonical design document template](../brainstorming/assets/design-doc-template.md)
+- [Review lifecycle contract](references/review-lifecycle.md)
+- [Review rubric](references/review-rubric.md)
+
+章节、Decision、Data Model、Interfaces、AC 和格式要求以前者为唯一权威。
+Full/Closure、finding ID、Origin、状态和 readiness 以后两者为准。
 
 ## Workflow
 
-1. **定位 design.md。** 用户给了路径就直接用。否则探测 `specs/` 中的 `design.md`：恰好一个匹配就直接使用；多个或没有匹配时向用户询问路径。有歧义时先确认再评审。
-2. **完整阅读 design.md。** 记住它预期遵循的规范章节集（Summary、Goals、Primary Users / Roles、Non-Goals、Context、Discovery、Decision Record、Proposed Solution 含 Architecture / Components / Data Flow、Error Handling、Testing、Open Questions）——权威清单见 [the rubric](references/review-rubric.md)。
-3. **按优先级顺序探索目标项目**：README / CLAUDE.md / AGENTS.md、项目配置（package.json / pyproject.toml / Cargo.toml / go.mod / pom.xml）、入口点、最近的提交（最多 10 个）、然后是任何现有的 specs 或设计文档。STOP when 你能将规范性、项目契合度、优化点和过度设计检查都建立在真实证据上。当设计依赖存储的数据或 schema 时使用 `db-explorer`。不要假设——设计中的声明只要能对照代码库核实，就去核实它。
-4. **按 [references/review-rubric.md](references/review-rubric.md) 中的 7 维度评估标准进行评估。** 每条发现都记录：具体的**位置**（`design.md §章节` 和/或项目文件路径）、**证据**、具体的**建议**、以及**严重性**。每条发现都要有依据——不接受模糊的批评。过度设计要对照设计**自己**声明的 Goals 和 Non-Goals 判断，而不是你的品味。盲点表述为"值得检查"，而不是作者肯定遗漏的缺陷。
-5. **从严重性计数计算裁决和 `spec-plan` go/no-go**（精确规则见 rubric）。
-6. **写入 review.md** 到 `design.md` 同级目录，使用 `assets/review-template.md`。保留模板的英文结构标题；发现内容使用设计当前的语言书写（从 `design.md` 和对话中推断；不要仅为确定语言而询问）。
-7. **总结并推荐。** 用几行给出裁决、发现计数和最重要的 Blocker。只要存在任何 Blocker、Major 或 Minor 发现，就推荐使用被评审的 `design.md` 和生成的 `review.md` 运行 `/design-refine` 来讨论发现并更新设计；裁决为 Reject 时，同时推荐在 refine 之后重新运行 `/design-review`。只有在没有任何发现时，才推荐直接进入 `spec-plan`。不要修改 `design.md`，也不要自行调用任何下游技能。
+### STEP 1: Locate and read inputs
+
+用户给出路径时直接使用。否则在 `specs/` 中定位 `design.md`：
+
+- 恰好一个匹配：直接使用。
+- 没有或存在多个匹配：只询问目标路径，然后 STOP。
+
+完整读取 `design.md`。同目录存在 `review.md` 时完整读取，恢复所有 finding ID、
+Closure、Current Readiness、changed sections 和已接受或延期风险。
+
+IF 历史 review 缺少 `## Current Readiness`，或只使用 severity-coded finding ID，THEN
+将其标记为 legacy review：保留一行迁移说明，但不猜测旧状态；本轮执行 Full Review，
+按当前协议重新分配 `F-###` 并生成双视图报告。
+
+### STEP 2: Select review mode
+
+根据 review lifecycle 选择模式：
+
+- 没有历史 review：Full Review。
+- 历史 review 属于 legacy protocol：Full Review migration。
+- 用户明确要求完整评审：Full Review。
+- Goals、Non-Goals、核心架构、数据所有权、公共契约、安全、权限、外部集成、
+  迁移边界或相关项目事实变化：升级为 Full Review。
+- 其余情况下，Current Readiness 为 `ready-for-closure`：Closure Review。
+- 其余情况下，Current Readiness 为 `not-started`、`in-progress` 或 `blocked`：
+  停止并建议继续 `design-refine`，不得评审处理中设计。
+- Current Readiness 已为 `ready / Go`：说明无需再次评审；用户明确要求时才继续。
+
+在 `review.md` 中记录模式和升级原因。不要把每次复审默认当作新的全量审计。
+
+### STEP 3: Explore project evidence
+
+Full Review 按以下优先级探索：
+
+1. README、CLAUDE.md、AGENTS.md。
+2. 项目配置和依赖。
+3. 与设计相关的入口、组件、接口和持久化代码。
+4. 需要理解近期变化时，查看最近 10 个提交。
+5. 相关现有 specs 和机器可读契约。
+
+Closure Review 复用上一轮证据，只重新核实 changed sections 影响的项目区域，
+以及 `context-change` 所指向的新事实。
+
+设计依赖真实数据库时使用 `db-explorer`。能通过代码、配置、数据库或历史核实的声明，
+必须主动核实，不把可检索事实交给用户回答。
+
+STOP when 每个候选 finding 都能指向设计位置、项目证据或明确的契约缺口。
+
+### STEP 4: Run deterministic preflight
+
+全量检查以下规则：
+
+- canonical template 的章节、稳定 Decision ID 和 AC ID。
+- Data Model / Interfaces Change Summary 与详细子章节的映射。
+- Data Flow 中 Contract ID 的引用完整性。
+- Open Questions 是否仍含行为相关未决项。
+- Markdown 行宽。
+
+行宽校验命令：
+
+```bash
+node <brainstorming-skill>/scripts/check-markdown-lines.mjs <path/to/design.md>
+```
+
+把同类格式问题合并为一个 D3 finding，并列出代表性行号；不要为每一行创建 finding。
+
+### STEP 5: Perform semantic review
+
+**Full Review:**
+
+1. 按 rubric 的 7 个维度建立候选 finding ledger。
+2. 建立 Goal -> Solution -> AC 覆盖关系。
+3. 单独检查 Data Model、Interfaces、迁移、并发和错误契约。
+4. 检查项目契合度、适用盲点和 YAGNI。
+5. 按根因合并跨维度候选项，校准严重性。
+6. 对最终集合再做一次交叉检查，然后冻结本轮 findings。
+
+**Closure Review:**
+
+1. 逐条复核上一轮未闭合 finding。
+2. 检查 changed sections 和固定传播章节。
+3. 验证相关 Decision 是否仍有效，`Revisit when` 是否触发。
+4. 只在满足 Origin gate 时创建新 finding。
+5. 无法归入允许 Origin 的自由优化建议不得进入 Findings。
+
+同一根因沿用原 `F-###`。新 ID 从历史最大编号递增，不复用已关闭编号。
+Closure 新 finding 必须写明 Origin 和因果证据。
+
+### STEP 6: Compute snapshot and readiness
+
+根据 rubric 计算评审时 Verdict：
+
+- Blocker 存在：Reject。
+- 无 Blocker、存在 Major：Revise。
+- 无 Blocker/Major：Pass。
+
+根据 lifecycle 初始化 `Current Readiness`：
+
+- 无 finding：`ready / Go`。
+- 仅 Minor：`not-started / Conditional`，等待用户修复或延期选择。
+- 存在 Major：`not-started / Conditional`。
+- 存在 Blocker：`not-started / No-Go`。
+
+Full Review 的新 finding 初始化为 `pending`。Closure Review 中继续成立的历史 finding
+保留原 ID 并初始化为 `reopened`；满足 Origin gate 的新 finding 初始化为 `pending`。
+Closure 已确认关闭的历史 finding 只进入紧凑 Closure。
+
+### STEP 7: Write and validate review.md
+
+使用 review template 写入同目录 `review.md`：
+
+- Review Snapshot 使用设计当前语言，结构标题和固定枚举保持英文。
+- 每条 finding 包含 Severity、Introduced in、Origin、Location、Issue、Evidence 和 Recommendation。
+- Current Readiness 包含状态、Resolution ref、Changed sections 和当前下一步。
+- Closure 不复制上一轮完整 finding 文本。
+- Accepted / Deferred Risks 原样携带并根据当前设计重新核实。
+
+写完后运行行宽校验器。review 自身存在非豁免超长行时，先换行再结束。
+
+### STEP 8: Recommend next step
+
+- Reject/Revise：运行 `design-refine`，完成后运行 Closure Review。
+- Pass 且有 Minor：让用户选择修复或延期；全部终态后进入 `spec-plan`。
+- 无 finding：进入 `spec-plan`。
+
+只推荐，不自动调用下游 skill。
 
 ## Review dimensions
 
-完整清单见 [references/review-rubric.md](references/review-rubric.md)。摘要：
+| ID | Dimension | Focus |
+|----|-----------|-------|
+| D1 | Completeness | Goals、承载设计、AC 和必要章节是否闭合 |
+| D2 | Usability | `spec-plan` 是否无需发明行为或契约 |
+| D3 | Conformance | 是否符合 canonical template 和格式契约 |
+| D4 | Project Fit | 是否符合真实技术栈、模块边界和已有模式 |
+| D5 | Blind Spots | 适用的状态、迁移、权限、失败和运营风险 |
+| D6 | Over-Engineering | 是否存在无法追溯到 Goals 的复杂度 |
+| D7 | Optimization | 是否有实质性更简单或复用更多的方案 |
 
-| # | Dimension | 核心问题 |
-|---|-----------|----------|
-| D1 | Completeness (完整性) | 所有必需章节是否都存在且有实质内容，包括 architecture、components、data flow、error handling、testing 和真实的 Decision Record？每个 goal 是否都映射到方案元素？ |
-| D2 | Usability / Actionability (可用性) | 是否足够具体、无歧义，`spec-plan` 能直接消费——接口、数据形态、可追溯的流程、可衡量的成功标准、一致的术语？ |
-| D3 | Document Conformance (规范性) | 是否遵循 design-doc 模板结构和文档约定（英文标题、spec 路径/命名、Open Questions 与 Decision Record 规则）？ |
-| D4 | Project Fit (符合项目规范) | 是否与项目的技术栈、架构和模块边界一致？是否复用现有接缝，而不是重复或与现有行为冲突？ |
-| D5 | Blind Spots (盲点) | 有哪些没有覆盖——状态、权限、迁移、一致性、留存、隐私、限流、认证、失败/回退、版本化、监控、并发、幂等？Open Questions 是否捕获了正确的未知项？ |
-| D6 | Over-Engineering (过度设计 / YAGNI) | 是否有超出 Goals 的投机性功能、违背 Non-Goals 的范围蔓延、过早抽象、防御性膨胀、或与问题不成比例的复杂度？ |
-| D7 | Optimization (优化点) | 是否有更简单的方案、更多的复用、更少的耦合、或更契合的现有模式？ |
-
-严重性（Blocker / Major / Minor）和裁决（Pass / Revise / Reject）的定义见 rubric。
+详细检查项和严重性规则见 [review rubric](references/review-rubric.md)。
 
 ## Verification
 
-- [ ] `review.md` 存在于与被评审的 `design.md` 相同的目录中
-- [ ] 报告陈述了整体裁决、`spec-plan` go/no-go、以及 Blocker / Major / Minor 计数
-- [ ] 7 个维度全部出现在 Dimension Summary 中
-- [ ] 每条发现都引用具体位置、给出证据和建议、并携带严重性标签
-- [ ] 过度设计的发现是对照设计自己的 Goals / Non-Goals 判断的
-- [ ] 盲点以考虑事项的方式表述，并基于领域检查清单
-- [ ] `design.md` 和所有项目文件未被修改
-- [ ] 结构标题为英文；发现内容使用设计当前的语言
-- [ ] 推荐的下一步与发现和裁决一致：有发现时指向 `/design-refine`，仅当无发现时指向 `spec-plan`
+- [ ] 已读取 canonical design template、review lifecycle 和 rubric。
+- [ ] 已正确选择 Full 或 Closure，并记录升级原因。
+- [ ] Legacy review 已通过 Full Review migration 转换，未猜测旧状态。
+- [ ] Closure 只在 Current Readiness 为 ready-for-closure 时执行。
+- [ ] Full Review 已在冻结前完成全部维度和根因合并。
+- [ ] Closure Review 只检查旧 finding、changed sections 和固定传播范围。
+- [ ] Closure 新 finding 有允许的 Origin 和因果证据。
+- [ ] 后续 Full Review 的新 finding 使用 context-change 或 baseline-miss。
+- [ ] finding 使用稳定 `F-###`，严重性不编码进 ID。
+- [ ] 同一根因延续时沿用原 ID。
+- [ ] 每条 finding 有位置、问题、证据和具体建议。
+- [ ] Data Model 和 Interfaces 按 canonical schema 检查。
+- [ ] Review Snapshot 与 Current Readiness 职责分离。
+- [ ] Closure 紧凑，不复制完整历史 finding。
+- [ ] `design.md` 和项目文件未修改。
+- [ ] `review.md` 行宽校验通过。
 
 ## Safety & guardrails
 
-- 对设计和项目保持只读。唯一写入的文件是 `review.md`；不编辑 `design.md` 或任何项目文件。
-- 证据优先于观点。每条发现都指向具体位置并陈述支持它的内容；不做无依据的批评。
-- 不要编造。不要虚构不适用的替代方案、需求或盲点；只评审存在的内容，并对照设计自己声明的范围。
-- 严重性纪律。Blocker 只留给真正阻碍实现或与项目矛盾的问题；不要为了显得周全而夸大。
-- 尊重设计的范围。过度设计和优化点都对照设计的 Goals 和 Non-Goals 衡量，而不是你更偏好的另一种方案。
-- 根据复杂度调整规模。小设计得到短评审；不要用仪式填充。
-- 无实现、无规划、无修订。本技能只评审和推荐——不写代码、不修改设计、不调用 `design-refine` 或 `spec-plan`。
+- 证据优先于观点；指不出位置和证据就不是 finding。
+- Blocker 只用于真正阻止实现或与项目事实冲突的问题。
+- Blind Spot 表述为需要检查的事项，不假定作者一定遗漏。
+- Decision 仍有效且 `Revisit when` 未触发时，不重复提出相同问题。
+- 小设计得到短报告，不用仪式填充。
+- 本 skill 不修设计、不规划、不实施，也不调用下游 skill。
+- 输出语气直接、自然，不使用模板化客服话术。
 
 ## References
 
-- [Design review rubric](references/review-rubric.md) — 7 维度检查清单、严重性与裁决定义、规范章节集、盲点与过度设计信号
-- [Review report template](assets/review-template.md)
-- [Design refine skill](../design-refine/SKILL.md) — 与用户讨论评审发现，并将确认的决策写回 `design.md`
+- [Canonical design document template](../brainstorming/assets/design-doc-template.md)
+- [Review lifecycle contract](references/review-lifecycle.md)
+- [Review rubric](references/review-rubric.md)
+- [Review template](assets/review-template.md)

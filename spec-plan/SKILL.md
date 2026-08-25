@@ -1,89 +1,121 @@
 ---
 name: spec-plan
-description: Create requirements.md and tasks.md for a project spec, with traceability and status tracking. Use when the user asks for a spec, requirements, task plan, or execution breakdown (e.g. "做个 spec", "拆任务", "出执行计划", "write a spec", "plan tasks"). Requires an approved specs/<topic>/design.md as input; if missing, route to the brainstorming skill first.
-# metadata:
-#   short-description: Spec plan (requirements + tasks)
+description: >
+  从已批准的 specs/<topic>/design.md 生成可追溯的 tasks.md。
+  当用户提到做 spec、拆任务、出执行计划、write a spec、plan tasks 时，
+  必须使用此技能。前置条件：design.md 包含完整的 Acceptance Criteria；
+  若没有设计，先路由到 brainstorming。
 ---
 
 # Spec Plan Skill
 
 ## When to use
 
-- 从已批准的 `design.md` 创建或刷新 `requirements.md` 和 `tasks.md`
-- 将设计转化为准确、可测试的验收标准和可执行的任务
-- 建立从任务到需求、从需求回溯到已批准设计的可追溯性
+- 从已批准的 `design.md` 创建或刷新 `tasks.md`
+- 将设计方案和 Acceptance Criteria 转化为可执行、可验证的实施任务
+- 建立任务到 AC 或已批准设计章节的可追溯性
 
 ## When not to use
 
-- 你只需要一个快速 TODO 列表或单个文件编辑
-- 工作已经在现有 spec 中捕获，只需要实现
-- 还没有已批准的 `design.md`；应先创建或请求设计，而非基于假设生成 requirements/tasks
+- 只需要快速 TODO 列表或单个文件编辑
+- 工作已经由现有 `tasks.md` 捕获，只需要实现
+- 没有已批准的 `design.md`；应先运行 `brainstorming`
 
-## Inputs
+## Inputs / Outputs
 
-- 项目名称和目标目录
-- 已批准的设计文档：`specs/<topic>/design.md`
-- 可选的澄清说明：only when `design.md` 存在歧义、不完整或内部不一致时
+**Inputs:**
 
-## Outputs
+- 已批准的 `specs/<topic>/design.md`
+- 同目录下可选的 `review.md`
 
-- `requirements.md`
-- `tasks.md`
-- 最终响应包含推荐的下一步：让用户对生成的 `specs/<topic>/tasks.md` 运行 `spec-exec`；do not 自动开始实现
+**Outputs:**
+
+- `specs/<topic>/tasks.md`
+- 最终响应推荐用户对生成的 `tasks.md` 运行 `spec-exec`；不自动开始实现
+
+## Acceptance Criteria contract
+
+`design.md` 是已批准行为和设计方案的唯一权威来源。`spec-plan` 只消费其中的 `## Acceptance Criteria`，不得创建、补全、改写或重新解释 AC。
+
+有效 AC 必须满足：
+
+- ID 全局唯一，格式为 `AC-<domain>-<behavior>`，各段使用小写 kebab-case
+- 每条只描述一个可观察、可测试的结果
+- 使用 `WHEN` 或 `IF` 表达条件，并使用 `THEN` 和 `SHALL` 表达结果
+- 每个核心 Goal 至少映射到一条 AC
+- 正常流、错误流和适用的关键边界均被覆盖
+- 不与 Goals、Non-Goals、Proposed Solution、Error Handling 或 Testing 冲突
+- `Open Questions` 中没有仍会改变行为、范围或验收结果的未决项
+
+## Task traceability
+
+每个可执行 sub-task 和独立 Checkpoint 必须至少使用一种追踪元数据；包含子任务的 Phase 行只是容器，不需要追踪元数据：
+
+- `_Acceptance: AC-..._`：直接实现或验证可观察行为。一个任务可引用多个 AC。
+- `_Design: <section path>_`：脚手架、架构调整或内部重构。路径必须指向 `design.md` 中实际存在的章节。
+- 同时使用两者：任务既受行为契约约束，也依赖具体设计方案。
+
+不要把纯内部任务强行绑定到 AC。每条 AC 必须至少被一个实现任务、测试任务或 Checkpoint 的 `_Acceptance:` 覆盖。
 
 ## Workflow
 
-1. 解析目标设计文档。
-   - If 用户提供了 `specs/<topic>/design.md`，使用它。
-   - If 用户 did not provide 设计路径，精确回复：`请指定 design 文件路径（例如 specs/<topic>/design.md）。` Then 结束流程。Do not 搜索、列举或推断设计。
-   - If 用户提供的路径 does not exist，结束流程并推荐先运行 **`brainstorming`** skill 以在 `specs/<topic>/design.md` 产出已批准的设计。
-2. 从选定的 `specs/<topic>/design.md` 确认目标目录和项目名称。
-3. 打开选定的 `design.md` 并从散文内容推断其正文语言，忽略 Markdown 标题、代码、文件路径、标识符和引用/模板标签。If 语言混合，使用用户撰写的说明性内容的主导语言。Do not 仅为确定语言而询问。
-4. 使用 `assets/requirements.template.md` 起草 `requirements.md`。
-   遵循模板中的 HTML 注释以获取内容深度和覆盖范围指导。
-   HTML 注释是创作指令 - Do NOT 将它们包含在最终输出中。
-   精确保留模板的英文结构：Markdown 标题、固定的 section/schema 标签、`Requirement N`、`User Story`、`Acceptance Criteria`，以及验收标准控制词如 `WHEN`、`THEN`、`IF` 和 `SHALL`。用推断的 `design.md` 正文语言编写生成的内容，包括引言、术语表定义、需求标题、用户故事文本和验收标准条件/行为文本，unless 使用代码名称、产品名称或固定标识符。
-   将 `design.md` 视为需求的权威来源。将已批准的设计转化为准确、可测试的验收标准，without adding、omitting 或 changing 预期行为。在适用的地方反映已批准的行为和约束，but do not 将设计理由、示例、备选方案或未来想法转化为硬性需求，unless 设计明确要求它们。
-5. 使用 `assets/tasks.template.md` 起草 `tasks.md` 并链接到 `requirements.md`。
-   精确保留模板的英文结构：Markdown 标题、checkbox/task 编号语法、`Phase`、`Checkpoint`、可选的 `*` 标记语法和 `_Requirements:` 标签。用推断的 `design.md` 正文语言编写生成的内容，包括概述、固定的 `Phase N:` 前缀后的阶段标题、任务标题、任务详细列表、检查点验证详情和注释，unless 使用代码名称、产品名称、文件路径、命令名称或固定标识符。
-   为每个功能阶段包含测试任务，并在关键里程碑添加 Checkpoint 阶段。Checkpoints 是执行 agent 的验证任务，not 用户批准门；编写具体的验证步骤和阻塞条件，instead of 询问是否继续。
-   用 `- [ ]*`（星号紧跟在右括号后）标记可选的 phases/tasks。非必要步骤如测试任务、验证任务、总结/文档收尾任务和 nice-to-have 功能 MUST 使用此标记 — never 使用文本标签如 "可选" 或 "Optional:" 代替。
-6. 确保每个任务引用一个或多个需求 ID（用于可追溯性）。
-7. 在最终确定之前使用链式验证：验证 `requirements.md` 准确实现 `design.md` without drift，然后验证 `tasks.md` 覆盖并引用 `requirements.md`。
-8. If `design.md` 存在歧义、不完整或内部不一致，在最终确定前询问用户。Do not 通过发明需求来填补空白。
+1. **定位设计。**
+   - IF 用户提供了 `specs/<topic>/design.md`，THEN 使用它。
+   - IF 用户未提供路径，THEN 精确回复：`请指定 design 文件路径（例如 specs/<topic>/design.md）。`然后结束流程。不要搜索、列举或推断设计。
+   - IF 路径不存在，THEN 结束流程并推荐先运行 `brainstorming`。
+2. **读取设计并确定语言。** 完整读取 `design.md`；从说明性正文推断生成内容的主导语言，忽略标题、代码、路径和固定标签。不要仅为确定语言而询问。
+3. **执行严格 AC 关卡。** 按 *Acceptance Criteria contract* 检查章节、格式、唯一性、可测试性、Goal 覆盖、错误与边界覆盖、Open Questions 以及跨章节一致性。
+   - IF 任一检查失败，THEN 停止，不生成或刷新 `tasks.md`；指出具体位置和缺口，并建议返回 `brainstorming` 或 `design-refine`。
+   - IF 行为含糊、缺失或冲突，THEN 不得通过推断补齐。
+4. **处理可选评审。** 检查 `design.md` 同目录是否存在 `review.md`。
+   - IF 不存在，THEN 继续。
+   - IF 存在，THEN 读取 `## Current Readiness`，不得使用评审时 Verdict 代替当前状态。
+   - IF `Overall` 为 `ready` 且 `spec-plan readiness` 为 `Go`，THEN 执行以下关卡：
+     1. Current Readiness 中的每个 finding 都是终态：`resolved`、`rejected`、
+        `accepted-risk` 或 `deferred`。
+     2. 每个 `Resolution ref` 都能解析到 `design.md` 中实际存在的 `DR-*`、设计章节，
+        或 `review.md` 的 Accepted / Deferred Risks 条目。
+     3. `rejected` 必须指向包含 `Rejected concern` 和 `Revisit when` 的持久边界 Decision。
+     4. changed sections 与实际更新内容一致；行为或错误语义变化已同步到 AC 和 Testing。
+     全部通过后继续；任一失败则停止并报告 finding ID 和断裂引用。
+   - IF Current Readiness 不是 `ready / Go`，THEN 停止，报告 `Overall`、readiness 和
+     `Next step`，不得根据 Review Snapshot 的旧 Verdict 绕过当前关卡。
+   - IF review 存在但缺少 `## Current Readiness`，THEN 停止并建议重新运行
+     `design-review` 迁移到当前 review lifecycle；不要解析旧的 severity-coded Source 协议。
+5. **建立内部覆盖表。** 将每条 AC 映射到实现、测试或 Checkpoint，
+   并将必要的内部设计工作映射到具体设计章节。覆盖表仅用于规划和校验，
+   不输出独立需求文档。
+6. **生成 tasks.md。** 使用 `assets/tasks.template.md`。保留英文结构标题、
+   checkbox/task 编号、`Phase`、`Checkpoint`、可选 `*` 语法、
+   `_Acceptance:` 和 `_Design:` 标签；生成内容使用步骤 2 确定的语言。
+   - 任务写明具体文件路径和函数、类或交付物。
+   - 每个功能阶段包含适用的测试任务。
+   - 关键里程碑添加 Checkpoint，列出验证命令、引用的 AC 和明确通过条件。Checkpoint 是执行 Agent 的验证任务，不是用户批准门。
+   - 非必要测试、验证、文档收尾和 nice-to-have 功能使用 `- [ ]*`；不要使用“可选”或 `Optional:` 文本标签代替。
+7. **验证覆盖。** 检查所有引用都能解析、每个可执行 sub-task 和独立 Checkpoint 至少有一种追踪元数据、每条 AC 至少被覆盖一次，并确认任务没有来自被拒方案、未来想法或 Non-Goals。
 
-## Verification (self-check before finalizing)
+## Verification
 
-Before presenting the final output，scan both files and confirm each item:
-
-- [ ] `design.md` exists and has been read before drafting `requirements.md` or `tasks.md`。
-- [ ] The body language for `requirements.md` and `tasks.md` was inferred from `design.md` prose，not from template headings。
-- [ ] Template English structure is preserved while generated content uses the inferred `design.md` body language。
-- [ ] `requirements.md` contains Introduction, Glossary, and numbered Requirements sections。
-- [ ] Every requirement is traceable to approved behavior or constraints in `design.md`。
-- [ ] `requirements.md` accurately implements `design.md`: no added behavior, omitted required behavior, changed semantics, or contradictory architecture。
-- [ ] Important approved behaviors and constraints from `design.md` are reflected as testable acceptance criteria where applicable。
-- [ ] Design rationale, examples, alternatives, and future ideas are not converted into hard requirements unless explicitly required by `design.md`。
-- [ ] `tasks.md` links to `requirements.md` and every task includes a `_Requirements: ..._` line。
-- [ ] Requirement IDs referenced in `tasks.md` exist in `requirements.md`。
-- [ ] Each requirement includes acceptance criteria covering normal flow, error flow, and boundary conditions。
-- [ ] Tasks include specific file paths and function/class names。
-- [ ] At least one Checkpoint task exists between major phases and describes concrete validation steps，not user approval。
-- [ ] Phase headings use `- [ ] N. Phase N:` checkbox format，not markdown headings (`###`)。
-- [ ] Task descriptions are indented bullet points under the task title line。
-- [ ] Every non-essential step uses `- [ ]*` marker，including test tasks, verification tasks, summary/documentation wrap-up tasks, and nice-to-have features。No task uses text labels like "可选", "Optional", or "(Optional)" as a substitute。
-- [ ] Sub-tasks under an optional Phase inherit optionality and do not need their own `*`。
-- [ ] Requirements references use `N.M` format (e.g., `_Requirements: 1.1, 2.3_`)，not `RN` format。
+- [ ] 起草前已完整读取 `design.md`
+- [ ] `Acceptance Criteria` 通过严格关卡，无缺失、重复、歧义或冲突
+- [ ] 可选 `review.md` 不存在，或其 Current Readiness 为 `ready / Go`，
+  所有 finding 均为终态且 Resolution ref 可解析
+- [ ] 只生成或刷新 `tasks.md`，未生成独立需求文档
+- [ ] 每个可执行 sub-task 和独立 Checkpoint 至少包含 `_Acceptance:` 或 `_Design:`，且引用可解析
+- [ ] 每条 AC 至少被一个任务或 Checkpoint 覆盖
+- [ ] Checkpoint 包含验证命令、AC 引用和通过条件
+- [ ] Phase 使用 `- [ ] N. Phase N:`，任务描述使用缩进 bullets
+- [ ] 所有非必要步骤使用 `- [ ]*`，可选 Phase 的子任务继承可选性
+- [ ] 任务未引入被拒方案、未来想法、Non-Goals 或设计外行为
 
 ## Safety & guardrails
 
-- Never generate `requirements.md` or `tasks.md` without an approved `design.md`。
-- Never auto-select a `design.md`。The path must come from the user。
-- Do not invent requirements, broaden scope, or reinterpret design intent。Ask for clarification when the design is ambiguous or incomplete。
-- Keep requirements testable and phrased as acceptance criteria。
-- Do not mark tasks as complete unless the work is done。
+- 没有已批准且 AC 完整的 `design.md`，不生成 `tasks.md`。
+- 不自动选择设计路径。
+- 不发明、补写或修改 AC；设计有缺口时严格阻断。
+- 不生成 `requirements.md`，也不使用旧 `_Requirements:` 协议。
+- 工作未实际完成前，不标记任务为完成。
 
 ## References
 
-- [Requirements template](assets/requirements.template.md)
 - [Tasks template](assets/tasks.template.md)

@@ -2,7 +2,7 @@
 
 # Skill Factory for AI Coding Agents
 
-**A curated repository of reusable, eval-friendly skills for AI coding agents.**
+**A curated repository of reusable skills for AI coding agents.**
 
 Turn hard-won prompting and workflow knowledge into modular assets your team can build, test, refine, and reuse.
 
@@ -38,7 +38,7 @@ Instead of treating prompts and workflows as one-off chat artifacts, it organize
 - **Clear entry points** via `SKILL.md`
 - **Reusable assets** such as templates and references
 - **Optional automation** through scripts
-- **Eval-ready structure** for iterative improvement
+- **Reviewable workflows** for iterative improvement
 - **Practical coverage** across planning, execution, research, database exploration, and developer workflows
 
 It is designed for teams who want to make agent behavior more **repeatable, reviewable, and scalable**.
@@ -70,7 +70,7 @@ The `description` is especially important because it helps determine **when the 
 
 ## Included skills
 
-> This repository contains both end-user skills and skill-authoring / evaluation utilities.
+> This repository contains both end-user skills and skill-authoring utilities.
 
 | Skill | Purpose |
 | --- | --- |
@@ -82,10 +82,10 @@ The `description` is especially important because it helps determine **when the 
 | [hackernews-digest](./hackernews-digest/) | Fetch top/newest/Ask/Show stories from Hacker News with comment sentiment and phone-friendly digests. |
 | [munger-decision](./munger-decision/) | Apply Charlie Munger's mental models and 25 psychological biases to major decisions. |
 | [skill-authoring](./skill-authoring/) | Best practices for creating and improving AI agent skills. |
-| [skill-creator](./skill-creator/) | Create, benchmark, and iteratively improve skills. |
+| [skill-creator](./skill-creator/) | Create and iteratively improve skills. |
 | [skill-factory](./skill-factory/) | A systematic workflow for creating or optimizing skills with checkpoints and tooling. |
-| [spec-exec](./spec-exec/) | Execute implementation tasks from `specs/<spec>/tasks.md` and track progress. |
-| [spec-plan](./spec-plan/) | Generate `requirements.md` and `tasks.md` for a project spec. |
+| [spec-exec](./spec-exec/) | Execute `tasks.md` against the approved design's Acceptance Criteria and track progress. |
+| [spec-plan](./spec-plan/) | Generate a traceable `tasks.md` from an approved `design.md`. |
 | [tech-design-doc](./tech-design-doc/) | Generate structured technical design documents from design files or git history. |
 
 ## Repository layout
@@ -105,10 +105,6 @@ The `description` is especially important because it helps determine **when the 
 ├── spec-exec/
 ├── spec-plan/
 ├── tech-design-doc/
-├── evals/
-│   ├── brainstorming/
-│   ├── db-explorer/
-│   └── exa-search/
 ├── AGENTS.md
 └── CLAUDE.md
 ```
@@ -131,7 +127,7 @@ Follow the selected skill's `SKILL.md`.
 Binary skills such as `db-explorer`, `exa-search`, and `grok-search` should be run through their bundled platform binary.
 Skills with Python helpers may include `requirements.txt`; use the **same virtual environment** for installation and execution.
 
-### 4) Run skill-specific scripts or evals
+### 4) Run skill-specific scripts
 
 Example for `db-explorer`:
 
@@ -148,18 +144,7 @@ uname -m
 There is **no monolithic build step** for the repository.
 Most work is skill-specific.
 
-General testing approach:
-
-- Add focused evaluation data under `evals/<skill>/`
-- Run the relevant script or workflow manually
-- Prefer deterministic checks when possible
-- Keep benchmark and grading artifacts descriptive
-
-For `db-explorer`, the main regression check is:
-
-```bash
-python3 evals/db-explorer/run_comparison.py
-```
+Run the relevant script or workflow manually and prefer deterministic checks when possible.
 
 ## Authoring conventions
 
@@ -183,15 +168,14 @@ For repo-specific guidance, see:
 
 ## Contributing
 
-Contributions should keep the repository modular, practical, and easy to evaluate.
+Contributions should keep the repository modular, practical, and easy to verify.
 
 Recommended workflow:
 
 1. Add or update a skill directory
 2. Keep `SKILL.md` focused and triggerable
-3. Add or refresh eval data under `evals/<skill>/`
-4. Verify any scripts with the same environment used for dependency installation
-5. Document behavior changes clearly
+3. Verify any scripts with the same environment used for dependency installation
+4. Document behavior changes clearly
 
 Commit style in recent history follows lightweight Conventional Commit patterns, for example:
 

@@ -2,99 +2,72 @@
 
 ## Overview
 
-This implementation plan is driven by the requirements in [requirements.md](requirements.md).
+This implementation plan is driven by the approved design and Acceptance Criteria in [design.md](design.md).
 
-<!-- Describe:
-     - How many phases and the overall approach
-     - The execution order rationale (what comes first and why)
-     - Key technical decisions (language, frameworks, dependencies)
--->
+<!-- Describe the phase count, execution order, and key implementation decisions. -->
 
-<总结实现策略：阶段数量、执行顺序理由和关键技术决策。>
+<总结实施策略、执行顺序和关键技术决策。>
 
 ## Tasks
 
-<!-- FORMAT RULES — follow these exactly:
+<!-- FORMAT RULES:
 
-1. Phase heading: use checkbox list item, NOT markdown heading
-   CORRECT:  - [ ] 1. Phase 1: Title
-   WRONG:    ### Phase 1: Title
+1. Phase headings are checkbox list items:
+   - [ ] 1. Phase 1: Title
 
-2. Task descriptions: use indented bullet list under the task title
-   CORRECT:
-     - [ ] 1.1 Task title
-       - Create `src/path/file.py` with `function_name` implementing behavior
-       - _Requirements: 1.1, 1.2_
-   WRONG:
-     - [ ] 1.1 Task title
-     Create src/path/file.py with function_name...
-     _Requirements: R1_
+2. Task details are indented bullets under the task title.
 
-3. Optional tasks: use `*` after the checkbox brackets
-   Phase level:     - [ ]* 4. Optional Phase: Title
-   Sub-task level:  - [ ]* 1.3 Write unit tests for feature
-   WRONG:           - [ ] 1.3 可选：Write unit tests
-   Mark as optional: test tasks, verification tasks, and nice-to-have features
-   Sub-tasks under an optional Phase inherit that optional status and do not need their own `*`.
+3. Optional work uses `*` immediately after the checkbox:
+   - [ ]* 1.3 Optional task
+   Sub-tasks under an optional Phase inherit its optional status.
 
-4. Requirements references: use "RequirementNumber.CriterionNumber" format
-   CORRECT:  _Requirements: 1.1, 1.2, 2.3_
-   WRONG:    _Requirements: R1, R2_
+4. Every executable sub-task and standalone Checkpoint has at least one
+   traceability line. Phase containers do not need one:
+   - _Acceptance: AC-domain-behavior_
+   - _Design: Proposed Solution / Components_
+   A task may contain both. Acceptance IDs and design section paths must exist in design.md.
+   Design paths contain exact Markdown headings only. Names that appear only in
+   prose, lists, tables, or code are not valid path segments.
 
-5. Each phase should contain implementation tasks + verification/test task(s)
+5. Use `_Acceptance:` for observable behavior and `_Design:` for scaffolding,
+   architecture, or internal refactoring. Do not invent an AC for internal work.
 
-6. Checkpoint tasks must list concrete validation steps (commands to run,
-   files to inspect, requirement IDs to confirm). They are validation tasks
-   for the execution agent, NOT user approval gates. Do NOT write
-   "ask the user to confirm" or "wait for user approval".
+6. Checkpoints list concrete commands, AC IDs, and pass conditions. They are
+   execution-agent validation tasks, not user approval gates.
 -->
 
-- [ ] 1. Phase 1: Example Phase (replace)
-  - [ ] 1.1 任务标题示例
-    - Create `src/module/file.py` with `function_name` implementing <行为描述>
-    - Integrate with existing `src/other/module.py` by importing `ExistingClass`
-    - _Requirements: 1.1, 1.2_
-  - [ ] 1.2 另一个实现任务
-    - Modify `src/module/config.py` to add `<new_setting>` with default value
-    - Update `src/module/__init__.py` to export the new component
-    - _Requirements: 1.3, 1.4_
-  - [ ]* 1.3 为 <功能> 编写单元测试
-    - Test <正常场景>
-    - Test <错误场景>
-    - Test <边界条件>
-    - _Requirements: 1.1, 1.2, 1.3_
+- [ ] 1. Phase 1: <Phase Title>
+  - [ ] 1.1 <实现可观察行为>
+    - Create or modify `src/<module>/<file>` with `<function/class>` implementing <行为>
+    - _Acceptance: AC-<domain>-<behavior>_
+    - _Design: Proposed Solution / Components_
+  - [ ] 1.2 <内部结构或脚手架任务>
+    - Create or modify `src/<module>/<file>` according to the approved component design
+    - _Design: Proposed Solution / Architecture_
+  - [ ]* 1.3 为本阶段编写测试
+    - Test normal, error, and boundary behavior covered by the referenced AC
+    - _Acceptance: AC-<domain>-<behavior>, AC-<domain>-<failure>_
+    - _Design: Testing_
 
-- [ ] 2. Phase 2: <Phase Title> (replace)
+- [ ] 2. Phase 2: <Phase Title>
   - [ ] 2.1 <任务标题>
-    - Create/modify `src/<module>/<file>` with `<function/class>` implementing <行为描述>
-    - <具体步骤或交付物>
-    - _Requirements: 2.1_
-  - [ ]* 2.2 为 <Phase 2 功能> 编写单元测试
-    - Test <正常场景>
-    - Test <错误场景>
-    - Test <边界条件>
-    - _Requirements: 2.1_
+    - Create or modify `src/<module>/<file>` with `<function/class>` implementing <行为或设计>
+    - _Acceptance: AC-<domain>-<behavior>_
 
 - [ ] 3. Checkpoint - Verify <scope>
-  - Run relevant tests or validation commands
-  - Identify requirement IDs covered by this checkpoint scope
-  - Confirm completed work satisfies referenced acceptance criteria in requirements.md
-  - Stop only if requirement validation fails, the spec is inconsistent, required resources are unavailable, or execution would require changing approved requirements
+  - Run `<test or validation command>`
+  - Verify `AC-<domain>-<behavior>` and `AC-<domain>-<failure>`
+  - Pass when <observable expected result>; stop on failure, spec conflict, or missing dependency
+  - _Acceptance: AC-<domain>-<behavior>, AC-<domain>-<failure>_
+  - _Design: Testing_
 
 - [ ]* 4. Optional Phase: <Phase Title>
   - [ ] 4.1 <任务标题>
     - <具体步骤或交付物>
-    - _Requirements: 4.1_
+    - _Design: <existing design section path>_
 
 ## Notes
 
-- Tasks marked with `*` are optional and can be skipped for an MVP.
-- Each task should reference one or more requirement IDs for traceability.
-- Keep task numbering stable so requirement references stay valid.
-
-<!-- Also include as applicable:
-     - Implementation language and key frameworks
-     - Architecture decisions and rationale
-     - Module extraction / reuse strategy
-     - Testing strategy (unit, integration, property-based)
--->
+- Tasks marked with `*` may be skipped in MVP mode.
+- Keep task numbering stable after execution begins.
+- `design.md` is the source of truth; do not copy full AC text into this file.

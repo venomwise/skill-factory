@@ -1,130 +1,181 @@
 ---
 name: brainstorming
-description: 识别用户的开发需求，对需求进行头脑风暴，确立出完整的需求背景以及边界，落地需求开发阶段的规格，提供一套完整的需求分析，探索，设计，落地的规范化流程。在进行功能开发、bug 修复、优化处理但没指明具体实现方案时进行调用此技能。
+description: >
+  识别开发需求并通过逐步澄清、方案比较和范围收敛生成设计。
+  当用户要开发功能、改变系统行为、修复尚无明确根因或方案的复杂问题，
+  或处理存在多种实现方向的优化时调用。触发词包括“帮我设计”“先梳理需求”
+  “这个功能怎么实现”“方案还不明确”。
 ---
 
 # Brainstorming Ideas Into Designs
 
 ## When to use
 
-- 创建新功能或组件
-- 修改现有系统行为
-- 需求不明确，需要澄清范围
-- 存在多种实现方式
+- 创建新功能或组件。
+- 修改现有系统行为。
+- 需求、边界或技术方案尚不明确。
+- 存在多种实现方式，需要比较取舍。
 
 ## When not to use
 
-- 有明确根因和步骤的 bug 修复
-- 仅涉及拼写或格式的修改
-- 明确的单步执行任务
-- 用户明确拒绝设计流程
+- 根因和修复步骤都已明确的 bug。
+- 仅涉及拼写、格式或明确的单步修改。
+- 用户明确拒绝设计流程。
 
-## Inputs
+## Inputs / Outputs
 
-- 用户的想法或目标（可能模糊）
-- 现有项目上下文（文件、文档、近期提交）
+**Inputs:**
 
-## Outputs
+- 用户的想法、问题或目标。
+- 现有项目上下文和约束。
 
-- 已验证的设计文档，位于 `specs/<topic>/design.md`（仅中等/复杂路线落地；简单路线不产出文档）
-- 根据复杂度匹配的下一步：简单设计建议直接实现，中等/复杂设计推荐先运行 `/design-review`
+**Outputs:**
+
+- 简单设计：经过确认的简短方案，不创建设计文档。
+- 中等或复杂设计：`specs/<topic>/design.md`。
+- 下一步：简单设计询问是否直接实施；中等或复杂设计推荐 `design-review`。
 
 ## Workflow
 
 ### STEP 1: Explore project context
 
-按优先级探索项目上下文：README/CLAUDE/AGENTS.md，项目配置（package.json / pyproject.toml / Cargo.toml / go.mod / pom.xml），入口点，然后是近期提交（需要时最多 10 个）。
+按优先级读取 README、CLAUDE.md、AGENTS.md、项目配置、入口点和相关模块。
+只有理解近期变化确有必要时才查看最近 10 个提交。
 
-STOP when 你能用 2-3 句话描述项目的目的、技术栈和结构。IF 项目复杂或不熟悉，按 [the guide](references/brainstorming-guide.md) 中的探索优先级进行。
+STOP when 你能用 2-3 句话描述项目目的、技术栈、结构和本次变更所在边界。
+项目复杂或不熟悉时，使用
+[brainstorming guide](references/brainstorming-guide.md) 的探索优先级。
 
-### STEP 2: Check the rationality of requirements
+### STEP 2: Check requirement fit
 
-通过 STEP 1 的探索发现，验证需求与当前项目的契合度，检查需求是否合理。IF 需求看起来冗余、与现有内容冲突、会导致错误的问题、或有更简单的替代方案，PAUSE 告诉用户你的发现和推荐路径，然后明确下一步的探索方向。
+根据真实项目证据检查需求是否与现有能力重复、冲突，是否会破坏既有行为，
+以及是否存在明显更简单的路径。
+
+IF 发现冲突或更简单替代方案，THEN PAUSE，向用户说明证据、影响和推荐方向，
+等待用户确认后继续。
 
 ### STEP 3: Check scope
 
-评估范围。IF 需求很大，跨越多个独立子系统或者涉及多个模块，THEN 提出一个拆解方案，包含子项目、依赖关系和构建顺序，然后请求用户确认后再继续。
+IF 需求跨越多个独立子系统或可以分别交付的能力，THEN 提出拆解方案，说明子项目、
+依赖和推荐顺序，并等待用户确认。
 
-Attention：「大需求」是前提，如果仅仅在多个子系统/模块修改一点小改动的话就不算。
+多个模块上的同一个小改动不自动视为大需求。
 
-### STEP 4: Brainstorming
+### STEP 4: Clarify intent and boundaries
 
-与用户进行 brainstorming。首先诊断请求的模糊程度（见 [the guide](references/brainstorming-guide.md) 中的标准）：
+先诊断主要缺口：
 
-- Problem unclear -> 重新界定问题：帮助用户澄清他们实际要解决的问题，不仅仅是他们想要什么功能。
-- Direction unclear -> 探索可行方向：在缩小范围之前，先勾勒出几个有代表性的方向，使用"假设"场景和视角切换等技术。
-- Boundaries unclear -> 排查盲点：使用 guide 中与领域相关的盲点检查清单，帮助用户考虑潜在的空白。
-- Solution unclear -> 技术方案仍需比较，即使用户的请求中充满具体的技术术语，也不意味着意图已确认。熟悉技术不等于知道用户想要什么。
+- `Problem unclear`：重新界定实际要解决的问题。
+- `Direction unclear`：探索几个有代表性的方向。
+- `Boundaries unclear`：检查与领域相关的盲点。
+- `Solution unclear`：确认意图和约束后再比较技术方案。
 
-**每轮只问一个问题并等待答案**: 这是核心节奏。当多选题能帮助用户在有意义的选项间做选择时，优先使用多选题。不要在同一轮里提出问题，又用假设代替用户作答。将未知的意图、优先级、权衡偏好和验收标准视为需要询问的内容。**不要假设这些仅存在于用户头脑中的内容**。
+每个需要用户输入的回合只问一个原子问题并等待回答。这是节奏控制，
+不是总问题数上限。优先提供有意义的选项和你的倾向，让用户容易判断取舍。
 
-**持续提问直到满足退出条件**:
+不要因为请求中包含大量技术细节就假设意图已经确认。用户的优先级、偏好、
+成功标准和明确不要的内容只能通过提问获得。
 
-- 能清楚地陈述用户想要什么、为什么想要、以及他们明确不想要什么；
-- 已明确关键约束和成功标准；
-- 离开此步骤前，Verify：你能总结出用户的意图、优先级和约束吗？If no，继续提问。
+持续提问，直到以下条件全部满足：
+
+1. 能说明用户想要什么、为什么需要、明确不要什么。If no，继续本步骤。
+2. 关键约束和成功标准已知。If no，继续本步骤。
+3. 适用的关键假设和盲点已确认或明确排除。If no，继续本步骤。
 
 ### STEP 5: Converge and propose
 
-收敛思路并提出建议:
+进入方案比较前执行关卡：
 
-1. 在本次会话中，你是否至少向用户提出了一个澄清性问题？If no，回到 `STEP 4`;
-2. 知道用户想要什么、为什么想要、以及明确不想要什么吗？If no，回到 `STEP 4` 并继续提问;
-3. 已知关键约束条件和成功标准了吗？If no，回到 `STEP 4` 并继续提问。
+1. 本次会话是否至少问过一个澄清问题？If no，回到 STEP 4。
+2. 意图、优先级、范围和成功标准是否明确？If no，回到 STEP 4。
+3. 是否能区分项目事实与仍需用户决定的偏好？If no，先完成探索或提问。
 
-Note：一个需求在技术上很详细，并不意味着它满足这些条件，技术细节本身无法说明用户的意图、优先级，或在取舍上的偏好。
+关卡通过后，总结问题、范围、已验证事实、被质疑的假设和关键盲点。
+提出 1-3 个可行方案，说明成本、风险和取舍，并优先给出推荐方案。
+只有一个方案可行时，说明其他方向被排除的原因。
 
-所有条件都满足后，总结头脑风暴所揭示的内容：精炼后的问题陈述、需求匹配度的发现、被质疑的假设、发现的盲点，以及经过裁剪的范围。然后提出 1 到 3 种方案，并说明各自的权衡取舍。优先给出你的推荐方案。如果只有一种方案可行，请说明其他备选方案为何被排除。
-
-在继续之前，请让用户确认问题总结，并选择一种方案。
-
-Attention: 如果用户不认可提出的方案或对方案提出了修正意见，必须重新呈现更新后的总结并再次向用户确认，直到用户确认了方案可行为止。
+让用户确认问题总结和方案选择。用户修正意图或方案时，更新总结并再次确认；
+不要在同一回合提出确认问题后用假设代替用户回答。
 
 ### STEP 6: Classify the design
 
-根据实现风险对设计方案进行分类，分类依据的应该是**设计本身**，而不是初始请求表面上的简单程度。只有当以下所有条件都为真时，才将其归类为**简单**:
+只有以下条件全部为真时，才归类为简单设计：
 
-- 变更仅局限于单个组件或单个行为；
-- 遵循项目既有模式；
-- 不涉及数据迁移、外部集成、安全/权限边界、并发/可靠性问题；
-- 不涉及公共契约变更；
-- 测试和回滚都很直接；
-- 没有任何未解决的问题
+- 变更局限于单个组件或行为。
+- 遵循项目既有模式。
+- 不涉及数据迁移、外部集成、安全、权限、并发或可靠性问题。
+- 不改变公共契约。
+- 测试和回滚直接。
+- 没有未解决问题。
 
-如果有任何一项条件为 FALSE 或不确定，则将其归类为**中等或复杂**。示例见 [the guide](references/brainstorming-guide.md)
+任一条件为 false 或不确定时，归类为中等或复杂。
 
-### STEP 7: Route the next step by that classification
+### STEP 7: Route and write
 
-根据设计分类决定下一步：
+**简单设计：**
 
-- **简单**：简要解释为何为低风险设计，然后询问是否直接开始实施。如果用户同意，则该回复表示授权实施，随即进入实施。如果用户提出疑问，则基于当前设计对疑问进行解答，如果提出了反馈，则更新对应的设计内容，但**若反馈改变了意图或方案**，则回退到 `STEP 4` 或 `STEP 5` 重新设计方案。
-- **中等或复杂**：说明当前设计的风险，陈述设计的核心逻辑，然后询问用户是否落地设计方案。如果用户同意，则根据 [design doc template](assets/design-doc-template.md) 这个模板，将设计文档写入 `specs/<topic>/design.md`。`<topic>` 使用从项目名或功能名派生的 kebab-case 命名（例如：`user-auth`、`payment-integration`）。IF `specs/` 下已存在同名目录或路径有歧义，先与用户确认是重命名还是沿用。Decision Record 章节必须从 `STEP 5` 实际生成的方案对比中恢复；IF 对比内容已滚出近期对话，THEN 回头重读对话原文并如实恢复，不要凭印象重建，也不要编造未讨论过的备选方案。如果用户不认可或者提出了疑问或者补充了说明，则需要判断**反馈是否改变了意图或方案**：若是，回退到 `STEP 4` 或 `STEP 5` 重新设计；否则只需要更新相应的设计内容。设计文档落地后，推荐用户执行 `/design-review` 这个 skill 对设计文档和方案进行 review。(虽然这里推荐执行 `/design-review`, 但是如果用户想要执行 `/spec-plan` 甚至要求直接实现,也是可以的.以用户的实际指令为主)
+说明低风险依据，询问用户是否直接实施。只有用户同意后才能进入实施。
+反馈改变意图或方案时回到 STEP 4 或 STEP 5。
 
-回退路由标准（两条路线通用）：意图或边界重新变得模糊时，回 `STEP 4` 重新澄清；只是方案选择需要重来时，回 `STEP 5` 重新收敛。
+**中等或复杂设计：**
+
+说明风险和核心逻辑，询问是否写入设计文档。用户同意后：
+
+1. 使用唯一权威
+   [design document template](assets/design-doc-template.md)。
+2. 写入 `specs/<topic>/design.md`；topic 使用 kebab-case。
+3. 同名目录或路径有歧义时，先确认重命名还是沿用。
+4. 只从实际讨论和项目证据恢复内容；不要凭印象重建或编造选项。
+5. 只把持久且非显然的选择写入稳定 `DR-<semantic-topic>`。
+6. 用户明确驳回且可能被重复提出的边界，写入带 `Rejected concern` 和
+   `Revisit when` 的 Decision。
+7. 事实修正、格式处理和章节传播不写入 Decision Record。
+8. 数据或契约发生变化时，按模板填写 Data Model / Interfaces Change Summary。
+9. 在 Acceptance Criteria 中写入用户确认的可观察行为。
+10. 运行只读格式校验器，修复所有非豁免超长行。
+
+格式校验命令：
+
+```bash
+node <brainstorming-skill>/scripts/check-markdown-lines.mjs specs/<topic>/design.md
+```
+
+设计写盘后推荐运行 `design-review`。用户明确要求进入 `spec-plan` 或实施时，
+仍以用户指令为准，但不得绕过未解决的设计问题。
+
+反馈使意图或边界重新模糊时回到 STEP 4；只需重新选择方案时回到 STEP 5。
 
 ## Verification
 
-仅针对有落地 `specs/<topic>/design.md` 设计文档的需求：
+仅针对落地的 `design.md`：
 
-- [ ] `specs/<topic>/design.md` 存在
-- [ ] 设计文档包含 `assets/design-doc-template.md` 中的模板标题
-- [ ] 设计文档保持模板标题为英文，章节内容使用用户当前的语言
-- [ ] 设计涵盖 architecture、components、data flow、error handling 和 testing
-- [ ] 如果 brainstorming 浮现了值得注意的发现，它们已记录在设计文档的 Discovery 章节中
-- [ ] Decision Record 记录了 `STEP 5` 中所比较的方案以及选择方案的理由（或当仅一个方案可行时，其他方案被排除的原因）
-- [ ] Open Questions 仅包含已浮现的未解决问题，或明确说明没有遗留问题
-- [ ] 使用 `STEP 6` 的设计复杂度分类
-- [ ] 简单设计以询问直接实现确认结束；中等或复杂设计以推荐 `/design-review` 结束
+- [ ] 文件位于 `specs/<topic>/design.md`，topic 为 kebab-case。
+- [ ] 标题和章节符合 canonical design document template。
+- [ ] Goals、Non-Goals、Architecture、Components、Data Flow、Error Handling、
+  Acceptance Criteria、Testing 和 Open Questions 有实质内容。
+- [ ] Decision 只包含符合准入条件的持久选择，并使用稳定语义 ID。
+- [ ] 用户明确驳回的持久边界包含 `Rejected concern` 和 `Revisit when`。
+- [ ] 涉及数据变化时，Data Model 使用 Change Summary 和适用的固定子章节。
+- [ ] 可执行 DDL/DML 位于独立 SQL 文件，设计只引用路径和迁移语义。
+- [ ] 涉及契约变化时，Interfaces 枚举全部 ADD/MODIFY/REMOVE 契约。
+- [ ] Data Flow 的跨边界调用均能映射到 Contract ID。
+- [ ] 每个核心 Goal 至少有一条 AC，ID 唯一且符合 kebab-case 约定。
+- [ ] 每条 AC 只描述一个可观察结果，覆盖正常流、错误流和关键边界。
+- [ ] AC 不包含实现步骤、验证命令、被拒方案或未经确认的内容。
+- [ ] Open Questions 不包含仍会改变行为、范围或验收结果的未决项。
+- [ ] 行宽校验通过，无非豁免的 120 字符超长行。
 
 ## Safety & guardrails
 
-- 未经明确确认，不得开始实施。只有走简单设计路径时才可直接进入实施，且必须在 `STEP 7` 得到用户的同意。
-- 流程强度与需求规模匹配：简单明确的请求允许在少数几轮交流内完成 `STEP 4`–`STEP 5`，不要为凑流程而追加提问或拉长环节；「简单」的判断可参考 `STEP 6` 的分类标准。
-- 把握提问节奏，每次交互只问一个问题，并等待回答后再问下一个（控制节奏），但要持续提问，直到意图和约束条件清晰为止——提问的数量取决于你发现的缺口，完整的规则见 `STEP 4`。
-- 在恰当的时机践行 YAGNI（不需要就不做）原则。在发散阶段（发掘选项和盲点）时，自由探索，不要过早否定想法。在收敛和设计阶段，则要大刀阔斧地删减——去掉任何对核心目标非必需地内容。
-- 面向隔离进行设计。将系统拆分为具有单一明确目标和定义良好接口的单元。详见 [the guide](references/brainstorming-guide.md)
+- 未经确认不得写设计或开始实施。
+- 简单明确的请求允许在少数几轮内完成，不为凑流程追加问题。
+- 发散阶段允许探索；收敛和写设计时删除不服务当前 Goals 的内容。
+- `design.md` 是当前有效行为和设计的唯一权威，不兼任完整讨论日志。
+- 长寿命内容必须从实际对话和项目证据恢复，不凭印象补写。
+- 输出语气自然、直接，像与同事讨论，不使用客服或公文式话术。
 
 ## References
 
-- [Detailed brainstorming guide](references/brainstorming-guide.md)
-- [Design doc template](assets/design-doc-template.md)
+- [Brainstorming guide](references/brainstorming-guide.md)
+- [Canonical design document template](assets/design-doc-template.md)
+- [Markdown line-width validator](scripts/check-markdown-lines.mjs)
