@@ -4,7 +4,7 @@ description: >
   Generate High-Level Design (HLD) — concise, visual overview for human review. Transforms detailed 
   design.md (LLD) into scannable HLD with diagrams/tables (300-400 lines, ~50% of source). 
   Use for "write HLD", "概要设计", "高层设计", "generate tech design", "帮我写个技术设计", "生成设计文档".
-  Input: design.md (from brainstorming skill) or git commit history.
+  Input: design.md (from clarifying skill) or git commit history.
 ---
 
 # High-Level Design (HLD) Generator
@@ -20,7 +20,7 @@ Generate a High-Level Design document from detailed design.md or git history —
 - **Low-Level Design (LLD) / 详细设计**：面向实现者（AI Agent、工程师）的精确规范，关注"如何实现"和"所有实现细节"。包含完整的 API 契约、数据库 DDL、算法步骤、边界处理逻辑。目标是让实现者能够无歧义地编写代码。
 
 **In this skill:**
-- **Input (LLD)** = design.md（详细设计，来自 brainstorming skill 或 git history）
+- **Input (LLD)** = design.md（详细设计，来自 clarifying skill 或 git history）
 - **Output (HLD)** = 生成的概要文档（面向审查者）
 
 ---
@@ -43,7 +43,7 @@ This skill performs **faithful transformation** from LLD (detailed design.md) to
 
 **Transformation = Reorganization + Abstraction, NOT Reinterpretation**
 
-- **Input**: design.md (LLD) — complete implementation spec from brainstorming skill or inferred from git history
+- **Input**: design.md (LLD) — complete implementation spec from clarifying skill or inferred from git history
 - **Output**: HLD document — concise, visual overview (300-400 lines, ~50% of source)
 - **Readers**: Developers, architects, reviewers (humans, not AI agents)
 - **Purpose**: Enable 30-minute architectural review and design approval
@@ -153,7 +153,7 @@ cursor 是服务端编码的字符串，内部包含 version、kid、syncMode、
 
 Two supported inputs, in priority order:
 
-1. **design.md** — produced by the `brainstorming` skill, typically at `specs/<topic>/design.md` or `.codex/specs/<topic>/design.md`
+1. **design.md** — produced by the `clarifying` skill, typically at `specs/<topic>/design.md`
 2. **git commit history** — analyze recent relevant commits via `git log` to extract change intent and technical context
 
 ## Output
@@ -166,10 +166,11 @@ Two supported inputs, in priority order:
 ### 1. Identify the input source
 
 Ask the user which input source to use:
-- **design.md** from the brainstorming skill
+- **design.md** from the clarifying skill
 - **git commit history**
 
-If the user chooses design.md, probe for it automatically: check `specs/` and `.codex/specs/` for an existing file. If found, use it directly. If not found, ask the user for the path.
+If the user chooses design.md, probe `specs/` for an existing file. If found, use it directly.
+If not found, ask the user for the path.
 
 ### 2. Gather context
 

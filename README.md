@@ -74,7 +74,8 @@ The `description` is especially important because it helps determine **when the 
 
 | Skill | Purpose |
 | --- | --- |
-| [brainstorming](./brainstorming/) | Turn rough ideas into scoped designs and specs through collaborative dialogue. |
+| [brainstorming](./brainstorming/) | Plan and iteratively maintain large projects and rolling backlogs. |
+| [clarifying](./clarifying/) | Turn one deliverable requirement into a technical design and acceptance criteria. |
 | [db-explorer](./db-explorer/) | Read-only exploration of PostgreSQL, MySQL, and SQLite databases. |
 | [exa-search](./exa-search/) | Source-first web research for docs, APIs, and structured content retrieval. |
 | [git-commit](./git-commit/) | Generate and submit git commits aligned with repo history and conventions. |
@@ -93,6 +94,7 @@ The `description` is especially important because it helps determine **when the 
 ```text
 .
 ├── brainstorming/
+├── clarifying/
 ├── db-explorer/
 ├── exa-search/
 ├── git-commit/

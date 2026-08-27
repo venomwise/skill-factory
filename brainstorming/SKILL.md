@@ -1,181 +1,276 @@
 ---
 name: brainstorming
 description: >
-  识别开发需求并通过逐步澄清、方案比较和范围收敛生成设计。
-  当用户要开发功能、改变系统行为、修复尚无明确根因或方案的复杂问题，
-  或处理存在多种实现方向的优化时调用。触发词包括“帮我设计”“先梳理需求”
-  “这个功能怎么实现”“方案还不明确”。
+  把大型、抽象或包含多个独立能力的软件项目梳理为本地权威的项目方向和滚动 backlog，
+  通过用户与问题发现、MVP 收敛、能力地图、目标拆分和依赖排序生成
+  `projects/<project>/project.md` 与 `backlog.md`。当用户说“开发一个音乐 APP”
+  “做一个图书管理系统”“帮我规划整个项目”“需求太大先拆一下”时调用；已有项目持续
+  迭代时，用户说“继续上次的项目规划”“根据新需求更新项目”“调整 MVP 或优先级”
+  “更新 backlog 或项目进度”也应调用。单个可独立交付的需求应使用 `clarifying`。
 ---
 
-# Brainstorming Ideas Into Designs
+# Brainstorming Projects Into Deliverable Goals
+
+从模糊项目想法中发现用户需求，确认 MVP，并拆成可以逐个进入 `clarifying` 的交付目标。
+本技能维护项目规划基线，不替代技术设计、任务规划或开发执行。
 
 ## When to use
 
-- 创建新功能或组件。
-- 修改现有系统行为。
-- 需求、边界或技术方案尚不明确。
-- 存在多种实现方式，需要比较取舍。
+- 从零规划一个产品、应用或跨能力项目。
+- 请求包含多个可以独立交付和验收的用户或业务结果。
+- 尚未明确目标用户、核心问题、MVP、能力优先级或交付顺序。
+- 继续一个 `draft` 项目，从上次未决问题恢复规划。
+- 新需求、约束或项目事实变化，需要调整范围、MVP、优先级、依赖或 backlog。
+- 项目已进入交付，需要继续细化 `Next / Later` 或规划下一阶段。
+- 下游返回 handoff 或产生新证据，需要对账项目进度和 Current Focus。
+- 用户说“继续项目规划”“接着梳理需求”“重新排一下优先级”“更新 backlog”或
+  “同步一下项目进度”。
 
 ## When not to use
 
-- 根因和修复步骤都已明确的 bug。
-- 仅涉及拼写、格式或明确的单步修改。
-- 用户明确拒绝设计流程。
+- 请求已经聚焦为一个可独立设计、验收和交付的目标；应使用 `clarifying`。
+- 已有批准的 `design.md`，只需评审、拆任务或实施。
+- 用户说“继续开发”“继续执行 tasks.md”或“恢复实施”；应使用 `spec-exec`。
+- 只需同步 Jira 或 GitHub Projects；外部同步应由独立能力处理。
 
 ## Inputs / Outputs
 
 **Inputs:**
 
-- 用户的想法、问题或目标。
-- 现有项目上下文和约束。
+- 用户的产品想法、业务目标、迭代变更或下游 project handoff。
+- 可选的现有项目代码、文档、PRD、约束和外部项目事实。
+- 更新模式下已有的 `projects/<project>/project.md` 与 `backlog.md`。
 
 **Outputs:**
 
-- 简单设计：经过确认的简短方案，不创建设计文档。
-- 中等或复杂设计：`specs/<topic>/design.md`。
-- 下一步：简单设计询问是否直接实施；中等或复杂设计推荐 `design-review`。
+- 标准产物：`projects/<project>/project.md` 和 `projects/<project>/backlog.md`。
+- 小项目降级：只生成 `project.md`，并在其中保留唯一的 `## Backlog`。
+- 项目规划状态：`draft` 或 `ready`。
+- 下一步：`ready` 推荐一个 `ready-for-clarifying` work item；`draft` 记录下一项待决问题。
+- 不生成 `design.md`、Acceptance Criteria、`tasks.md` 或代码，不写入外部项目管理工具。
 
 ## Workflow
 
-### STEP 1: Explore project context
+### STEP 1: Select mode and explore context
 
-按优先级读取 README、CLAUDE.md、AGENTS.md、项目配置、入口点和相关模块。
-只有理解近期变化确有必要时才查看最近 10 个提交。
+先根据用户表达和现有项目产物选择模式：
 
-STOP when 你能用 2-3 句话描述项目目的、技术栈、结构和本次变更所在边界。
-项目复杂或不熟悉时，使用
-[brainstorming guide](references/brainstorming-guide.md) 的探索优先级。
+- `initialize`：首次规划，尚不存在对应 `project.md`。
+- `resume`：继续未完成的 `draft`，从已记录的未决问题恢复。
+- `replan`：新需求、约束或事实影响已有规划，或继续细化 `Next / Later` 和下一阶段。
+- `reconcile`：只根据下游 handoff 和真实产物对账状态，不改变产品范围。
 
-### STEP 2: Check requirement fit
+IF 用户要求继续或更新但未给路径，THEN 先结合当前对话和项目名检索
+`projects/*/project.md`：恰好一个匹配时使用；没有或存在多个匹配时，只询问目标路径并
+STOP，不猜测项目。
 
-根据真实项目证据检查需求是否与现有能力重复、冲突，是否会破坏既有行为，
-以及是否存在明显更简单的路径。
+`resume`、`replan` 和 `reconcile` 必须完整读取 `project.md`，再按实际存储模式恢复 backlog：
 
-IF 发现冲突或更简单替代方案，THEN PAUSE，向用户说明证据、影响和推荐方向，
-等待用户确认后继续。
+- 存在 `backlog.md`：完整读取它，并确认 `project.md` 的 `## Backlog` 只保留链接。
+- 不存在 `backlog.md`：读取 `project.md` 中唯一的嵌入式 `## Backlog`。
+- 两处都包含 work item 或两处都没有：PAUSE，报告权威来源冲突或缺失，等待用户处理。
 
-### STEP 3: Check scope
+新建模式按优先级读取 README、CLAUDE.md、AGENTS.md、现有 PRD、相关代码、项目配置和
+已有规划。只有理解近期变化确有必要时才查看最近 10 个提交。
 
-IF 需求跨越多个独立子系统或可以分别交付的能力，THEN 提出拆解方案，说明子项目、
-依赖和推荐顺序，并等待用户确认。
+按模式继续：
 
-多个模块上的同一个小改动不自动视为大需求。
+- `initialize`：进入 STEP 2，完成首次发现与拆分。
+- `resume`：读取 Planning Status、PDR、Open Questions 和 backlog，从第一项阻止状态推进的
+  未决问题继续；不重新询问已确认内容。
+- `replan`：比较新信息与当前权威文档，建立受影响的 Goals、MVP、capability、work item、
+  PDR 和 Current Focus 清单，只回到最早受影响的 STEP 3-6。
+- `reconcile`：确认没有范围或优先级变化后直接进入 STEP 9；存在变化时改为 `replan`。
 
-### STEP 4: Clarify intent and boundaries
+已有 PDR 只有在 `Revisit when` 已触发或用户明确改变决定时才重新讨论。后续调用以本地
+项目文档为准，不依赖 Agent 对上次对话的记忆重建已确认内容。
 
-先诊断主要缺口：
+能从代码、文档、数据库或历史核实的事实主动核实，不把可检索信息交给用户回答。
+绿地项目没有代码事实时，明确区分用户约束、待验证假设和开放问题。
 
-- `Problem unclear`：重新界定实际要解决的问题。
-- `Direction unclear`：探索几个有代表性的方向。
-- `Boundaries unclear`：检查与领域相关的盲点。
-- `Solution unclear`：确认意图和约束后再比较技术方案。
+STOP when 你能说明本次模式、目标项目、已确认基线和本轮变化或待决问题。
+需要拆分、恢复、状态对账方法或领域盲点时，读取
+[project planning guide](references/project-planning-guide.md)。
+
+### STEP 2: Check project granularity
+
+执行入口关卡：
+
+1. 请求是否包含多个可以独立产生价值的结果？不满足时，推荐使用 `clarifying`。
+2. 当前主要缺口是否是项目愿景、MVP、能力范围或优先级？不满足时，推荐使用
+   `clarifying`。
+
+多个技术模块围绕同一个交付结果发生变化，不自动构成项目级需求。需要路由到
+`clarifying` 时，说明证据并等待用户确认；确认后 STOP。多个项目目标存在强依赖时仍留在
+本技能，依赖用于后续拆分和排序，不作为降级到单项需求的理由。
+
+### STEP 3: Discover intent and outcomes
+
+依次确认以下项目级信息：
+
+- 谁会使用，当前问题或机会是什么。
+- 用户和业务分别希望获得什么结果。
+- 为什么现在做，哪些结果最重要。
+- 明确不要做什么，现实约束是什么。
+- 怎样判断项目或 MVP 成功。
 
 每个需要用户输入的回合只问一个原子问题并等待回答。这是节奏控制，
-不是总问题数上限。优先提供有意义的选项和你的倾向，让用户容易判断取舍。
+不是总问题数上限。优先提供有代表性的选项和你的倾向，让用户容易判断取舍。
 
-不要因为请求中包含大量技术细节就假设意图已经确认。用户的优先级、偏好、
-成功标准和明确不要的内容只能通过提问获得。
+不要因为用户列出了大量功能就假设目标和优先级已经确认。项目愿景、取舍偏好、
+MVP 边界和成功标准只能由用户决定。
 
-持续提问，直到以下条件全部满足：
+### STEP 4: Define direction and MVP
 
-1. 能说明用户想要什么、为什么需要、明确不要什么。If no，继续本步骤。
-2. 关键约束和成功标准已知。If no，继续本步骤。
-3. 适用的关键假设和盲点已确认或明确排除。If no，继续本步骤。
+总结已确认的问题、目标用户、期望结果、Non-Goals、约束和成功指标。
+方向仍不明确时提出 1-3 个有代表性的产品方向，说明价值、成本和取舍，并给出推荐。
 
-### STEP 5: Converge and propose
+将候选能力划分为 `Now / Next / Later`：
 
-进入方案比较前执行关卡：
+- `Now`：构成首个可验证 MVP 的最小能力集合。
+- `Next`：MVP 得到验证后优先扩展的能力。
+- `Later`：保留方向，但当前不投入详细澄清。
 
-1. 本次会话是否至少问过一个澄清问题？If no，回到 STEP 4。
-2. 意图、优先级、范围和成功标准是否明确？If no，回到 STEP 4。
-3. 是否能区分项目事实与仍需用户决定的偏好？If no，先完成探索或提问。
+向用户呈现项目方向和 MVP 边界并等待确认。用户改变目标或优先级时，更新总结后再次确认；
+不要在提出确认问题后用假设代替用户回答。
 
-关卡通过后，总结问题、范围、已验证事实、被质疑的假设和关键盲点。
-提出 1-3 个可行方案，说明成本、风险和取舍，并优先给出推荐方案。
-只有一个方案可行时，说明其他方向被排除的原因。
+### STEP 5: Build capability map and backlog
 
-让用户确认问题总结和方案选择。用户修正意图或方案时，更新总结并再次确认；
-不要在同一回合提出确认问题后用假设代替用户回答。
+按用户或业务结果建立 capability map，再拆成 work item。不要按前端、后端、数据库或
+团队结构拆分。每个 work item 使用稳定的 `WI-<semantic-name>`，并包含：
 
-### STEP 6: Classify the design
+- Outcome：独立产生的用户或业务结果。
+- Scope / Non-Goals：高层边界，不包含实现方案。
+- Success signal：项目层面的成功信号，不是正式 Acceptance Criteria。
+- Priority：`Now / Next / Later`。
+- Dependencies：业务、外部或必要的技术前置。
+- Status：当前流程状态。
+- Open questions：留到该目标进入 `clarifying` 前后解决的问题。
 
-只有以下条件全部为真时，才归类为简单设计：
+work item 必须能够独立进入 `clarifying`、形成一个设计并被验收。拆分结果过大时继续拆分；
+拆分结果只是代码任务时向上合并为交付结果。
 
-- 变更局限于单个组件或行为。
-- 遵循项目既有模式。
-- 不涉及数据迁移、外部集成、安全、权限、并发或可靠性问题。
-- 不改变公共契约。
-- 测试和回滚直接。
-- 没有未解决问题。
+### STEP 6: Sequence rolling delivery
 
-任一条件为 false 或不确定时，归类为中等或复杂。
+识别依赖、可并行项和推荐顺序。只把近期准备交付的目标推进到
+`ready-for-clarifying`；其余目标保留在 `candidate` 或 `deferred`，不提前澄清技术细节。
 
-### STEP 7: Route and write
+使用以下主状态：
 
-**简单设计：**
-
-说明低风险依据，询问用户是否直接实施。只有用户同意后才能进入实施。
-反馈改变意图或方案时回到 STEP 4 或 STEP 5。
-
-**中等或复杂设计：**
-
-说明风险和核心逻辑，询问是否写入设计文档。用户同意后：
-
-1. 使用唯一权威
-   [design document template](assets/design-doc-template.md)。
-2. 写入 `specs/<topic>/design.md`；topic 使用 kebab-case。
-3. 同名目录或路径有歧义时，先确认重命名还是沿用。
-4. 只从实际讨论和项目证据恢复内容；不要凭印象重建或编造选项。
-5. 只把持久且非显然的选择写入稳定 `DR-<semantic-topic>`。
-6. 用户明确驳回且可能被重复提出的边界，写入带 `Rejected concern` 和
-   `Revisit when` 的 Decision。
-7. 事实修正、格式处理和章节传播不写入 Decision Record。
-8. 数据或契约发生变化时，按模板填写 Data Model / Interfaces Change Summary。
-9. 在 Acceptance Criteria 中写入用户确认的可观察行为。
-10. 运行只读格式校验器，修复所有非豁免超长行。
-
-格式校验命令：
-
-```bash
-node <brainstorming-skill>/scripts/check-markdown-lines.mjs specs/<topic>/design.md
+```text
+candidate -> ready-for-clarifying -> design-ready -> planned -> executing -> done
 ```
 
-设计写盘后推荐运行 `design-review`。用户明确要求进入 `spec-plan` 或实施时，
-仍以用户指令为准，但不得绕过未解决的设计问题。
+旁路状态使用 `blocked`、`deferred`、`cancelled`。状态变化不改变 work item ID。
 
-反馈使意图或边界重新模糊时回到 STEP 4；只需重新选择方案时回到 STEP 5。
+进入 `ready-for-clarifying` 前执行关卡：
+
+1. 用户、Outcome 和高层边界是否明确？不满足时，回到 STEP 3 或 STEP 5。
+2. Priority 和 Dependencies 是否已确认？不满足时，回到 STEP 4 或本步骤。
+3. 是否存在阻止单项设计的项目级决策？存在时，回到 STEP 3 或 STEP 4。
+4. Success signal 是否足以指导后续澄清？不满足时，回到 STEP 5。
+
+### STEP 7: Confirm persistence state
+
+写盘前先选择项目规划状态：
+
+- `draft`：用户需要暂停，或仍有问题会改变项目目标、MVP、拆分或当前焦点。
+- `ready`：项目级方向已经闭合，可以把近期目标交给 `clarifying`。
+
+**draft 关卡：**
+
+1. 是否至少有一项经过用户确认的事实、范围或决策？不满足时，回到 STEP 3 继续讨论。
+2. 未决问题是否包含影响范围和下一步决策？不满足时，补全后再继续。
+3. 是否没有新的 `ready-for-clarifying` work item？不满足时，将其改回 `candidate` 或
+   `blocked`；已有证据支持的 `design-ready` 及后续状态保持不变。
+4. 是否能区分已确认内容、项目事实和待验证假设？不满足时，先探索或提问。
+
+**ready 关卡：**
+
+1. 本次会话是否至少问过一个项目级澄清问题？不满足时，回到 STEP 3。
+2. 项目问题、用户、目标、Non-Goals、约束和成功指标是否明确？不满足时，回到 STEP 3。
+3. MVP 是否能映射到完整的 `Now` work item 集合？不满足时，回到 STEP 4 或 STEP 5。
+4. work item 是否按交付结果而不是技术层拆分？不满足时，回到 STEP 5。
+5. 是否至少有一个近期目标为 `ready-for-clarifying`，或全部适用目标已经终态？
+   不满足时，回到 STEP 6。
+6. 是否仍有问题会改变项目目标、MVP、拆分或当前焦点？存在时，改用 `draft`。
+7. 是否能区分项目事实、用户决定和待验证假设？不满足时，先探索或提问。
+
+根据所选状态呈现已确认内容、未决问题、capability map、backlog、依赖和主要风险。
+`ready` 同时呈现当前焦点；`draft` 呈现下一项待决问题。等待用户确认后再写文件。
+反馈改变项目方向时回到 STEP 3 或 STEP 4；只改变拆分或顺序时回到 STEP 5 或 STEP 6。
+
+### STEP 8: Write or update project plan
+
+用户确认后：
+
+1. 使用 [project template](assets/project-template.md) 和
+   [backlog template](assets/backlog-template.md)。
+2. 写入 `projects/<project>/`；project 使用 kebab-case。
+3. 同名目录、文件或项目名有歧义时，先确认重命名还是沿用。
+4. 默认分别写 `project.md` 和 `backlog.md`。只有 backlog 无需独立维护、同步或频繁更新时，
+   才允许把唯一的 `## Backlog` 放入 `project.md`。
+5. 在 `project.md` 写入 `Planning Status`。`draft` 不得包含 `ready-for-clarifying` work item；
+   `ready` 必须通过 STEP 7 的 ready 关卡。
+6. 只从实际讨论和一手项目证据恢复内容；不要凭印象重建或编造目标、理由和优先级。
+7. 项目级持久选择使用稳定 `PDR-<semantic-topic>`；同一主题变化时原位更新。
+8. 更新已有规划时保留稳定 work item ID，只修改受新事实或用户决策影响的部分。
+9. `project.md` 与 backlog 是本地唯一权威；外部引用只记录映射，不反向覆盖内容。
+10. `Spec` 只链接已经存在且能追溯到对应 `WI-*` 的 `design.md`，不创建空设计。
+11. 只有本技能可以修改 backlog 的 `Status`、`Spec`、`Status evidence` 和 `Current Focus`。
+
+IF 状态为 `draft`，THEN 告知用户下一项待决问题后 STOP，不路由到 `clarifying`。
+IF 状态为 `ready`，THEN 推荐用户选择一个 `ready-for-clarifying` work item 运行
+`clarifying`。本技能不自动调用下游，也不自动同步 Jira 或 GitHub Projects。
+
+### STEP 9: Reconcile delivery status
+
+用户要求更新进度，或下游返回 project handoff 时，读取
+[project planning guide](references/project-planning-guide.md) 的 Status reconciliation：
+
+1. 根据 STEP 1 恢复唯一权威 backlog，并定位稳定 `WI-*`。
+2. 从真实 `design.md`、`review.md` 和 `tasks.md` 核实允许的目标状态，不只检查文件名。
+3. 确认 `design.md` 的 Project Traceability 与目标 work item 一致。
+4. 生成 `Status`、`Spec`、`Status evidence` 和 `Current Focus` 的最小差异。
+5. 向用户呈现证据和差异，等待确认后才写回；反馈改变范围或优先级时回到 STEP 3-6。
+
+缺少目标状态证据时保持原状态并报告缺口。新证据明确否定当前状态时，提出转为
+`blocked` 的最小差异并等待确认；不要保留已失效的 ready 状态，也不修改下游产物。
 
 ## Verification
 
-仅针对落地的 `design.md`：
-
-- [ ] 文件位于 `specs/<topic>/design.md`，topic 为 kebab-case。
-- [ ] 标题和章节符合 canonical design document template。
-- [ ] Goals、Non-Goals、Architecture、Components、Data Flow、Error Handling、
-  Acceptance Criteria、Testing 和 Open Questions 有实质内容。
-- [ ] Decision 只包含符合准入条件的持久选择，并使用稳定语义 ID。
-- [ ] 用户明确驳回的持久边界包含 `Rejected concern` 和 `Revisit when`。
-- [ ] 涉及数据变化时，Data Model 使用 Change Summary 和适用的固定子章节。
-- [ ] 可执行 DDL/DML 位于独立 SQL 文件，设计只引用路径和迁移语义。
-- [ ] 涉及契约变化时，Interfaces 枚举全部 ADD/MODIFY/REMOVE 契约。
-- [ ] Data Flow 的跨边界调用均能映射到 Contract ID。
-- [ ] 每个核心 Goal 至少有一条 AC，ID 唯一且符合 kebab-case 约定。
-- [ ] 每条 AC 只描述一个可观察结果，覆盖正常流、错误流和关键边界。
-- [ ] AC 不包含实现步骤、验证命令、被拒方案或未经确认的内容。
-- [ ] Open Questions 不包含仍会改变行为、范围或验收结果的未决项。
-- [ ] 行宽校验通过，无非豁免的 120 字符超长行。
+- [ ] 文件位于 `projects/<project>/`，project 为 kebab-case。
+- [ ] 已正确选择 `initialize`、`resume`、`replan` 或 `reconcile`。
+- [ ] 标准模式下 `project.md` 和 `backlog.md` 均存在；降级模式只有一个权威 Backlog。
+- [ ] `Planning Status` 为 `draft` 或 `ready`，且满足对应关卡。
+- [ ] `ready` 的项目问题、用户、Goals、Non-Goals、MVP、成功指标和约束有实质内容；
+  `draft` 只保存已确认内容并明确标出缺口。
+- [ ] 每个 MVP capability 至少映射到一个 `Now` work item。
+- [ ] work item 使用唯一、稳定的 `WI-<semantic-name>`，并描述交付结果而非代码层。
+- [ ] Priority、Status 和 Dependencies 使用受支持的枚举或稳定 ID。
+- [ ] `ready-for-clarifying` work item 通过全部准入关卡。
+- [ ] `draft` 项目没有 `ready-for-clarifying` work item。
+- [ ] `Spec` 和 External ref 只引用真实存在或真实返回的标识。
+- [ ] backlog 是 `Status`、`Spec`、`Status evidence` 和 `Current Focus` 的唯一权威。
+- [ ] 后续迭代只修改受新事实或用户决定影响的内容，稳定 `WI-*` 和未触发的 PDR 保持不变。
+- [ ] 项目规划不包含技术方案、正式 AC、实施任务或未经确认的未来能力。
+- [ ] 所有普通 Markdown 行不超过 120 个 Unicode 字符。
 
 ## Safety & guardrails
 
-- 未经确认不得写设计或开始实施。
-- 简单明确的请求允许在少数几轮内完成，不为凑流程追加问题。
-- 发散阶段允许探索；收敛和写设计时删除不服务当前 Goals 的内容。
-- `design.md` 是当前有效行为和设计的唯一权威，不兼任完整讨论日志。
-- 长寿命内容必须从实际对话和项目证据恢复，不凭印象补写。
-- 输出语气自然、直接，像与同事讨论，不使用客服或公文式话术。
+- 未经确认不得写入或重排项目计划。
+- 本地项目文档是唯一权威；不得让外部平台状态静默覆盖本地内容。
+- 只有本技能写入 backlog 的状态和交付证据；下游技能只返回 handoff。
+- 不创建 Jira、GitHub Projects 或其他外部对象；外部同步由独立能力负责。
+- 不把 brainstorming 生成的 backlog 当成已批准设计或实施任务。
+- 不要求一次澄清完整 backlog；只深化近期 work item。
+- 后续调用不重启完整 discovery，也不重复询问本地权威文档中已经确认的内容。
+- 简单或已聚焦的请求及时路由到 `clarifying`，不为凑流程扩成项目规划。
+- 长寿命内容必须从实际对话和一手证据恢复，不凭印象补写。
+- 输出语气自然、直接，像与同事规划项目，不使用客服或公文式话术。
 
 ## References
 
-- [Brainstorming guide](references/brainstorming-guide.md)
-- [Canonical design document template](assets/design-doc-template.md)
-- [Markdown line-width validator](scripts/check-markdown-lines.mjs)
+- [Project planning guide](references/project-planning-guide.md)
+- [Project template](assets/project-template.md)
+- [Backlog template](assets/backlog-template.md)

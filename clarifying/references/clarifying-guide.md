@@ -1,29 +1,31 @@
-# Brainstorming Guide
+# Clarifying Guide
 
 本文件补充 `SKILL.md` 主流程。退出条件和写盘关卡以 `SKILL.md` 为准。
 
 ## Context exploration priorities
 
 1. README、CLAUDE.md、AGENTS.md 或等效项目文档。
-2. package.json、pyproject.toml、Cargo.toml、go.mod、pom.xml 等项目配置。
-3. 与本次变更相关的入口点、路由、服务和数据访问层。
-4. 需要理解近期变化时，查看最近 10 个提交。
-5. 需求依赖真实 schema 时，使用只读数据库工具核实。
+2. 输入来自项目 backlog 时，读取对应 `project.md` 和 work item。
+3. package.json、pyproject.toml、Cargo.toml、go.mod、pom.xml 等项目配置。
+4. 与本次变更相关的入口点、路由、服务和数据访问层。
+5. 需要理解近期变化时，查看最近 10 个提交。
+6. 需求依赖真实 schema 时，使用只读数据库工具核实。
 
 STOP when 你能说明项目目的、技术栈、目录结构和本次变更所在边界。
 
-## Decomposition heuristics
+## Delivery granularity
 
-以下信号表明需求可能需要拆分：
+以下信号表明输入仍是项目级需求，应路由到 `brainstorming`：
 
-- 跨越多个独立领域或能力。
-- 各部分需要不同的数据模型或外部集成。
-- 各部分可以由不同团队拥有或独立交付。
-- 某一部分的方案选择会阻断其他部分。
+- 同时追求多个可以独立验收的用户或业务结果。
+- 尚未确定目标用户、MVP、能力优先级或交付顺序。
+- 各部分可以独立交付，且一部分延期不妨碍其他部分产生价值。
+- 当前需要先决定“做哪些目标”，而不是“这个目标如何实现”。
 
-拆分时列出子项目、依赖关系和推荐顺序，并等待用户确认。
+说明判断证据和代表性独立目标，等待用户确认后交给 `brainstorming`。
+本技能不继续生成多个设计，也不替代项目级拆分。
 
-多个模块上围绕同一目标的小改动不自动构成大需求。
+多个模块围绕同一个可独立验收的结果发生变化，不自动构成项目级需求。
 
 ## Question patterns
 
@@ -136,7 +138,7 @@ STOP when 你能说明项目目的、技术栈、目录结构和本次变更所�
 - 强制优先级：要求用户在有限交付项中选择最重要内容。
 - 类比借鉴：检查领域内已有成熟模式。
 
-## When to stop brainstorming
+## When to stop clarifying
 
 退出条件以 `SKILL.md` STEP 4 为唯一权威。以下仅是辅助信号：
 

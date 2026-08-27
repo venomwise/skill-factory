@@ -30,7 +30,8 @@ Use this skill after `prd-review` has produced a review report. The goal is not 
 
 - 只是评审 PRD 并找问题（用 `prd-review`）
 - 已经有明确设计，需要拆任务（用 `spec-plan`）
-- 需要从零讨论产品方向或技术方案（用 `brainstorming`）
+- 需要从零规划大型产品方向或拆分多个交付目标（用 `brainstorming`）
+- 需要从零编写单项需求的技术方案（用 `clarifying`）
 - 用户只要求直接编辑一个小段落，且不涉及评审报告或决策过程
 
 ## Inputs

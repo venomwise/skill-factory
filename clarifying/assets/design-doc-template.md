@@ -1,19 +1,27 @@
 # <Topic> Design
 
 <!--
-Canonical design document contract for the brainstorming -> design-review -> design-refine -> spec-plan chain.
+Canonical design document contract for the clarifying -> design-review -> design-refine -> spec-plan chain.
 Replace guidance text with project-specific content. Remove unused optional subsections.
 
 Formatting rules:
 - Wrap ordinary Markdown lines at 120 Unicode characters.
 - Keep tables to 5-6 short columns; move explanations below the table.
 - Fenced code blocks and standalone unbreakable URLs/hashes may exceed the limit.
-- Validate the completed document with scripts/check-markdown-lines.mjs from the brainstorming skill.
+- Validate the completed document with scripts/check-markdown-lines.mjs from the clarifying skill.
 -->
 
 ## Summary
 
 用一段话说明正在构建什么、为谁构建以及为什么。
+
+## Project Traceability
+
+<!-- 仅当设计来自项目 work item 时保留；独立请求删除本节。 -->
+
+- **Project**: `projects/<project>/project.md`
+- **Backlog**: `projects/<project>/backlog.md` 或 `projects/<project>/project.md#backlog`
+- **Work item**: `WI-<semantic-name>`
 
 ## Goals
 
@@ -37,7 +45,7 @@ Formatting rules:
 
 ### Key Discoveries
 
-- 记录在 brainstorming 中验证过的假设和影响设计的事实。
+- 记录在 clarifying 中验证过的假设和影响设计的事实。
 
 ### Scope Decisions
 

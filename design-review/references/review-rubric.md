@@ -2,7 +2,7 @@
 
 本文件定义语义评审维度、严重性和 Verdict。章节结构、Decision、Data Model、Interfaces、
 Acceptance Criteria 和格式以
-[canonical design document template](../../brainstorming/assets/design-doc-template.md) 为唯一权威。
+[canonical design document template](../../clarifying/assets/design-doc-template.md) 为唯一权威。
 评审模式、finding 和 readiness 以
 [review lifecycle](review-lifecycle.md) 为唯一权威。
 
@@ -23,6 +23,7 @@ Closure Review 不重新自由发散，只检查旧 finding、changed sections �
 - Data Flow 覆盖主路径；非平凡设计覆盖关键失败路径。
 - 持久且非显然的选择有 Decision；直接修复没有被包装成 Decision。
 - 用户明确驳回的持久边界有 `Rejected concern` 和 `Revisit when`。
+- 来自项目 work item 的设计能追溯到真实 Project、Backlog 和稳定 `WI-*`。
 
 缺少整个 Acceptance Criteria 或核心 Goal 没有 AC 是 Blocker。
 缺少承重的 Components、Data Flow 或 Error Handling 通常是 Blocker。
@@ -48,6 +49,7 @@ Closure Review 不重新自由发散，只检查旧 finding、changed sections �
 - AC 使用 `WHEN` 或 `IF`、`THEN` 和 `SHALL`。
 - 普通 Markdown 行不超过 120 字符；表格保持短列。
 - Open Questions 不充当未完成设计的垃圾场。
+- 存在 Project Traceability 时，其路径和 `WI-*` 可解析且与设计范围一致。
 
 ## D4: Project Fit
 

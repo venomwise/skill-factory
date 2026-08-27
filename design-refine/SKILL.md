@@ -31,7 +31,7 @@ description: >
 ## When not to use
 
 - 只评审设计，应使用 `design-review`。
-- 从零构建设计，应使用 `brainstorming`。
+- 从零构建单项需求设计，应使用 `clarifying`。
 - 已批准设计需要拆任务，应使用 `spec-plan`。
 - 只是修改不涉及 review 的小段文字。
 
@@ -53,7 +53,7 @@ description: >
 
 开始前必须读取：
 
-- [Canonical design document template](../brainstorming/assets/design-doc-template.md)
+- [Canonical design document template](../clarifying/assets/design-doc-template.md)
 - [Review lifecycle contract](../design-review/references/review-lifecycle.md)
 
 不要在本 skill 中重新定义章节、finding ID、Origin、状态或 readiness。
@@ -271,7 +271,7 @@ Decision 准入条件：
 运行：
 
 ```bash
-node <brainstorming-skill>/scripts/check-markdown-lines.mjs <design.md> <review.md>
+node <clarifying-skill>/scripts/check-markdown-lines.mjs <design.md> <review.md>
 ```
 
 修复所有非豁免超长行。然后更新 Current Readiness 的 Next step 和报告末尾的
@@ -314,7 +314,7 @@ Recommended Next Step：
 
 ## References
 
-- [Canonical design document template](../brainstorming/assets/design-doc-template.md)
+- [Canonical design document template](../clarifying/assets/design-doc-template.md)
 - [Review lifecycle contract](../design-review/references/review-lifecycle.md)
 - [Boundary and multi-round examples](references/examples.md)
 - [Decision pollution examples](references/pollution-examples.md)

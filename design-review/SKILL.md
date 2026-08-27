@@ -21,7 +21,7 @@ Closure Review。唯一写入产物是同目录的 `review.md`。
 ## When not to use
 
 - 代码或 pull request 评审。
-- 从零构建设计，应使用 `brainstorming`。
+- 从零构建单项需求设计，应使用 `clarifying`。
 - 根据 finding 修改设计，应使用 `design-refine`。
 - 没有设计文档的琐碎修改。
 
@@ -43,7 +43,7 @@ Closure Review。唯一写入产物是同目录的 `review.md`。
 
 开始评审前必须读取：
 
-- [Canonical design document template](../brainstorming/assets/design-doc-template.md)
+- [Canonical design document template](../clarifying/assets/design-doc-template.md)
 - [Review lifecycle contract](references/review-lifecycle.md)
 - [Review rubric](references/review-rubric.md)
 
@@ -61,6 +61,10 @@ Full/Closure、finding ID、Origin、状态和 readiness 以后两者为准。
 
 完整读取 `design.md`。同目录存在 `review.md` 时完整读取，恢复所有 finding ID、
 Closure、Current Readiness、changed sections、Finding Closure Proof 和已接受或延期风险。
+
+IF `design.md` 包含 Project Traceability，THEN 解析 Project、Backlog 和 Work item，
+完整读取链接的项目规划并核对稳定 `WI-*`。路径缺失、ID 不存在或目标边界不一致时，
+记录候选 finding；不要向用户询问能够从这些文件核实的事实。
 
 IF 历史 review 缺少 `## Current Readiness`，或只使用 severity-coded finding ID，THEN
 将其标记为 legacy review：保留一行迁移说明，但不猜测旧状态；本轮执行 Full Review，
@@ -94,6 +98,7 @@ Full Review 按以下优先级探索：
 3. 与设计相关的入口、组件、接口和持久化代码。
 4. 需要理解近期变化时，查看最近 10 个提交。
 5. 相关现有 specs 和机器可读契约。
+6. Project Traceability 指向的项目规划和 work item。
 
 Closure Review 复用上一轮证据，只重新核实 changed sections 影响的项目区域，
 以及 `context-change` 所指向的新事实。
@@ -112,6 +117,7 @@ STOP when 每个候选 finding 都能指向设计位置、项目证据或明确�
 全量检查以下规则：
 
 - canonical template 的章节、稳定 Decision ID 和 AC ID。
+- 可选 Project Traceability 的路径、`WI-*` 和设计范围映射。
 - Data Model / Interfaces Change Summary 与详细子章节的映射。
 - Data Flow 中 Contract ID 的引用完整性。
 - Open Questions 是否仍含行为相关未决项。
@@ -120,7 +126,7 @@ STOP when 每个候选 finding 都能指向设计位置、项目证据或明确�
 行宽校验命令：
 
 ```bash
-node <brainstorming-skill>/scripts/check-markdown-lines.mjs <path/to/design.md>
+node <clarifying-skill>/scripts/check-markdown-lines.mjs <path/to/design.md>
 ```
 
 把同类格式问题合并为一个 D3 finding，并列出代表性行号；不要为每一行创建 finding。
@@ -223,6 +229,7 @@ Closure 已确认关闭的历史 finding 只进入紧凑 Closure。
 - [ ] 同一根因延续时沿用原 ID。
 - [ ] 每条 finding 有位置、问题、证据和具体建议。
 - [ ] Data Model 和 Interfaces 按 canonical schema 检查。
+- [ ] 存在 Project Traceability 时，Project、Backlog 和 Work item 均可解析且互相一致。
 - [ ] Review Snapshot 与 Current Readiness 职责分离。
 - [ ] Closure 紧凑，不复制完整历史 finding。
 - [ ] `design.md` 和项目文件未修改。
@@ -240,7 +247,7 @@ Closure 已确认关闭的历史 finding 只进入紧凑 Closure。
 
 ## References
 
-- [Canonical design document template](../brainstorming/assets/design-doc-template.md)
+- [Canonical design document template](../clarifying/assets/design-doc-template.md)
 - [Review lifecycle contract](references/review-lifecycle.md)
 - [Review rubric](references/review-rubric.md)
 - [Review template](assets/review-template.md)

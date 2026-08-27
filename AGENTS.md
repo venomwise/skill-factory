@@ -5,8 +5,8 @@ This repository is a **skill factory** — a collection of reusable AI agent ski
 
 ```
 skill-factory/
-├── brainstorming/         # Brainstorm ideas into a validated design.md
-├── clarification/         # Clarify underspecified small changes before editing
+├── brainstorming/         # Plan large projects into project.md and rolling backlog.md
+├── clarifying/            # Clarify one deliverable requirement into design.md
 ├── db-explorer/           # Read-only database exploration and querying
 ├── design-review/         # Review a design.md and produce review.md
 ├── exa-search/            # Neural web search for documentation
@@ -174,17 +174,43 @@ description: One-line description used for skill routing/matching.
 
 The `description` field is critical — it determines when the skill is invoked.
 
-## Skill Pairing & Spec Conventions
-Several skills are designed to chain into a spec pipeline, all rooted at `specs/<topic>/`:
-- **brainstorming** turns an idea into a validated `specs/<topic>/design.md`; the design contains the authoritative Acceptance Criteria.
+## Project Planning & Spec Conventions
+
+Several skills form a project-to-delivery pipeline:
+
+- **brainstorming** turns a large or abstract product idea into
+  `projects/<project>/project.md` plus a rolling `backlog.md`. It decomposes user or business outcomes,
+  not technical tasks, and marks only near-term items `ready-for-clarifying`. Later calls resume drafts,
+  replan affected scope or reconcile downstream evidence without restarting discovery.
+- **clarifying** turns one independently deliverable goal into a validated
+  `specs/<topic>/design.md`; the design contains the authoritative Acceptance Criteria.
 - **design-review** optionally reviews the design before planning. If `review.md` exists,
   `spec-plan` reads `## Current Readiness`: only `Overall: ready` with
   `spec-plan readiness: Go`, terminal `F-###` findings, and resolvable evidence may proceed.
   Any other state requires `design-refine` or a Closure Review first.
 - **spec-plan** consumes the approved `design.md` and produces `tasks.md` only. It never creates or edits acceptance criteria.
-- **spec-exec** consumes `design.md` + `tasks.md`, implements each task, validates referenced ACs, and updates checkboxes as tasks complete.
+- **spec-exec** consumes `design.md` + `tasks.md`, implements each task, validates referenced ACs,
+  and updates checkboxes as tasks complete.
+
+Project planning conventions:
+
+- Default project location: `projects/<project>/` (`<project>` in kebab-case).
+- `project.md` is authoritative for stable direction: users, outcomes, Goals, Non-Goals, MVP,
+  success metrics, constraints, `draft / ready` Planning Status and project-level `PDR-*` decisions.
+- `backlog.md` is authoritative for delivery goals, priority, dependencies and lifecycle state.
+  Small projects may embed the only `## Backlog` in `project.md`; never maintain two copies.
+- Only `brainstorming` writes backlog Status, Spec, Status evidence and Current Focus. Downstream
+  skills return handoff evidence; `brainstorming` verifies it before presenting and applying updates.
+- Work items use stable semantic IDs such as `WI-library-catalog`, describe independently
+  deliverable outcomes, and do not contain technical designs, formal Acceptance Criteria or tasks.
+- Designs originating from a work item contain Project Traceability with Project, Backlog and `WI-*`.
+- Main states are `candidate`, `ready-for-clarifying`, `design-ready`, `planned`, `executing` and
+  `done`; side states are `blocked`, `deferred` and `cancelled`.
+- Local project documents are the source of truth. Jira or GitHub Projects may be synchronized by
+  a separate capability, but external state must not silently overwrite local planning.
 
 Spec output conventions:
+
 - Default spec location: `specs/<topic>/` (`<topic>` in kebab-case, e.g. `user-auth`).
 - `design.md` contains `## Acceptance Criteria`; each criterion uses a stable semantic ID such as `AC-config-precedence` and an EARS-style `WHEN` / `IF`, `THEN`, `SHALL` rule.
 - Every task uses `_Acceptance: AC-..._`, `_Design: <section path>_`, or both. Every AC must be covered by at least one task or Checkpoint.
@@ -295,7 +321,8 @@ Format: `[<emoji>] <type>(<scope>): <subject>`
 - Main subject text in **Chinese**; English allowed for technical terms.
 - Emoji: follow repo history (include if recent commits have emoji, omit if not, include if no history).
 - Types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`.
-- Scope from path: skill name (`db-explorer`, `brainstorming`, …), or `mcp`, `common`, `doc`, `tests`, `repo` (mixed/unclear).
+- Scope from path: skill name (`db-explorer`, `brainstorming`, `clarifying`, …), or `mcp`, `common`,
+  `doc`, `tests`, `repo` (mixed/unclear).
 - Body: `- ` bullets wrapped at ~72 chars explaining why/what.
 - Footer: only for `BREAKING CHANGE:` or `Closes #N`.
 

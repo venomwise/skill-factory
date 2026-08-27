@@ -4,7 +4,7 @@ description: >
   从已批准的 specs/<topic>/design.md 生成可追溯的 tasks.md。
   当用户提到做 spec、拆任务、出执行计划、write a spec、plan tasks 时，
   必须使用此技能。前置条件：design.md 包含完整的 Acceptance Criteria；
-  若没有设计，先路由到 brainstorming。
+  若没有设计，先路由到 clarifying。
 ---
 
 # Spec Plan Skill
@@ -19,7 +19,7 @@ description: >
 
 - 只需要快速 TODO 列表或单个文件编辑
 - 工作已经由现有 `tasks.md` 捕获，只需要实现
-- 没有已批准的 `design.md`；应先运行 `brainstorming`
+- 没有已批准的 `design.md`；应先运行 `clarifying`
 
 ## Inputs / Outputs
 
@@ -62,10 +62,11 @@ description: >
 1. **定位设计。**
    - IF 用户提供了 `specs/<topic>/design.md`，THEN 使用它。
    - IF 用户未提供路径，THEN 精确回复：`请指定 design 文件路径（例如 specs/<topic>/design.md）。`然后结束流程。不要搜索、列举或推断设计。
-   - IF 路径不存在，THEN 结束流程并推荐先运行 `brainstorming`。
+   - IF 路径不存在，THEN 结束流程并推荐先运行 `clarifying`。
 2. **读取设计并确定语言。** 完整读取 `design.md`；从说明性正文推断生成内容的主导语言，忽略标题、代码、路径和固定标签。不要仅为确定语言而询问。
 3. **执行严格 AC 关卡。** 按 *Acceptance Criteria contract* 检查章节、格式、唯一性、可测试性、Goal 覆盖、错误与边界覆盖、Open Questions 以及跨章节一致性。
-   - IF 任一检查失败，THEN 停止，不生成或刷新 `tasks.md`；指出具体位置和缺口，并建议返回 `brainstorming` 或 `design-refine`。
+   - IF 任一检查失败，THEN 停止，不生成或刷新 `tasks.md`；指出具体位置和缺口，
+     并建议返回 `clarifying` 或 `design-refine`。
    - IF 行为含糊、缺失或冲突，THEN 不得通过推断补齐。
 4. **处理可选评审。** 检查 `design.md` 同目录是否存在 `review.md`。
    - IF 不存在，THEN 继续。

@@ -11,7 +11,10 @@ description: >
 - **Mode A — 新建**：从意图捕获到 SKILL.md 落盘，含结构决策、路由设计、自审。
 - **Mode B — 审计优化**：对已有 skill 做四维度体检（语体、一致性、陈旧内容、行为规则），产出修复方案。
 
-本技能的核心资产是 [references/optimization-lessons.md](references/optimization-lessons.md)——从设计链技能（brainstorming / design-review / design-refine）的真实迭代中沉淀的失效模式库。**写之前和审之前都先读它**，其中每个模式都有症状、反例和修法。
+本技能的核心资产是
+[references/optimization-lessons.md](references/optimization-lessons.md)——从设计链技能
+（clarifying / design-review / design-refine）的真实迭代中沉淀的失效模式库。
+**写之前和审之前都先读它**，其中每个模式都有症状、反例和修法。
 
 ## When to use
 

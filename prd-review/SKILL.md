@@ -20,8 +20,9 @@ Match the user's language for all output.
 
 - 已有明确技术设计方案，需拆解为开发任务（用 `spec-plan`）
 - 代码已实现需要评审（用 `code-review` 或 `review`）
-- 简单功能调整或 bug 修复（用 `clarification`）
-- 需要编写或修改技术方案本身（用 `brainstorming`）
+- 简单功能调整或根因明确的 bug 修复（按项目开发规范直接处理）
+- 需要规划大型产品方向或拆分多个交付目标（用 `brainstorming`）
+- 需要编写或修改单项需求的技术方案（用 `clarifying`）
 
 ## Inputs
 

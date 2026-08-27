@@ -19,7 +19,7 @@
 - **Project context consulted**: <关键文件和证据>
 - **Changed sections**: <Closure 模式填写；Full 模式写 All>
 - **Acceptance Criteria checked**: <数量、Goal 覆盖和可测试性结论>
-- **Canonical contract**: `brainstorming/assets/design-doc-template.md`
+- **Canonical contract**: `clarifying/assets/design-doc-template.md`
 - **Rubric**: D1-D7
 
 ## Findings

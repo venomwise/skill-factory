@@ -74,7 +74,8 @@ description: 这个技能做什么，以及代理应该在什么场景下使用�
 
 | 技能 | 作用 |
 | --- | --- |
-| [brainstorming](./brainstorming/) | 通过协作式对话，把模糊想法收敛成清晰设计与规格。 |
+| [brainstorming](./brainstorming/) | 规划并持续迭代大型项目和滚动 backlog。 |
+| [clarifying](./clarifying/) | 将单个可交付需求收敛为技术设计和验收标准。 |
 | [db-explorer](./db-explorer/) | 只读方式探索 PostgreSQL、MySQL、SQLite 数据库。 |
 | [exa-search](./exa-search/) | 面向官方文档和 API 的 source-first 检索与内容提取。 |
 | [git-commit](./git-commit/) | 根据仓库上下文生成并提交规范的 Git Commit。 |
@@ -93,6 +94,7 @@ description: 这个技能做什么，以及代理应该在什么场景下使用�
 ```text
 .
 ├── brainstorming/
+├── clarifying/
 ├── db-explorer/
 ├── exa-search/
 ├── git-commit/
