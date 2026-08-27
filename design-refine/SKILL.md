@@ -235,11 +235,38 @@ Decision 准入条件：
 
 - 每个当前 finding 有有效状态和证据引用。
 - 任一非终态存在时，Overall 为 `in-progress` 或 `blocked`。
-- Blocker/Major 全部终态后，Overall 为 `ready-for-closure`。
+- Blocker/Major 全部终态且 pre-closure audit 通过后，Overall 为 `ready-for-closure`。
 - 仅处理 Pass 的 Minor 且全部终态时，可以设置 `ready / Go`。
 - 经 Blocker/Major refine 后不得直接设置 `Go`。
 
-### STEP 10: Validate format and route
+### STEP 10: Run pre-closure audit
+
+在设置 `ready-for-closure` 之前，执行一次 pre-closure audit。它是进入独立 review 的准入检查，
+不是新的 Verdict，也不能替代 `design-review` 的独立判断。
+
+同一 refine run 只启动这一套 audit 流程；audit 发现的问题回到当前 resolution queue，
+不会在中间启动新的 Closure Review。
+
+执行 [review lifecycle](../design-review/references/review-lifecycle.md) 的 Pre-closure Audit Contract：
+
+1. 从 Review Snapshot 的原 Issue、Evidence 和期望结果为每条 finding 提炼 Closure test；Recommendation
+   只提供候选修法，不把其中某个实现绑定为唯一通过条件。
+   If 无法写成可验证条件，保持 `in-progress`，不得用当前 `resolved` 标签代替证明。
+2. 根据本次 `Changed sections` 建立影响矩阵，覆盖固定传播章节和共享同一模型、身份、容量、错误或事务约束的
+   相关契约。对 preview/commit、create/update、forward/rollback、producer/consumer 等成对契约检查对称性；
+   有意差异必须由 Decision、Error Handling、AC 和 Testing 共同说明。
+3. 用原 finding 的证据场景或最小反例复测当前设计。反例仍成立时重新打开原 finding，不创建同根新 finding。
+4. 在 dry-run 前按 lifecycle 判定下一轮模式。Goals、Non-Goals、核心架构、数据所有权、公共契约、安全、
+   权限、外部集成、迁移边界或相关项目事实变化时，记录 `Next review mode: Full` 并执行全维度 dry-run；
+   其余情况记录 `Next review mode: Closure`，只检查 finding、changed sections 和固定传播范围。
+5. 任一检查失败时保持 `in-progress`，把缺口放回当前 resolution queue；直接修复批量处理，需要用户决定的事项
+   继续逐项确认。修复后从第 1 项重跑，不在中间启动独立 review。
+6. 全部通过后，按 lifecycle 的固定字段写入 audit 结果、模式依据、影响矩阵和 Finding Closure Proof，
+   再将 Current Readiness 设为 `ready-for-closure`。
+
+`design-review` 必须独立复核这些证明；pre-closure audit 不能替代 Full 或 Closure Review。
+
+### STEP 11: Validate format and route
 
 运行：
 
@@ -250,7 +277,7 @@ node <brainstorming-skill>/scripts/check-markdown-lines.mjs <design.md> <review.
 修复所有非豁免超长行。然后更新 Current Readiness 的 Next step 和报告末尾的
 Recommended Next Step：
 
-- `ready-for-closure`：运行 `design-review` Closure Review。
+- `ready-for-closure`：按 `Next review mode` 运行 `design-review` Full 或 Closure Review。
 - `ready / Go`：进入 `spec-plan`。
 - `blocked`：说明缺少的唯一上游输入。
 
@@ -261,6 +288,8 @@ Recommended Next Step：
 | review 缺少必要结构 | 停止并要求重新运行 design-review |
 | design 不符合 canonical template | 作为 Direct repair 提交批量确认 |
 | Decision ID 重复 | 停止写入，先合并为语义唯一 ID |
+| finding 无法形成 Closure test | 保持 in-progress，回到原 finding 澄清根因和闭合条件 |
+| 成对契约约束不一致 | 保持 in-progress，修复传播或确认有意差异 |
 | 写入中断 | 保持非终态，并在 Note 说明中断位置 |
 | 用户暂不决策 | 标记 blocked，输出当前唯一阻塞项 |
 
@@ -276,6 +305,9 @@ Recommended Next Step：
 - [ ] design 中没有新增 `Review Resolution` 或 `Revised` 块。
 - [ ] Data Model 和 Interfaces 符合 canonical schema。
 - [ ] AC、Testing 和受影响章节已完成传播。
+- [ ] 每条 finding 都有 Closure test、Resolution evidence、Counterexample check 和结果。
+- [ ] 成对契约的共享约束一致，或差异已有 Decision、AC 和 Testing。
+- [ ] Next review mode、Mode trigger 与 lifecycle 条件一致，对应 dry-run 已通过。
 - [ ] Review Snapshot 未被修改。
 - [ ] Current Readiness 状态、证据、changed sections 和下一步一致。
 - [ ] design.md 与 review.md 行宽校验通过。

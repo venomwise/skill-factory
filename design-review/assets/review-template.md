@@ -59,10 +59,22 @@
 - **Overall**: <not-started / in-progress / blocked / ready-for-closure / ready>
 - **spec-plan readiness**: <Go / Conditional / No-Go>
 - **Next step**: <当前应执行的动作>
+- **Pre-closure audit**: <Not run / Passed / Failed；仅在 refine 后填写>
+- **Next review mode**: <Not determined / Full / Closure>
+- **Mode trigger**: <命中的 Full Review 条件 / None>
+- **Impact matrix**: <changed sections -> 固定传播章节；仅在 refine 后填写>
 
 | Finding | Severity | Status | Resolution ref | Changed sections | Note |
 |---------|----------|--------|----------------|------------------|------|
 | F-001 | <severity> | <status> | <DR-id / §section / risk ref / None> | <sections / None> | <short note> |
+
+### Finding Closure Proof
+
+<!-- pre-closure audit 未执行时省略。不得只根据上表的 status 宣称 finding 已闭合。 -->
+
+| Finding | Closure test | Resolution evidence | Counterexample check | Result |
+|---------|--------------|---------------------|----------------------|--------|
+| F-001 | <由原 Issue/Evidence 和期望结果提炼> | <DR / section / AC / test / risk> | <原反例当前结果> | <passed / failed> |
 
 ## Closure
 
@@ -82,7 +94,7 @@
 
 <!--
 本节由 Current Readiness 派生：
-- Blocker/Major -> design-refine，完成后 Closure Review。
+- Blocker/Major -> design-refine，完成后按 Next review mode 执行 Full 或 Closure Review。
 - Pass with Minor -> 修复或延期。
 - ready / Go -> spec-plan。
 -->

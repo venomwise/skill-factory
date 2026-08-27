@@ -80,6 +80,25 @@ F-012 状态设为 `rejected`，Resolution ref 指向 `DR-preview-remains-statel
 用户只需确认一次错误契约。三个 finding 保留独立状态，共同指向同一个
 `DR-import-error-contract` 和对应 Interfaces / Error Handling 章节。
 
+## Finding Closure Proof
+
+F-014 指出两个连续接口共享同一批数据，但只定义了第一个接口的容量边界。refine 补充第二个接口后，
+不能仅凭章节已修改就标记闭合。pre-closure audit 应记录：
+
+| Finding | Closure test | Resolution evidence | Counterexample check | Result |
+|---------|--------------|---------------------|----------------------|--------|
+| F-014 | 两个接口的容量责任均明确，差异可观察 | DR、两个接口、Error Handling、AC、Testing | 第一个接口接受而第二个因隐式上限失败时，契约已定义错误和恢复方式 | passed |
+
+如果第二个接口仍没有上限、错误或恢复语义，反例仍成立，应重新打开 F-014，不能写 `passed`。
+
+## Next review mode
+
+refine 只补充遗漏的 Error Handling 和 Testing 时，`Next review mode` 为 `Closure`，按 changed sections
+执行范围化语义预检。
+
+refine 改变 Goals、Non-Goals 或公共容量契约时，`Next review mode` 为 `Full`。pre-closure audit 必须
+先执行全维度 dry-run，再交给 `design-review` 独立 Full Review；不能因为原 finding 已终态而缩小范围。
+
 ## Updating an existing decision
 
 已有：

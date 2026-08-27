@@ -31,6 +31,7 @@ Closure Review 不重新自由发散，只检查旧 finding、changed sections �
 
 - `spec-plan` 可以在不发明行为、数据或契约的前提下生成任务。
 - 输入、输出、数据形态、状态和错误语义无歧义。
+- 共享模型或约束的成对契约行为一致；有意差异有明确理由和可测试契约。
 - 术语有定义并跨章节一致。
 - Goal 的成功条件可观察或可衡量。
 - 每条 AC 只表达一个可验证结果。
@@ -123,6 +124,8 @@ D7 通常是 Minor；与真实风险重叠时按风险影响定级。
 - `MODIFY` 说明原契约到新契约变化；`REMOVE` 说明迁移和失败行为。
 - 机器可读契约存在时，design 引用它而不复制第二份完整 schema。
 - Data Flow 的跨边界调用能映射到 Contract ID。
+- preview/commit、create/update、forward/rollback、producer/consumer 等成对契约共享的身份、容量、校验、
+  错误和事务约束一致；有意差异由 Decision、Error Handling、AC 和 Testing 共同说明。
 
 缺少实现关键的请求、响应或消息语义通常是 Major；导致调用方无法实现时可定为 Blocker。
 
@@ -151,9 +154,16 @@ D7 通常是 Minor；与真实风险重叠时按风险影响定级。
 2. Goal -> Solution -> AC 覆盖是否完成？If no，补完。
 3. Data Model 和 Interfaces 是否按适用性检查？If no，补完。
 4. 候选 finding 是否按根因合并并校准严重性？If no，先合并。
-5. 最终集合是否经过交叉检查？If no，不得写报告。
+5. 成对契约的共享约束是否完成对称性检查？If no，补完。
+6. 最终集合是否经过交叉检查？If no，不得写报告。
 
 ## Closure Review admission gate
+
+开始语义复核前检查：
+
+1. pre-closure audit 是否为 Passed？If no，返回 `design-refine`。
+2. 每条历史 finding 是否有 Closure test 和原反例检查？If no，返回 `design-refine`。
+3. Next review mode 是否与实际 changed sections 一致？If no，按 lifecycle 重新选择模式并记录原因。
 
 每条 Closure 新 finding 必须回答：
 

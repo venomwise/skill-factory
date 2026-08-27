@@ -60,7 +60,7 @@ Full/Closure、finding ID、Origin、状态和 readiness 以后两者为准。
 - 没有或存在多个匹配：只询问目标路径，然后 STOP。
 
 完整读取 `design.md`。同目录存在 `review.md` 时完整读取，恢复所有 finding ID、
-Closure、Current Readiness、changed sections 和已接受或延期风险。
+Closure、Current Readiness、changed sections、Finding Closure Proof 和已接受或延期风险。
 
 IF 历史 review 缺少 `## Current Readiness`，或只使用 severity-coded finding ID，THEN
 将其标记为 legacy review：保留一行迁移说明，但不猜测旧状态；本轮执行 Full Review，
@@ -73,14 +73,17 @@ IF 历史 review 缺少 `## Current Readiness`，或只使用 severity-coded fin
 - 没有历史 review：Full Review。
 - 历史 review 属于 legacy protocol：Full Review migration。
 - 用户明确要求完整评审：Full Review。
-- Goals、Non-Goals、核心架构、数据所有权、公共契约、安全、权限、外部集成、
-  迁移边界或相关项目事实变化：升级为 Full Review。
-- 其余情况下，Current Readiness 为 `ready-for-closure`：Closure Review。
-- 其余情况下，Current Readiness 为 `not-started`、`in-progress` 或 `blocked`：
+- 自动复审时，Current Readiness 为 `not-started`、`in-progress` 或 `blocked`：
   停止并建议继续 `design-refine`，不得评审处理中设计。
-- Current Readiness 已为 `ready / Go`：说明无需再次评审；用户明确要求时才继续。
+- 自动复审时，Current Readiness 已为 `ready / Go`：说明无需再次评审。
+- 自动复审时，Current Readiness 为 `ready-for-closure` 但 pre-closure audit 缺失或失败：
+  停止并返回 `design-refine`，不得开始独立 review。
+- audit 通过后，Goals、Non-Goals、核心架构、数据所有权、公共契约、安全、权限、外部集成、
+  迁移边界或相关项目事实变化：升级为 Full Review。
+- audit 通过且未触发 Full 条件：Closure Review。
 
-在 `review.md` 中记录模式和升级原因。不要把每次复审默认当作新的全量审计。
+`Next review mode` 是 refine 的预判，不是评审结论。独立核对实际 changed sections 和 lifecycle 触发条件；
+不一致时按实际条件选择模式，并在 Mode reason 记录差异。不要把每次复审默认当作新的全量审计。
 
 ### STEP 3: Explore project evidence
 
@@ -94,6 +97,10 @@ Full Review 按以下优先级探索：
 
 Closure Review 复用上一轮证据，只重新核实 changed sections 影响的项目区域，
 以及 `context-change` 所指向的新事实。
+
+refine 后的 review 开始前读取 pre-closure audit、影响矩阵和 Finding Closure Proof。
+它们用于定位核查范围，但不构成评审结论；reviewer 必须从原 Issue、Evidence 和期望结果
+重新执行 Closure test 和反例检查，不强制采用原 Recommendation 的具体修法。
 
 设计依赖真实数据库时使用 `db-explorer`。能通过代码、配置、数据库或历史核实的声明，
 必须主动核实，不把可检索事实交给用户回答。
@@ -122,20 +129,24 @@ node <brainstorming-skill>/scripts/check-markdown-lines.mjs <path/to/design.md>
 
 **Full Review:**
 
-1. 按 rubric 的 7 个维度建立候选 finding ledger。
-2. 建立 Goal -> Solution -> AC 覆盖关系。
-3. 单独检查 Data Model、Interfaces、迁移、并发和错误契约。
-4. 检查项目契合度、适用盲点和 YAGNI。
-5. 按根因合并跨维度候选项，校准严重性。
-6. 对最终集合再做一次交叉检查，然后冻结本轮 findings。
+1. refine 后升级为 Full 时，先独立复测 Finding Closure Proof；原反例仍成立时沿用原 finding ID。
+2. 按 rubric 的 7 个维度建立候选 finding ledger。
+3. 建立 Goal -> Solution -> AC 覆盖关系。
+4. 单独检查 Data Model、Interfaces、迁移、并发和错误契约。
+5. 检查共享模型、身份、容量、错误或事务约束在成对契约间是否一致；有意差异是否有 Decision 和 AC。
+6. 检查项目契合度、适用盲点和 YAGNI。
+7. 按根因合并跨维度候选项，校准严重性。
+8. 对最终集合再做一次交叉检查，然后冻结本轮 findings。
 
 **Closure Review:**
 
-1. 逐条复核上一轮未闭合 finding。
-2. 检查 changed sections 和固定传播章节。
-3. 验证相关 Decision 是否仍有效，`Revisit when` 是否触发。
-4. 只在满足 Origin gate 时创建新 finding。
-5. 无法归入允许 Origin 的自由优化建议不得进入 Findings。
+1. 从原 Issue、Evidence 和期望结果独立执行每条 Closure test，不以当前 status 作为闭合证据。
+2. 复测 Finding Closure Proof 的原反例；仍成立时沿用原 finding ID 并设为 `reopened`。
+3. 核对影响矩阵、changed sections 和固定传播章节。
+4. 检查成对契约的共享约束，以及有意差异对应的 Decision、Error Handling、AC 和 Testing。
+5. 验证相关 Decision 是否仍有效，`Revisit when` 是否触发。
+6. 只在满足 Origin gate 时创建新 finding。
+7. 无法归入允许 Origin 的自由优化建议不得进入 Findings。
 
 同一根因沿用原 `F-###`。新 ID 从历史最大编号递增，不复用已关闭编号。
 Closure 新 finding 必须写明 Origin 和因果证据。
@@ -165,7 +176,7 @@ Closure 已确认关闭的历史 finding 只进入紧凑 Closure。
 
 - Review Snapshot 使用设计当前语言，结构标题和固定枚举保持英文。
 - 每条 finding 包含 Severity、Introduced in、Origin、Location、Issue、Evidence 和 Recommendation。
-- Current Readiness 包含状态、Resolution ref、Changed sections 和当前下一步。
+- Current Readiness 包含状态、Resolution ref、audit、下一轮模式、影响矩阵、Finding Closure Proof 和当前下一步。
 - Closure 不复制上一轮完整 finding 文本。
 - Accepted / Deferred Risks 原样携带并根据当前设计重新核实。
 
@@ -173,7 +184,7 @@ Closure 已确认关闭的历史 finding 只进入紧凑 Closure。
 
 ### STEP 8: Recommend next step
 
-- Reject/Revise：运行 `design-refine`，完成后运行 Closure Review。
+- Reject/Revise：运行 `design-refine`，完成后按 `Next review mode` 运行 Full 或 Closure Review。
 - Pass 且有 Minor：让用户选择修复或延期；全部终态后进入 `spec-plan`。
 - 无 finding：进入 `spec-plan`。
 
@@ -198,7 +209,12 @@ Closure 已确认关闭的历史 finding 只进入紧凑 Closure。
 - [ ] 已读取 canonical design template、review lifecycle 和 rubric。
 - [ ] 已正确选择 Full 或 Closure，并记录升级原因。
 - [ ] Legacy review 已通过 Full Review migration 转换，未猜测旧状态。
+- [ ] refine 后自动复审已有通过的 pre-closure audit；用户明确要求 Full 的例外已记录。
 - [ ] Closure 只在 Current Readiness 为 ready-for-closure 时执行。
+- [ ] Closure 开始前已存在通过的 pre-closure audit；该审计未被当作独立评审结论。
+- [ ] Next review mode 已按实际 changed sections 独立核对，模式差异已记录。
+- [ ] Finding Closure Proof 已从原 finding 独立复测，未使用当前 status 代替证据。
+- [ ] 成对契约的共享约束已检查，有意差异存在 Decision 和 AC。
 - [ ] Full Review 已在冻结前完成全部维度和根因合并。
 - [ ] Closure Review 只检查旧 finding、changed sections 和固定传播范围。
 - [ ] Closure 新 finding 有允许的 Origin 和因果证据。
