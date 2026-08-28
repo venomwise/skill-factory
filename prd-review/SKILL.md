@@ -1,25 +1,29 @@
 ---
 name: prd-review
-description: Analyze PRD documents for logic gaps, boundary issues, and technical feasibility before development starts. Focus on business logic closure and architectural reasonability, not implementation details.
+description: >
+  在开发前评审 PRD 的业务流程、边界覆盖和技术可行性，找出需要 PM 澄清的问题。
+  当用户要求“评审 PRD”“检查需求逻辑”“检查需求边界”或“分析技术可行性”时调用；
+  关注需求是否完整和架构是否可行，不评审实现细节。
 ---
 
 # PRD Review
 
-Technical feasibility review for Product Requirement Documents. This skill evaluates PRD logic completeness, boundary coverage, and technical risks **before any design or development work begins**. It operates in the requirements clarification phase — identifying what needs to be clarified with the PM, not how to implement it.
+在设计或开发开始前评审 PRD 的业务流程、边界覆盖和技术风险。本技能属于需求澄清阶段，
+负责找出需要 PM 确认的内容，不决定具体实现方式。
 
-Match the user's language for all output.
+输出语言跟随用户。
 
 ## When to use
 
 - PM 提供了 PRD 文档，需要技术团队评审
 - 需要识别需求中的逻辑漏洞、边界缺失、技术可行性问题
 - 生成结构化的澄清问题清单供 PM 回答
-- 在进入任何技术设计或开发前，确保需求本身逻辑闭环
+- 在进入技术设计或开发前，确认正常、异常和边界流程都有明确结果
 
 ## When not to use
 
 - 已有明确技术设计方案，需拆解为开发任务（用 `spec-plan`）
-- 代码已实现需要评审（用 `code-review` 或 `review`）
+- 代码已实现需要评审（用 `code-review`）
 - 简单功能调整或根因明确的 bug 修复（按项目开发规范直接处理）
 - 需要规划大型产品方向或拆分多个交付目标（用 `brainstorming`）
 - 需要编写或修改单项需求的技术方案（用 `clarifying`）
@@ -43,7 +47,7 @@ Match the user's language for all output.
 检查 PRD 同级目录是否存在对应的 `<prd-basename>-review.md`（与当前 PRD 同名、以 `-review.md` 结尾）：
 
 - **首次分析：** 不存在 → 创建新的完整分析（见 Step 2-4）
-- **迭代分析：** 存在 → Read 已有分析，进行增量更新
+- **迭代分析：** 存在 → 读取已有分析，进行增量更新
 
 迭代时的处理：
 1. 读取旧的 `<prd-basename>-review.md`，理解已标记的风险点和疑问
@@ -73,11 +77,12 @@ Match the user's language for all output.
 
 ### Step 3: 结构化分析
 
-**分析粒度原则：** 聚焦业务逻辑闭环和架构合理性，不纠结实现细节。
+**分析范围：** 检查业务流程是否完整、架构是否可行，不纠结实现细节。
 
 按以下三个维度进行结构化分析：
 
-1. **逻辑漏洞与边界缺失** — 正常流程 + 异常分支、边界条件、状态机、多角色交互是否闭环
+1. **逻辑漏洞与边界缺失** — 正常流程、异常分支、边界条件、状态机和多角色交互是否完整，
+   是否存在没有后续处理的分支
 2. **技术可行性与架构风险** — 现有架构能否支持、性能/安全/合规要求是否可达、第三方依赖
 3. **需 PM 澄清的疑问** — 量化指标、业务规则、交互逻辑、前置条件的缺失
 
@@ -96,7 +101,8 @@ Match the user's language for all output.
 ### Step 5: 完成确认
 
 - 如果仍有未解决的疑问（Todo List 中有未勾选项），告知用户："已生成评审报告，发现 X 个待澄清问题，请与 PM 确认后再次调用此 skill 进行迭代分析。"
-- 如果所有疑问已解决（所有 Todo 已勾选，无阻断性风险），告知用户："需求澄清完成，所有逻辑闭环和技术可行性问题已确认，可以开始设计技术方案。"
+- 如果所有疑问已解决（所有 Todo 已勾选，无阻断性风险），告知用户：
+  “需求澄清完成，业务流程和技术可行性问题均已确认，可以开始设计技术方案。”
 
 ## Verification
 
@@ -113,7 +119,7 @@ Match the user's language for all output.
 ## Safety & guardrails
 
 - **实事求是：** 每个风险点必须有 PRD 原文引用或技术现状依据，不能无中生有。
-- **聚焦大方向：** 质疑业务逻辑闭环和架构合理性，不纠结实现细节。
+- **聚焦需求与架构：** 检查业务流程是否完整、架构是否可行，不纠结实现细节。
 - **客观专业：** 评审语气客观、严谨、具有建设性，不带主观情绪。
 - **主动探索：** 不要等待用户提供上下文，主动选用合适工具（代码检索、读取文档、subagent 执行 db-explorer skill、web_search 等）获取信息。
 - **明确边界：** 不代替 PM 做产品决策（如优先级、需求取舍），不代替开发做技术选型（如用什么框架、什么数据库）。

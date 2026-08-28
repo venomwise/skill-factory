@@ -1,8 +1,9 @@
-# Decision Record Pollution Examples
+# Decision Record 下游内容示例
 
-本文件校准 Decision 如何污染下游 `spec-plan`。只在判断被拒方案细节是否泄漏时读取。
+本文件说明 Decision 中的内容如何影响下游 `spec-plan`。只在判断被拒方案的细节是否被带入
+实施计划时读取。
 
-## Pollution mechanism
+## 内容进入下游的方式
 
 `spec-plan` 会把 design 中出现的实现细节视为当前设计。被拒方案的库名、部署、端点、
 配置和表结构进入 Decision 后，可能被错误转化为实施任务。

@@ -47,7 +47,7 @@ Closure Review。唯一写入产物是同目录的 `review.md`。
 - [Review lifecycle contract](references/review-lifecycle.md)
 - [Review rubric](references/review-rubric.md)
 
-章节、Decision、Data Model、Interfaces、AC 和格式要求以前者为唯一权威。
+章节、Decision、Data Model、Interfaces、AC 和格式要求以前者为准。
 Full/Closure、finding ID、Origin、状态和 readiness 以后两者为准。
 
 ## Workflow
@@ -59,7 +59,7 @@ Full/Closure、finding ID、Origin、状态和 readiness 以后两者为准。
 - 恰好一个匹配：直接使用。
 - 没有或存在多个匹配：只询问目标路径，然后 STOP。
 
-完整读取 `design.md`。同目录存在 `review.md` 时完整读取，恢复所有 finding ID、
+完整读取 `design.md`。同目录存在 `review.md` 时完整读取其中的所有 finding ID、
 Closure、Current Readiness、changed sections、Finding Closure Proof 和已接受或延期风险。
 
 IF `design.md` 包含 Project Traceability，THEN 解析 Project、Backlog 和 Work item，
@@ -148,7 +148,7 @@ node <clarifying-skill>/scripts/check-markdown-lines.mjs <path/to/design.md>
 
 1. 从原 Issue、Evidence 和期望结果独立执行每条 Closure test，不以当前 status 作为闭合证据。
 2. 复测 Finding Closure Proof 的原反例；仍成立时沿用原 finding ID 并设为 `reopened`。
-3. 核对影响矩阵、changed sections 和固定传播章节。
+3. 核对影响矩阵、changed sections 和其中预先列出的关联章节。
 4. 检查成对契约的共享约束，以及有意差异对应的 Decision、Error Handling、AC 和 Testing。
 5. 验证相关 Decision 是否仍有效，`Revisit when` 是否触发。
 6. 只在满足 Origin gate 时创建新 finding。
@@ -186,7 +186,23 @@ Closure 已确认关闭的历史 finding 只进入紧凑 Closure。
 - Closure 不复制上一轮完整 finding 文本。
 - Accepted / Deferred Risks 原样携带并根据当前设计重新核实。
 
-写完后运行行宽校验器。review 自身存在非豁免超长行时，先换行再结束。
+写完后重新读取实际 `review.md`，执行文档语言关卡：
+
+1. 中文正文是否自然、直接？英文只保留模板字段、技术术语、路径、ID、Origin 和固定枚举。
+   IF 否，THEN 只改对应句子。
+2. 每条 finding 的 Issue 是否说明具体错误、缺失或风险条件，Evidence 是否给出可核实依据，
+   Recommendation 是否指出需要修改的内容或必须做出的决策？IF 否，THEN 回到 STEP 3 或
+   STEP 5 核实后重写，不编造证据；不用“存在一定风险”“不够完善”“进一步优化”代替证据
+   和动作。
+3. Summary、Note 和风险说明是否存在逐词翻译、商业黑话、流程隐喻、模板化开场或空泛总结？
+   IF 是，THEN 删除姿态层，保留评审结论和证据关系。
+4. Review mode、Verdict、Severity、finding ID、Origin、状态、readiness、证据和责任主体是否
+   保持不变？IF 否，THEN 恢复原意并缩小改写范围；不得为了语气温和而降低严重性或确定性。
+5. 语言修改是否增加了没有证据的 finding，或改变了已有 finding 的范围和 Closure 结果？
+   IF 是，THEN 撤销该修改，并依据实际证据重新表述。
+
+语言检查完成后重新核对模板结构和 Current Readiness，再运行行宽校验器。review 自身存在
+非豁免超长行时，先换行再结束。
 
 ### STEP 8: Recommend next step
 
@@ -200,7 +216,7 @@ Closure 已确认关闭的历史 finding 只进入紧凑 Closure。
 
 | ID | Dimension | Focus |
 |----|-----------|-------|
-| D1 | Completeness | Goals、承载设计、AC 和必要章节是否闭合 |
+| D1 | Completeness | Goals、对应设计、AC 和必要章节是否完整且相互对应 |
 | D2 | Usability | `spec-plan` 是否无需发明行为或契约 |
 | D3 | Conformance | 是否符合 canonical template 和格式契约 |
 | D4 | Project Fit | 是否符合真实技术栈、模块边界和已有模式 |
@@ -222,7 +238,7 @@ Closure 已确认关闭的历史 finding 只进入紧凑 Closure。
 - [ ] Finding Closure Proof 已从原 finding 独立复测，未使用当前 status 代替证据。
 - [ ] 成对契约的共享约束已检查，有意差异存在 Decision 和 AC。
 - [ ] Full Review 已在冻结前完成全部维度和根因合并。
-- [ ] Closure Review 只检查旧 finding、changed sections 和固定传播范围。
+- [ ] Closure Review 只检查旧 finding、changed sections 和 Impact matrix 中预先列出的关联章节。
 - [ ] Closure 新 finding 有允许的 Origin 和因果证据。
 - [ ] 后续 Full Review 的新 finding 使用 context-change 或 baseline-miss。
 - [ ] finding 使用稳定 `F-###`，严重性不编码进 ID。
@@ -233,6 +249,8 @@ Closure 已确认关闭的历史 finding 只进入紧凑 Closure。
 - [ ] Review Snapshot 与 Current Readiness 职责分离。
 - [ ] Closure 紧凑，不复制完整历史 finding。
 - [ ] `design.md` 和项目文件未修改。
+- [ ] 已重新读取实际 `review.md` 并通过文档语言关卡，每条 finding 都是具体判断而非空泛评价。
+- [ ] 语言修改没有改变 Verdict、Severity、finding ID、Origin、readiness 或证据关系。
 - [ ] `review.md` 行宽校验通过。
 
 ## Safety & guardrails
@@ -243,7 +261,7 @@ Closure 已确认关闭的历史 finding 只进入紧凑 Closure。
 - Decision 仍有效且 `Revisit when` 未触发时，不重复提出相同问题。
 - 小设计得到短报告，不用仪式填充。
 - 本 skill 不修设计、不规划、不实施，也不调用下游 skill。
-- 输出语气直接、自然，不使用模板化客服话术。
+- 与用户交流时直接、自然，不使用模板化客服话术；文件正文按 STEP 7 的文档语言关卡检查。
 
 ## References
 

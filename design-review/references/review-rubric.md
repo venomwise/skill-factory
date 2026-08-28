@@ -2,9 +2,9 @@
 
 本文件定义语义评审维度、严重性和 Verdict。章节结构、Decision、Data Model、Interfaces、
 Acceptance Criteria 和格式以
-[canonical design document template](../../clarifying/assets/design-doc-template.md) 为唯一权威。
+[canonical design document template](../../clarifying/assets/design-doc-template.md) 为准。
 评审模式、finding 和 readiness 以
-[review lifecycle](review-lifecycle.md) 为唯一权威。
+[review lifecycle](review-lifecycle.md) 为准。
 
 ## Evaluation discipline
 
@@ -18,7 +18,7 @@ Closure Review 不重新自由发散，只检查旧 finding、changed sections �
 
 - canonical template 的必需章节存在且有实质内容。
 - 每个核心 Goal 同时映射到 Proposed Solution 和至少一条 AC。
-- Architecture、Components、Data Flow、Error Handling 和 Testing 形成闭环。
+- Architecture、Components、Data Flow、Error Handling 和 Testing 相互对应且覆盖完整。
 - Component 有职责、输入和产出，不只是名称。
 - Data Flow 覆盖主路径；非平凡设计覆盖关键失败路径。
 - 持久且非显然的选择有 Decision；直接修复没有被包装成 Decision。
@@ -26,7 +26,7 @@ Closure Review 不重新自由发散，只检查旧 finding、changed sections �
 - 来自项目 work item 的设计能追溯到真实 Project、Backlog 和稳定 `WI-*`。
 
 缺少整个 Acceptance Criteria 或核心 Goal 没有 AC 是 Blocker。
-缺少承重的 Components、Data Flow 或 Error Handling 通常是 Blocker。
+缺少实现核心 Goal 所必需的 Components、Data Flow 或 Error Handling 通常是 Blocker。
 
 ## D2: Usability
 
@@ -109,9 +109,9 @@ D7 通常是 Minor；与真实风险重叠时按风险影响定级。
 - Change Summary 枚举全部 ADD/MODIFY/REMOVE 对象。
 - 新对象给出完整目标模型；已有对象只描述变化字段。
 - Persistence、Domain/Serialized、Migration 和 Concurrency 内容归属正确。
-- 约束、索引、事实源和所有权清晰。
+- 约束和索引明确，说明数据以哪里为准以及由谁负责。
 - 可执行 SQL 位于独立文件，design 引用路径且不维护第二份 DDL/DML。
-- 正向、回填、回滚和数据保护语义闭合。
+- 正向、回填、回滚和数据保护规则相互一致且完整。
 - Data Model 没有混入接口请求、资源流程或无关实现叙述。
 
 ## Interfaces checks
@@ -136,7 +136,7 @@ D7 通常是 Minor；与真实风险重叠时按风险影响定级。
 | Severity | Meaning | Examples |
 |----------|---------|----------|
 | Blocker | 阻止实现或与项目事实冲突 | 核心 Goal 无设计/AC，关键契约自相矛盾 |
-| Major | 关键路径的真实缺口或风险 | 含糊接口、迁移不安全、执行链路缺承载者 |
+| Major | 关键路径的真实缺口或风险 | 含糊接口、迁移不安全、执行流程没有责任组件 |
 | Minor | 不阻断的改进或打磨 | 命名、可读性、非关键复用机会 |
 
 不要通过夸大严重性让报告显得全面。
@@ -152,20 +152,20 @@ D7 通常是 Minor；与真实风险重叠时按风险影响定级。
 
 ## Full Review completion gate
 
-1. 7 个维度是否全部检查？If no，继续评审。
-2. Goal -> Solution -> AC 覆盖是否完成？If no，补完。
-3. Data Model 和 Interfaces 是否按适用性检查？If no，补完。
-4. 候选 finding 是否按根因合并并校准严重性？If no，先合并。
-5. 成对契约的共享约束是否完成对称性检查？If no，补完。
-6. 最终集合是否经过交叉检查？If no，不得写报告。
+1. 7 个维度是否全部检查？IF 否，THEN 继续评审。
+2. Goal -> Solution -> AC 覆盖是否完成？IF 否，THEN 补完。
+3. Data Model 和 Interfaces 是否按适用性检查？IF 否，THEN 补完。
+4. 候选 finding 是否按根因合并并校准严重性？IF 否，THEN 先合并。
+5. 成对契约的共享约束是否完成对称性检查？IF 否，THEN 补完。
+6. 最终集合是否经过交叉检查？IF 否，THEN 不得写报告。
 
 ## Closure Review admission gate
 
 开始语义复核前检查：
 
-1. pre-closure audit 是否为 Passed？If no，返回 `design-refine`。
-2. 每条历史 finding 是否有 Closure test 和原反例检查？If no，返回 `design-refine`。
-3. Next review mode 是否与实际 changed sections 一致？If no，按 lifecycle 重新选择模式并记录原因。
+1. pre-closure audit 是否为 Passed？IF 否，THEN 返回 `design-refine`。
+2. 每条历史 finding 是否有 Closure test 和原反例检查？IF 否，THEN 返回 `design-refine`。
+3. Next review mode 是否与实际 changed sections 一致？IF 否，THEN 按 lifecycle 重新选择模式并记录原因。
 
 每条 Closure 新 finding 必须回答：
 

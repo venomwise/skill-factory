@@ -19,8 +19,8 @@
 ```
 用户：/prd-review docs/payment-feature.md
       PM 说：重复支付通过订单号去重，退款走异步队列，对账每日凌晨执行
-→ Read docs/payment-feature-review.md（已有的分析）
-→ Edit 更新报告：
+→ 读取 docs/payment-feature-review.md（已有的分析）
+→ 更新报告：
   - 标记"重复支付"问题为 [已解决]
   - 标记"退款流程"问题为 [已解决]
   - 标记"对账周期"问题为 [已解决]
@@ -31,11 +31,11 @@
 **场景 3: 所有疑问解决**
 ```
 用户：/prd-review docs/payment-feature.md
-→ Read docs/payment-feature-review.md
+→ 读取 docs/payment-feature-review.md
 → 检查 PRD 是否有更新（用户未说明，假设无更新）
 → 确认所有 Todo 已勾选，无阻断性风险
 → 更新评审状态为 🟢 已通过
-→ 输出："需求澄清完成，所有逻辑闭环和技术可行性问题已确认，可以开始设计技术方案。"
+→ 输出："需求澄清完成，业务流程和技术可行性问题均已确认，可以开始设计技术方案。"
 ```
 
 **场景 4: 涉及数据库的需求**

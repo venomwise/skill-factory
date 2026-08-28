@@ -136,7 +136,7 @@ F-030 的修复新增状态 `RECONCILING`，但 State Machines 没有该状态�
 
 ### dependency-unlocked
 
-F-031 先确定存储事实源。只有该决策完成后，才能判断回滚是否需要 backfill 版本。
+F-031 先确定数据以哪个存储为准。只有该决策完成后，才能判断回滚是否需要 backfill 版本。
 后续 finding 可以使用 `dependency-unlocked`，并说明依赖关系。
 
 ### baseline-miss

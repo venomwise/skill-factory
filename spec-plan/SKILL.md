@@ -35,7 +35,8 @@ description: >
 
 ## Acceptance Criteria contract
 
-`design.md` 是已批准行为和设计方案的唯一权威来源。`spec-plan` 只消费其中的 `## Acceptance Criteria`，不得创建、补全、改写或重新解释 AC。
+已批准的行为和设计方案以 `design.md` 为准。`spec-plan` 只读取并使用其中的
+`## Acceptance Criteria`，不得创建、补全、改写或重新解释 AC。
 
 有效 AC 必须满足：
 

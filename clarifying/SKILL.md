@@ -153,20 +153,35 @@ handoff 关卡只验证项目准入，不替代下面的需求与技术澄清。
 
 说明风险和核心逻辑，询问是否写入设计文档。用户同意后：
 
-1. 使用唯一权威
-   [design document template](assets/design-doc-template.md)。
+1. 按 [design document template](assets/design-doc-template.md) 写入设计。
 2. 写入 `specs/<topic>/design.md`；topic 使用 kebab-case。
 3. 同名目录或路径有歧义时，先确认重命名还是沿用。
 4. 输入来自项目 work item 时，填写 Project Traceability 的 Project、Backlog 和 Work item；
    独立请求删除该可选章节。
-5. 只从实际讨论、项目文档和项目证据恢复内容；不要凭印象重建或编造选项。
+5. 重新读取实际讨论、项目文档和项目证据并据此填写；不要凭记忆补写或编造选项。
 6. 只把持久且非显然的选择写入稳定 `DR-<semantic-topic>`。
 7. 用户明确驳回且可能被重复提出的边界，写入带 `Rejected concern` 和
    `Revisit when` 的 Decision。
 8. 事实修正、格式处理和章节传播不写入 Decision Record。
 9. 数据或契约发生变化时，按模板填写 Data Model / Interfaces Change Summary。
 10. 在 Acceptance Criteria 中写入用户确认的可观察行为。
-11. 运行只读格式校验器，修复所有非豁免超长行。
+11. 重新读取实际写入的完整 `design.md`，执行下面的文档语言关卡。
+12. 语言修改后重新检查 Goals、Decision、Data Model、Interfaces、Data Flow、Error Handling、
+    Acceptance Criteria 和 Testing 的对应关系。
+13. 运行只读格式校验器，修复所有非豁免超长行。
+
+**文档语言关卡：**
+
+1. 中文正文是否自然、直接？英文只保留技术术语、模板字段、章节名、路径、ID 和固定枚举。
+   IF 否，THEN 只改对应句子。
+2. Summary、Context、Proposed Solution、Components 和 Data Flow 是否写清参与者、触发条件、
+   输入、动作、结果或副作用？IF 否，THEN 改成具体关系，不用抽象名词代替设计内容。
+3. 是否存在逐词翻译、商业黑话、流程隐喻、模板化开场或空泛总结？IF 是，THEN 删除姿态层，
+   保留技术含义；生命周期、消息消费等正常技术术语不做机械替换。
+4. 数字、事实、责任主体、用户决定、Decision、状态、字段、Contract ID、路径、命令、引用和
+   技术术语是否保持不变？IF 否，THEN 恢复原意并缩小改写范围。
+5. 语言修改是否新增、删除、弱化或扩大了 Goals、Non-Goals、风险、契约、错误行为或 AC？
+   IF 是，THEN 撤销该修改，并依据已确认设计重新表述。
 
 格式校验命令：
 
@@ -174,7 +189,7 @@ handoff 关卡只验证项目准入，不替代下面的需求与技术澄清。
 node <clarifying-skill>/scripts/check-markdown-lines.mjs specs/<topic>/design.md
 ```
 
-设计写盘后推荐运行 `design-review`。用户明确要求进入 `spec-plan` 或实施时，
+设计写入文件后推荐运行 `design-review`。用户明确要求进入 `spec-plan` 或实施时，
 仍以用户指令为准，但不得绕过未解决的设计问题。
 
 输入来自项目 work item 时，在最终响应追加以下 handoff，不直接改 backlog：
@@ -194,7 +209,7 @@ project_handoff:
 
 ## Verification
 
-仅针对落地的 `design.md`：
+仅针对已写入的 `design.md`：
 
 - [ ] 文件位于 `specs/<topic>/design.md`，topic 为 kebab-case。
 - [ ] 项目 work item 对应的设计包含可解析且匹配的 Project Traceability。
@@ -212,6 +227,8 @@ project_handoff:
 - [ ] AC 不包含实现步骤、验证命令、被拒方案或未经确认的内容。
 - [ ] Open Questions 不包含仍会改变行为、范围或 Acceptance Criteria 的未决项。
 - [ ] 项目 work item 的最终响应包含完整 project handoff，backlog 未被本技能修改。
+- [ ] 已重新读取完整 `design.md` 并通过文档语言关卡，抽象说法能够对应具体设计关系。
+- [ ] 语言修改没有改变事实、Decision、字段、Contract ID、错误语义或 AC 行为。
 - [ ] 行宽校验通过，无非豁免的 120 字符超长行。
 
 ## Safety & guardrails
@@ -222,9 +239,10 @@ project_handoff:
   `brainstorming` 统一写入。
 - 简单明确的请求允许在少数几轮内完成，不为凑流程追加问题。
 - 发散阶段允许探索；收敛和写设计时删除不服务当前 Goals 的内容。
-- `design.md` 是当前有效行为和设计的唯一权威，不兼任完整讨论日志。
-- 长寿命内容必须从实际对话和项目证据恢复，不凭印象补写。
-- 输出语气自然、直接，像与同事讨论，不使用客服或公文式话术。
+- 当前行为和设计以 `design.md` 为准；该文件不兼任完整讨论日志。
+- 写入 `design.md` 前必须重新读取实际对话和项目证据并据此填写，不凭记忆补写。
+- 与用户交流时自然、直接，像与同事讨论，不使用客服或公文式话术；文件正文按 STEP 7
+  的文档语言关卡检查。
 
 ## References
 

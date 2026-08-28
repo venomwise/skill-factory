@@ -13,11 +13,12 @@ description: >
 
 ## 核心理念
 
-Use this skill after `prd-review` has produced a review report. The goal is not to patch the PRD line by line, but to turn review findings into explicit decisions, evaluate options against the real project context, record the decision path, and only update the PRD after the user confirms the final writeback.
+在 `prd-review` 生成评审报告后使用本技能。不要逐行修补 PRD；应把 review findings 合并为
+明确的决策项，结合真实项目背景比较方案，记录决策过程，并在用户最终确认后写回 PRD。
 
 **为什么需要这个流程?** 直接修改 PRD 会丢失决策上下文。当未来需要调整需求时,团队无法回溯"当初为什么这样设计"。通过记录决策过程,我们保留了方案对比、取舍理由和项目约束,让需求演进有据可查。
 
-**Match the user's language for all output.** 如果用户用中文提问,所有输出都使用中文。
+输出语言跟随用户。用户用中文提问时，所有输出都使用中文。
 
 ## When to use
 
@@ -49,11 +50,11 @@ Use this skill after `prd-review` has produced a review report. The goal is not 
 
 ### Step 1: Load context
 
-Read the PRD, matching review report, and any existing `<prd-basename>-refine.md`.
+完整读取 PRD、对应的 review 报告和已有的 `<prd-basename>-refine.md`。
 
-If the refine file exists, resume from the first undecided item. Do not restart the process or discard previous decisions.
+IF refine 文件已存在，THEN 从第一个未决项继续，不要重启流程或丢弃已有决策。
 
-**Explore project context when a decision depends on current implementation.** 不要凭空假设项目现状,基于实际代码和文档做决策。
+决策依赖当前实现时，检查项目上下文。不要凭空假设项目现状，应根据实际代码和文档做决策。
 
 **何时需要调研项目上下文?**
 - 决策涉及现有代码改动 → 搜索相关函数、类、API
@@ -70,47 +71,49 @@ If the refine file exists, resume from the first undecided item. Do not restart 
 - 查看配置文件(application.yml、.env、config.*)
 - 阅读现有的单元测试(了解预期行为)
 
-Use repository docs, code search, database exploration, and relevant references as needed. Do not invent project facts.
+按需读取仓库文档、搜索代码、检查数据库和相关资料。不要编造项目事实。
 
 ### Step 2: Build or update the decision queue
 
-Convert review findings into decision items. **为什么需要决策队列?** 评审报告通常包含几十条发现,如果逐条处理会导致决策碎片化。将相关发现归并为决策项,能让 PM/架构师从产品或技术视角整体思考。
+把 review findings 合并为决策项。评审报告可能包含大量发现；逐条处理会把同一个产品或架构
+选择拆散。决策队列应按共同选择合并相关发现，方便 PM 或架构师整体判断。
 
-Group related findings by product or architecture decision instead of mirroring every review bullet mechanically. **例如:** 如果评审报告有 3 条关于权限的发现,不要创建 3 个决策项,而是归并为 1 个"权限模型设计"决策。
+按产品或架构决策合并相关 findings，不要机械复制评审报告中的每个条目。例如，评审报告有
+3 条权限相关发现时，只创建一个“权限模型设计”决策项。
 
-Prioritize:
+按以下顺序处理：
 
-1. `[P0-阻断]` decisions that block requirement closure (例如:核心功能需求不明确、技术可行性未验证)
-2. `[P1-需确认]` decisions that affect product behavior or architecture direction (例如:交互流程设计、数据模型设计)
-3. `[P2-优化]` decisions that improve maintainability, usability, or delivery quality (例如:错误提示优化、代码结构调整)
+1. `[P0-阻断]`：阻止需求继续推进的决策，例如核心功能不明确、技术可行性未验证。
+2. `[P1-需确认]`：影响产品行为或架构方向的决策，例如交互流程、数据模型。
+3. `[P2-优化]`：改善可维护性、可用性或交付质量的决策，例如错误提示、代码结构。
 
-Each decision item should include:
+每个决策项必须包含：
 
-- ID, title, status
-- Source review finding and PRD reference (让决策可追溯到原始问题)
-- Why this is a decision rather than a simple text edit (如果是简单文字修正,直接改 PRD 即可,不需要决策流程)
-- Affected PRD sections
+- ID、标题和状态。
+- 来源 review finding 和 PRD 位置，确保能追溯到原始问题。
+- 为什么需要用户决策，而不是直接修改文字；简单文字修正不进入决策流程。
+- 受影响的 PRD 章节。
 
 ### Step 3: Analyze one decision item at a time
 
 **逐项分析决策,而不是一次处理所有问题。** 为什么?因为每个决策都可能涉及多个方案对比、成本收益权衡和项目上下文调研,一次处理多项会让对话失焦,用户难以做出高质量决策。逐项处理能确保每个决策都得到充分讨论和确认。
 
-Work on exactly one undecided item per interaction. For that item, provide:
+每轮只处理一个未决项，并提供：
 
-- **Current issue and source** (问题是什么,来自评审报告哪一条)
-- **Project-context evidence** (为什么需要证据?避免凭空假设项目现状,决策必须基于实际代码和文档)
-- **2-3 viable options** (为什么是 2-3 个?太少没得选,太多增加决策负担。排除明显不可行的方案,只列出真正需要权衡的选项)
-- **Pros, cons, and risks for each option** (帮助用户理解每个选项的取舍)
-- **Impact analysis:**
-  - User experience impact (用户会感知到什么变化?)
-  - Delivery cost (开发工作量、时间成本)
-  - Maintainability (未来维护和扩展的难度)
-  - Extensibility (是否为未来需求预留空间?)
-  - Final product effect (对最终产品质量的影响)
-- **Recommended option with reasoning** (你的建议是什么,为什么?)
-- **Focused confirmation question for PM/architect** (让用户做决策,不要替用户决定)
+- **当前问题和来源**：问题是什么，来自评审报告哪一条。
+- **项目证据**：使用实际代码和文档，避免凭空假设项目现状。
+- **2-3 个可行方案**：排除明显不可行的方向，只列真正需要权衡的选项。
+- **每个方案的优点、缺点和风险**：帮助用户理解取舍。
+- **影响分析：**
+  - 用户体验：用户会感知到什么变化。
+  - 交付成本：开发工作量和时间成本。
+  - 可维护性：未来维护和扩展的难度。
+  - 可扩展性：是否为未来需求预留空间。
+  - 最终产品效果：对产品质量的影响。
+- **推荐方案和理由**：说明建议及依据。
+- **面向 PM 或架构师的单一确认问题**：让用户决策，不替用户决定。
 
-Ask the user to choose or revise the option. Do not modify the PRD at this stage.
+请用户选择或调整方案。此阶段不得修改 PRD。
 
 **决策分析示例:**
 
@@ -167,32 +170,32 @@ Ask the user to choose or revise the option. Do not modify the PRD at this stage
 
 ### Step 4: Record the decision path
 
-After the user confirms an option, update `<prd-basename>-refine.md` with:
+用户确认方案后，更新 `<prd-basename>-refine.md`，记录：
 
-- Options considered (为什么要记录被拒绝的方案?未来可能需要重新评估,保留当时的分析能节省重复调研成本)
-- Recommendation
-- Final decision (用户最终选择了什么,是否与推荐一致)
-- Decision rationale (用户为什么选择这个方案?有哪些关键考量因素?)
-- Confirmed constraints or assumptions (决策依赖的前提条件,例如"假设 3 个月内不新增角色")
-- Expected PRD impact (这个决策会导致 PRD 哪些章节需要修改)
+- 讨论过的方案，包括被拒绝方案；后续条件变化时可以据此重新评估。
+- 推荐方案。
+- 最终决策，以及是否采用推荐方案。
+- 决策理由和关键考虑。
+- 已确认的约束或假设，例如“3 个月内不新增角色”。
+- 对 PRD 的影响，包括需要修改的章节。
 
 **为什么要详细记录?** 6 个月后当需求变化时,团队需要回溯"当初为什么这样设计",有了完整记录,就能快速理解决策上下文,避免重复讨论。
 
-Then move to the next undecided item.
+然后处理下一个未决项。
 
 ### Step 5: Final summary and writeback preview
 
-After all decision items are confirmed, summarize:
+所有决策项确认后，总结：
 
-- All decisions made (列出所有决策项的标题和最终选择)
-- Major tradeoffs accepted (重要的取舍,例如"为了快速上线,暂不支持动态角色")
-- PRD sections that will change (哪些章节需要修改)
-- Requirement conflicts or unresolved risks, if any (是否有决策之间的冲突?是否有风险需要在 PRD 中标注?)
-- Proposed PRD update preview (展示具体会怎么改 PRD,让用户预览)
+- 所有决策项的标题和最终选择。
+- 已接受的重要取舍，例如“为了快速上线，暂不支持动态角色”。
+- 将要修改的 PRD 章节。
+- 决策之间的冲突或仍未解决的风险。
+- PRD 更新预览，展示具体修改内容。
 
 **为什么需要预览?** 避免用户批准决策后,发现实际写入 PRD 的内容不符合预期。预览阶段是最后的检查点。
 
-Ask the user whether to write the summarized decisions back to the PRD. **The question must be explicit and must not assume approval.** 
+明确询问用户是否把总结后的决策写回 PRD，不得假设用户已经批准。
 
 **正确的询问方式:**
 - "我准备将上述决策写入 PRD,你确认要写回吗?"
@@ -204,25 +207,27 @@ Ask the user whether to write the summarized decisions back to the PRD. **The qu
 
 ### Step 6: Update PRD only after explicit approval
 
-If the user confirms writeback, update the PRD with final requirement text only. **Keep analysis, rejected options, and detailed tradeoffs in `<prd-basename>-refine.md`.** 
+IF 用户确认写回，THEN PRD 只保留最终需求文本。分析过程、被拒绝方案和详细取舍继续保存在
+`<prd-basename>-refine.md` 中。
 
 **为什么 PRD 和 refine 文件要分离?**
 - PRD 是面向开发团队的需求文档,需要简洁清晰
 - refine 文件是决策记录,面向未来的需求变更和复盘
 - 混在一起会让 PRD 变得冗长,开发者只想知道"做什么",不需要看"为什么不选方案 B"
 
-After writing, update the refine file with:
+写回后更新 refine 文件，记录：
 
-- Writeback time (记录写回时间,便于追溯)
-- Changed PRD sections (具体修改了哪些章节)
-- Summary of edits (修改摘要,例如"新增了权限矩阵表格,明确了 3 个角色的权限边界")
-- Final status (标记为"已完成"或"已写回")
+- 写回时间。
+- 已修改的 PRD 章节。
+- 修改摘要，例如“新增权限矩阵，明确 3 个角色的权限边界”。
+- 最终状态：`已完成` 或 `已写回`。
 
-If the user declines writeback, leave the PRD unchanged and keep the refine file as the decision record. **这也是合理的结果** - 用户可能想等所有决策做完后再一起写回,或者发现有些决策需要重新讨论。
+IF 用户拒绝写回，THEN 保持 PRD 不变，并把 refine 文件保留为决策记录。用户可以稍后统一
+写回，也可以重新讨论其中的决策。
 
 ## Refine file structure
 
-Use this structure for `<prd-basename>-refine.md`:
+`<prd-basename>-refine.md` 使用以下结构：
 
 ```markdown
 # PRD 优化决策记录
@@ -254,22 +259,26 @@ Use this structure for `<prd-basename>-refine.md`:
 
 ## Guardrails
 
-这些原则确保 skill 按照预期方式工作,避免常见错误:
+遵守以下规则：
 
-- **Do not update the PRD before all relevant decisions are recorded and the user explicitly approves writeback.** 为什么?过早写回会导致决策不完整,用户事后发现问题时 PRD 已经被改了。
-- **Do not treat review findings as a checklist of direct text additions.** 评审报告说"缺少错误码定义"不等于直接复制粘贴一段错误码列表到 PRD。要思考:为什么需要错误码?当前有没有?用什么格式定义?这才是决策。
-- **Do not replace PM or architect judgment.** 你的角色是提供分析和建议,最终决策权在用户手里。即使你认为方案 A 明显更好,用户选择方案 B 也要尊重(但可以确认一次"你是否考虑了 XX 风险?")。
-- **Do not invent future features.** "未来可能需要"不能作为当前版本的设计依据,除非用户明确说"3 个月内会上这个功能"。Options must be grounded in PRD goals, review findings, and current project context.
-- **Keep PRD text clean and final. Keep decision history in the refine file.** PRD 里不要出现"我们考虑过方案 A/B/C,最后选了 A"这种内容,这些放在 refine 文件里。
-- **If critical business priority, cost tolerance, or acceptance criteria exist only in the user's head, ask before deciding.** 不要假设"用户肯定希望快速上线",问清楚"这个版本的上线时间有硬性要求吗?可以接受多少人日的开发成本?"
+- 在相关决策全部记录且用户明确批准写回之前，不得修改 PRD。
+- 不把 review findings 当成直接追加到 PRD 的文字清单。评审报告指出“缺少错误码定义”时，
+  先确认为什么需要、现状如何以及采用什么格式。
+- 不代替 PM 或架构师决策。即使推荐方案 A，也必须尊重用户选择的方案 B；必要时只确认一次
+  用户是否考虑了相关风险。
+- 不编造未来功能。“未来可能需要”不能作为当前版本的设计依据，除非用户给出明确时间范围。
+  所有方案必须来自 PRD Goals、review findings 和当前项目背景。
+- PRD 只保留最终需求，决策历史放在 refine 文件中。不要把方案 A/B/C 的讨论过程写入 PRD。
+- 业务优先级、成本容忍度或 Acceptance Criteria 只存在于用户头脑中时，先询问再决策。
+  不要假设用户一定希望快速上线，应确认时间要求和可接受的开发成本。
 
 ## Verification
 
-Before finishing, verify:
+结束前检查：
 
-- [ ] `<prd-basename>-refine.md` exists next to the PRD (决策记录必须保存,不能只存在对话中)
-- [ ] Every decision cites a review finding, PRD section, or project-context source (决策必须有依据,不能凭空想象)
-- [ ] Each confirmed decision records considered options, tradeoffs, final choice, and rationale (完整的决策记录包含这 4 个要素)
-- [ ] The PRD remains unchanged until explicit final writeback approval (没有用户明确同意,绝对不能改 PRD)
-- [ ] The final summary lists all accepted decisions and affected PRD sections (让用户清楚知道会改什么)
-- [ ] If PRD was updated, the refine file contains a writeback record (追溯性要求:能看出什么时候写回的、改了哪些地方)
+- [ ] `<prd-basename>-refine.md` 与 PRD 位于同一目录；决策记录不能只存在于对话中。
+- [ ] 每个决策都引用 review finding、PRD 章节或项目证据。
+- [ ] 每个已确认决策都记录备选方案、取舍、最终选择和理由。
+- [ ] 用户最终明确批准写回前，PRD 保持不变。
+- [ ] 最终总结列出全部已接受决策和受影响的 PRD 章节。
+- [ ] IF PRD 已更新，THEN refine 文件包含写回时间、修改章节和摘要。

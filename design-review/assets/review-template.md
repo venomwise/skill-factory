@@ -2,15 +2,20 @@
 
 > 对 `<path/to/design.md>` 的设计评审。Verdict 是评审时快照；当前流程状态见 Current Readiness。
 
+<!--
+中文正文写清条件、受影响对象、证据和后果。不要用“存在一定风险”“不够完善”或
+“进一步优化”代替具体 finding。固定字段、ID、路径、Severity、Origin 和状态枚举保持不变。
+-->
+
 ## Verdict
 
 - **Review round**: <R1 / R2 / ...>
 - **Review mode**: <Full / Closure>
-- **Mode reason**: <首次评审、refine 后闭环或升级原因>
+- **Mode reason**: <触发当前模式的具体 lifecycle 条件>
 - **Overall at review**: <Pass / Revise / Reject>
 - **spec-plan readiness at review**: <Go / Conditional / No-Go>
 - **Findings**: <N Blocker / N Major / N Minor>
-- **Summary**: <最重要的结论>
+- **Summary**: <最重要的结论、直接原因和评审当时是否可进入下一步>
 
 ## Scope Reviewed
 
@@ -26,15 +31,15 @@
 
 按 Blocker、Major、Minor 排序。空分组不输出。finding ID 与严重性无关，跨轮保持稳定。
 
-### [F-001] <标题>
+### [F-001] <能指出具体问题对象的简短标题>
 
 - **Severity**: <Blocker / Major / Minor>
 - **Introduced in**: <R1 / R2 / ...>
 - **Origin**: <initial-review / refine-regression / dependency-unlocked / baseline-miss / context-change>
 - **Location**: `design.md §<section>` <和/或项目文件>
-- **Issue**: <具体错误、缺失或需要确认的风险>
-- **Evidence**: <设计、代码、数据库或契约证据>
-- **Recommendation**: <具体修复或必须做出的决策>
+- **Issue**: <在什么条件下，哪个设计对象存在什么错误、缺失或风险>
+- **Evidence**: <可核实的设计位置、代码、数据库或契约证据，以及它与期望行为的差异>
+- **Recommendation**: <需要修改的章节或契约，或必须由用户做出的具体决策>
 
 ## Dimension Summary
 
@@ -62,11 +67,11 @@
 - **Pre-closure audit**: <Not run / Passed / Failed；仅在 refine 后填写>
 - **Next review mode**: <Not determined / Full / Closure>
 - **Mode trigger**: <命中的 Full Review 条件 / None>
-- **Impact matrix**: <changed sections -> 固定传播章节；仅在 refine 后填写>
+- **Impact matrix**: <changed sections -> 预先列出的关联章节；仅在 refine 后填写>
 
 | Finding | Severity | Status | Resolution ref | Changed sections | Note |
 |---------|----------|--------|----------------|------------------|------|
-| F-001 | <severity> | <status> | <DR-id / §section / risk ref / None> | <sections / None> | <short note> |
+| F-001 | <severity> | <status> | <DR-id / §section / risk ref / None> | <sections / None> | <证据或阻塞摘要> |
 
 ### Finding Closure Proof
 
@@ -88,7 +93,7 @@
 
 <!-- 没有则省略。Minor 延期和非持久接受风险记录在这里。 -->
 
-- **F-###**: <accepted-risk / deferred>，<理由和重新评估条件>。
+- **F-###**: <accepted-risk / deferred>，<受影响对象、接受或延期理由，以及重新评估条件>。
 
 ## Recommended Next Step
 
@@ -99,4 +104,4 @@
 - ready / Go -> spec-plan。
 -->
 
-<当前推荐动作>。
+<根据 Current Readiness 写明下一位处理者、需要执行的动作和完成条件>。

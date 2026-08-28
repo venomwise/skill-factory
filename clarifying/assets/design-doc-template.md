@@ -9,11 +9,16 @@ Formatting rules:
 - Keep tables to 5-6 short columns; move explanations below the table.
 - Fenced code blocks and standalone unbreakable URLs/hashes may exceed the limit.
 - Validate the completed document with scripts/check-markdown-lines.mjs from the clarifying skill.
+
+Writing rules:
+- 中文正文写清参与者、条件、动作、结果和失败行为，不用抽象名词代替设计关系。
+- 保留技术术语、字段、ID、路径和固定枚举，不为追求口语化改变契约含义。
+- 不写模板化开场、空泛总结或无法对应具体设计内容的效果判断。
 -->
 
 ## Summary
 
-用一段话说明正在构建什么、为谁构建以及为什么。
+用一段话说明为谁改变什么行为、解决什么问题，以及为什么需要本次变更。
 
 ## Project Traceability
 
@@ -25,7 +30,7 @@ Formatting rules:
 
 ## Goals
 
-- 列出主要成果和可衡量的成功条件。
+- 每项写清需要出现的系统或用户结果，以及可判断是否达成的条件。
 
 ## Primary Users / Roles
 
@@ -37,7 +42,7 @@ Formatting rules:
 
 ## Context
 
-说明现有行为、项目约束、相关模块和已经核实的事实。
+说明当前系统如何工作、哪些项目约束适用、涉及哪些模块，以及哪些事实已经核实。
 
 ## Discovery
 
@@ -72,15 +77,15 @@ Decision 使用稳定的语义 ID；同一主题发生变化时原位更新，�
 
 ## Proposed Solution
 
-说明总体方案以及它为什么满足已确认的目标和约束。
+说明参与组件如何协作、关键行为在哪里发生，以及该方案如何满足已确认的目标和约束。
 
 ### Architecture
 
-描述关键构建块和关系。契约、数据模型和机制细节放入后续子章节。
+描述关键构建块、调用或依赖方向和各自边界。契约、数据模型和机制细节放入后续子章节。
 
 ### Components
 
-按“触发条件 -> 输入 -> 产出或副作用”描述组件职责。不给出方法签名。
+按“参与者 + 触发条件 -> 输入和动作 -> 产出或副作用”描述组件职责。不给出方法签名。
 
 ### Data Model
 
@@ -107,13 +112,13 @@ Decision 使用稳定的语义 ID；同一主题发生变化时原位更新，�
 
 - **Ownership**: <负责读写的组件>。
 - **Lifecycle**: <创建、更新、删除和保留语义>。
-- **Source of truth**: <权威存储>。
+- **Source of truth**: <数据以哪个存储中的记录为准>。
 
 #### Domain / Serialized Models
 
 ##### [<ADD/MODIFY>] <model>
 
-- 描述最终字段、嵌套结构、兼容性和事实源。
+- 描述最终字段、嵌套结构、兼容性，以及字段值以哪里为准。
 - 长字段语义使用列表，不塞入表格单元格。
 
 #### Constraints and Indexes
@@ -215,12 +220,13 @@ Decision 使用稳定的语义 ID；同一主题发生变化时原位更新，�
 
 ### Data Flow
 
-按顺序描述主路径。非平凡设计同时覆盖关键失败路径。
+按参与者和调用顺序描述主路径，写清每一步的输入、结果和副作用。非平凡设计同时覆盖
+关键失败路径。
 Data Flow 中的跨边界调用必须引用 Interfaces 中的 Contract ID。
 
 ## Error Handling
 
-列出主要失败模式、检测位置、返回语义、重试或回滚行为。
+列出失败的触发条件、检测位置、受影响对象、返回语义，以及适用的重试或回滚行为。
 
 ## Acceptance Criteria
 
@@ -239,7 +245,8 @@ Data Flow 中的跨边界调用必须引用 Interfaces 中的 Contract ID。
 
 ## Testing
 
-描述关键测试层级、范围和运行位置。按需引用 AC ID；具体验证命令留给实施计划和 Checkpoint。
+描述各测试层级验证什么行为、覆盖哪些边界以及在哪里运行。按需引用 AC ID；具体验证命令
+留给实施计划和 Checkpoint。
 
 ## Open Questions
 

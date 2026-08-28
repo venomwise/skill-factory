@@ -1,6 +1,6 @@
 # Review Lifecycle Contract
 
-`design-review` 是本协议的权威来源。`design-refine` 必须直接引用本文件，不得复制状态定义。
+本协议以 `design-review` 的定义为准。`design-refine` 必须直接引用本文件，不得复制状态定义。
 
 ## Ownership
 
@@ -13,7 +13,7 @@
 - `Accepted / Deferred Risks` 由 `design-refine` 更新。
 - `Recommended Next Step` 从 Current Readiness 派生，可由两个 skill 更新。
 
-`design.md` 只表达当前有效设计。评审处理历史留在 `review.md`，不通过重复 Decision 堆入设计。
+`design.md` 只记录已确认的设计。评审处理历史留在 `review.md`，不通过重复 Decision 堆入设计。
 
 ## Review Modes
 
@@ -64,7 +64,7 @@ Closure Review 的语义检查范围限于：
 - `Pre-closure audit`: `Not run`、`Passed` 或 `Failed`。
 - `Next review mode`: `Full` 或 `Closure`；未执行 audit 时为 `Not determined`。
 - `Mode trigger`: 命中的 Full Review 条件；Closure 时写 `None`。
-- `Impact matrix`: changed sections 到固定传播章节和相关契约的映射。
+- `Impact matrix`: changed sections 到预先列出的关联章节和相关契约的映射。
 - `Finding Closure Proof`: 每条 finding 的闭合测试、证据、原反例复测和结果。
 
 Finding Closure Proof 使用以下字段：
@@ -79,16 +79,18 @@ Finding Closure Proof 使用以下字段：
 
 pre-closure audit 按以下关卡执行：
 
-1. 每条 finding 是否有不依赖当前状态标签的 Closure test？If no，保持 `in-progress` 并补齐测试。
-2. Resolution evidence 是否能解析并覆盖原根因？If no，重新打开该 finding。
-3. 原反例是否已被设计阻止，或由用户确认的边界明确接受？If no，重新打开该 finding。
-4. 共享模型、身份、容量、错误或事务约束的相关契约是否一致？If no，回到 refine；有意差异必须有 Decision 和 AC。
-5. changed sections 是否触发 Full Review？If yes，`Next review mode` 设为 `Full`，并执行全维度 dry-run；
-   If no，设为 `Closure`，只检查 finding、changed sections 和固定传播范围。
-6. 对应 dry-run 是否无缺口？If no，保持 `in-progress`，修复后从第 1 项重跑。
+1. 每条 finding 是否有不依赖当前状态标签的 Closure test？IF 否，THEN 保持 `in-progress` 并补齐测试。
+2. Resolution evidence 是否能解析并覆盖原根因？IF 否，THEN 重新打开该 finding。
+3. 原反例是否已被设计阻止，或由用户确认的边界明确接受？IF 否，THEN 重新打开该 finding。
+4. 共享模型、身份、容量、错误或事务约束的相关契约是否一致？IF 否，THEN 回到 refine；
+   有意差异必须有 Decision 和 AC。
+5. changed sections 是否触发 Full Review？IF 是，THEN 将 `Next review mode` 设为 `Full`，
+   并执行全维度 dry-run；IF 否，THEN 设为 `Closure`，只检查 finding、changed sections 和
+   Impact matrix 中预先列出的关联章节。
+6. 对应 dry-run 是否无缺口？IF 否，THEN 保持 `in-progress`，修复后从第 1 项重跑。
 
 只有全部关卡通过，才能写入 `Pre-closure audit: Passed` 并进入 `ready-for-closure`。
-`rejected` 和 `accepted-risk` 不要求风险消失，但必须证明边界、影响、理由和 Revisit 条件已经持久化。
+`rejected` 和 `accepted-risk` 不要求风险消失，但必须记录边界、影响、理由和 Revisit 条件。
 Closure test 验证原根因和可观察结果；用户选择其他可行方案或明确接受边界时，不要求采用 reviewer 推荐的实现。
 
 ## Finding Identity

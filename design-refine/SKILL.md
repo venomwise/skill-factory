@@ -9,7 +9,7 @@ description: >
 
 # Design Refine
 
-把 review finding 转化为当前有效设计和可追溯 readiness。真正的设计选择逐项确认；
+把 review finding 落实到 `design.md`，并更新可追溯的 readiness。真正的设计选择逐项确认；
 能够从已批准设计和项目事实唯一推导的修复批量确认。
 
 ## Critical rules
@@ -45,7 +45,7 @@ description: >
 
 **Outputs:**
 
-- 更新后的当前有效 `design.md`。
+- 更新后的 `design.md`。
 - 更新后的 `review.md` Current Readiness、风险和下一步。
 - Review Snapshot 的 Verdict、Findings 和 Dimension Summary 保持不变。
 
@@ -73,7 +73,7 @@ description: >
 确认 review 包含 Verdict、Findings、Dimension Summary 和 Current Readiness。
 缺少必要结构时，提示先重新运行 `design-review`，不要猜测状态。
 
-恢复：
+从现有文件读取：
 
 - 当前 review round 和 refine run。
 - 所有 finding 的稳定 `F-###`、Severity、Origin 和 Status。
@@ -135,12 +135,12 @@ STOP when 能区分可由证据唯一修复的问题和必须由用户选择的�
 - 已有 Decision 表述不足：原位补充 `Rejected concern` 和 `Revisit when`。
 - 没有持久边界：创建新的语义 `DR-*`。
 
-边界 Decision 必须描述当前有效设计，而不是只写“Review F-### 被拒绝”。格式：
+边界 Decision 必须直接说明已确认的设计边界，而不是只写“Review F-### 被拒绝”。格式：
 
 ```markdown
 ### DR-<semantic-boundary>
 
-**Decision**: <当前有效边界>。
+**Decision**: <已确认的设计边界>。
 
 **Rationale**: <用户确认的业务或架构理由>。
 
@@ -211,7 +211,7 @@ Decision 准入条件：
 
 **General propagation:**
 
-- 每个 Goal 有承载组件和至少一条 AC。
+- 每个 Goal 都对应至少一个组件和一条 AC。
 - Non-Goals、Discovery 和 Scope Decisions 与当前 Decision 无冲突。
 - 状态名、组件名、字段名和 Contract ID 跨章节一致。
 - 每个行为变化同步到 Error Handling、AC 和 Testing。
@@ -239,7 +239,28 @@ Decision 准入条件：
 - 仅处理 Pass 的 Minor 且全部终态时，可以设置 `ready / Go`。
 - 经 Blocker/Major refine 后不得直接设置 `Go`。
 
-### STEP 10: Run pre-closure audit
+### STEP 10: Check language of changed content
+
+在 pre-closure audit 前重新读取实际 `design.md` 和 `review.md`。默认只检查本次 changed sections、
+Current Readiness 的本次更新及其相邻段落；用户明确要求清理全文时才扩大范围，不为统一文风
+改写其他内容。
+
+执行文档语言关卡：
+
+1. 中文正文是否自然、直接？英文只保留模板字段、技术术语、路径、ID、Origin 和固定枚举。
+   IF 否，THEN 只改对应句子。
+2. 修改后的设计是否写清参与者、条件、动作、结果和失败行为；readiness 说明是否写清证据和
+   下一步？IF 否，THEN 改成具体陈述，不用抽象流程词代替实际关系。
+3. 是否存在逐词翻译、商业黑话、流程隐喻、模板化开场或空泛总结？IF 是，THEN 删除姿态层，
+   保留设计与评审含义；正常技术术语不做机械替换。
+4. 用户决定、事实、数字、Decision、finding ID、Severity、Origin、状态、字段、Contract ID、
+   AC、路径、引用和责任主体是否保持不变？IF 否，THEN 恢复原意并缩小改写范围。
+5. 语言修改是否新增、删除、弱化或扩大了设计边界、风险、契约、finding 或 Closure 结论？
+   IF 是，THEN 撤销该修改，并依据已确认内容重新表述。
+
+任一语言修改完成后重新执行 STEP 9。检查通过后才能进入 pre-closure audit。
+
+### STEP 11: Run pre-closure audit
 
 在设置 `ready-for-closure` 之前，执行一次 pre-closure audit。它是进入独立 review 的准入检查，
 不是新的 Verdict，也不能替代 `design-review` 的独立判断。
@@ -251,14 +272,15 @@ Decision 准入条件：
 
 1. 从 Review Snapshot 的原 Issue、Evidence 和期望结果为每条 finding 提炼 Closure test；Recommendation
    只提供候选修法，不把其中某个实现绑定为唯一通过条件。
-   If 无法写成可验证条件，保持 `in-progress`，不得用当前 `resolved` 标签代替证明。
-2. 根据本次 `Changed sections` 建立影响矩阵，覆盖固定传播章节和共享同一模型、身份、容量、错误或事务约束的
+   IF 无法写成可验证条件，THEN 保持 `in-progress`，不得用当前 `resolved` 标签代替证明。
+2. 根据本次 `Changed sections` 建立影响矩阵，覆盖预先列出的关联章节和共享同一模型、身份、容量、错误或事务约束的
    相关契约。对 preview/commit、create/update、forward/rollback、producer/consumer 等成对契约检查对称性；
    有意差异必须由 Decision、Error Handling、AC 和 Testing 共同说明。
 3. 用原 finding 的证据场景或最小反例复测当前设计。反例仍成立时重新打开原 finding，不创建同根新 finding。
 4. 在 dry-run 前按 lifecycle 判定下一轮模式。Goals、Non-Goals、核心架构、数据所有权、公共契约、安全、
    权限、外部集成、迁移边界或相关项目事实变化时，记录 `Next review mode: Full` 并执行全维度 dry-run；
-   其余情况记录 `Next review mode: Closure`，只检查 finding、changed sections 和固定传播范围。
+   其余情况记录 `Next review mode: Closure`，只检查 finding、changed sections 和
+   Impact matrix 中预先列出的关联章节。
 5. 任一检查失败时保持 `in-progress`，把缺口放回当前 resolution queue；直接修复批量处理，需要用户决定的事项
    继续逐项确认。修复后从第 1 项重跑，不在中间启动独立 review。
 6. 全部通过后，按 lifecycle 的固定字段写入 audit 结果、模式依据、影响矩阵和 Finding Closure Proof，
@@ -266,7 +288,7 @@ Decision 准入条件：
 
 `design-review` 必须独立复核这些证明；pre-closure audit 不能替代 Full 或 Closure Review。
 
-### STEP 11: Validate format and route
+### STEP 12: Validate format and route
 
 运行：
 
@@ -310,6 +332,8 @@ Recommended Next Step：
 - [ ] Next review mode、Mode trigger 与 lifecycle 条件一致，对应 dry-run 已通过。
 - [ ] Review Snapshot 未被修改。
 - [ ] Current Readiness 状态、证据、changed sections 和下一步一致。
+- [ ] 已检查本次改动及相邻段落的语言，没有为统一文风修改无关章节。
+- [ ] 语言修改没有改变 Decision、finding、状态、契约、风险、AC 或 Closure 结论。
 - [ ] design.md 与 review.md 行宽校验通过。
 
 ## References
@@ -317,5 +341,5 @@ Recommended Next Step：
 - [Canonical design document template](../clarifying/assets/design-doc-template.md)
 - [Review lifecycle contract](../design-review/references/review-lifecycle.md)
 - [Boundary and multi-round examples](references/examples.md)
-- [Decision pollution examples](references/pollution-examples.md)
+- [Decision 下游内容示例](references/pollution-examples.md)
 - [Decision verification patterns](references/verification-patterns.md)

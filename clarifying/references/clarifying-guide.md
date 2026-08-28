@@ -1,6 +1,6 @@
 # Clarifying Guide
 
-本文件补充 `SKILL.md` 主流程。退出条件和写盘关卡以 `SKILL.md` 为准。
+本文件补充 `SKILL.md` 主流程。退出条件和文件写入关卡以 `SKILL.md` 为准。
 
 ## Context exploration priorities
 
@@ -35,7 +35,7 @@ STOP when 你能说明项目目的、技术栈、目录结构和本次变更所�
 - Priority：必须交付什么，什么可以放弃？
 - Constraints：时延、规模、安全、合规、成本和运营限制是什么？
 - Success：怎样判断需求已经成功？
-- Data：输入、输出和事实源分别是什么？
+- Data：输入、输出分别是什么？数据以哪里为准？
 - Risk：哪些失败模式必须在当前范围内处理？
 
 每轮只问一个原子问题。多选题能表达真实取舍时，优先给选项和你的建议。
@@ -140,7 +140,7 @@ STOP when 你能说明项目目的、技术栈、目录结构和本次变更所�
 
 ## When to stop clarifying
 
-退出条件以 `SKILL.md` STEP 4 为唯一权威。以下仅是辅助信号：
+退出条件以 `SKILL.md` STEP 4 为准。以下仅是辅助信号：
 
 - 能说明用户想要什么、为什么需要，以及明确不要什么。
 - 关键约束和成功标准已知。

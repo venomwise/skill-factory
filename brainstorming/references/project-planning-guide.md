@@ -1,7 +1,7 @@
 # Project Planning Guide
 
 本文件补充 `SKILL.md` 的项目发现、能力拆分和滚动规划方法。
-流程关卡、写盘条件和产物边界以 `SKILL.md` 为准。
+流程关卡、写入条件和输出边界以 `SKILL.md` 为准。
 
 ## Routing signals
 
@@ -28,7 +28,7 @@
 | `replan` | “新增这个需求”“调整 MVP”“规划下一阶段” | 最早受影响的 STEP 3-6 |
 | `reconcile` | “更新项目进度”“处理 project handoff” | STEP 9 |
 
-后续调用先恢复本地权威文档，再解释本轮变化。不要因为会话是新的就重做首次 discovery，
+后续调用先读取本地项目文档，再解释本轮变化。不要因为会话是新的就重做首次 discovery，
 也不要因为用户说“继续”就把规划续接误判成代码实施；动作对象是项目计划时才使用本技能。
 
 ## Greenfield discovery
@@ -120,11 +120,11 @@
 
 恢复时先读 `project.md` 的 Planning Status，再定位 backlog：
 
-- 有 `backlog.md`：它是 work item、状态、证据和 Current Focus 的唯一权威。
+- 有 `backlog.md`：work item、状态、证据和 Current Focus 以该文件为准。
 - 无 `backlog.md`：`project.md` 内嵌的唯一 `## Backlog` 承担相同职责。
 - 两处都包含 work item：停止并要求消除重复来源，不自行合并。
 
-draft 写盘仍需用户确认。只恢复已经确认的内容；未确认方向写入 Open Questions，
+draft 写入文件前仍需用户确认。只恢复已经确认的内容；未确认方向写入 Open Questions，
 不得补成 Goals、MVP 或 work item。
 
 ## Status reconciliation
