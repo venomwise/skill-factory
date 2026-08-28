@@ -7,6 +7,7 @@ This repository is a **skill factory** — a collection of reusable AI agent ski
 skill-factory/
 ├── brainstorming/         # Plan large projects into project.md and rolling backlog.md
 ├── clarifying/            # Clarify one deliverable requirement into design.md
+├── code-review/           # Independently review implementation diffs and produce code-review.md
 ├── db-explorer/           # Read-only database exploration and querying
 ├── design-review/         # Review a design.md and produce review.md
 ├── exa-search/            # Neural web search for documentation
@@ -190,7 +191,12 @@ Several skills form a project-to-delivery pipeline:
   Any other state requires `design-refine` or a Closure Review first.
 - **spec-plan** consumes the approved `design.md` and produces `tasks.md` only. It never creates or edits acceptance criteria.
 - **spec-exec** consumes `design.md` + `tasks.md`, implements each task, validates referenced ACs,
-  and updates checkboxes as tasks complete.
+  enforces applicable repository guidance, and updates checkboxes as tasks complete. High-risk changes
+  should proceed to `code-review` after the final execution quality gate.
+- **code-review** independently reviews the actual diff against repository guidance, approved design,
+  ACs and validation evidence. Its review phase is strictly read-only. In spec-backed reviews it writes
+  `code-review.md`, then may modify code only after the user approves a consolidated remediation plan.
+  It never modifies design or task state; fixes require a new Manifest and an independent Closure Review.
 
 Project planning conventions:
 
@@ -218,6 +224,8 @@ Spec output conventions:
 - Optional tasks: `[optional]` suffix (claude-code) or `- [ ]*` marker (codex).
 - Checkpoints: `- [ ] N. Checkpoint - Verify <scope>` — evidence-based validation tasks between phases.
 - Completed tasks: `- [x]` (claude-code) or `- [✅]` / `- [✅]*` (codex).
+- Spec-backed code reviews use `code-review.md` with stable `CR-###` findings; finding severity is stored
+  separately from the ID, and review does not change `tasks.md` checkbox state.
 - The legacy `_Requirements:` protocol is unsupported. Historical `specs/**/requirements.md` files may remain as records but are not consumed by current skills.
 
 ## Adding a New Skill
