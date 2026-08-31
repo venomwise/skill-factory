@@ -114,20 +114,18 @@ STOP when 每个候选 finding 都能指向设计位置、项目证据或明确�
 
 ### STEP 4: Run deterministic preflight
 
-全量检查以下规则：
-
-- canonical template 的章节、稳定 Decision ID 和 AC ID。
-- 可选 Project Traceability 的路径、`WI-*` 和设计范围映射。
-- Data Model / Interfaces Change Summary 与详细子章节的映射。
-- Data Flow 中 Contract ID 的引用完整性。
-- Open Questions 是否仍含行为相关未决项。
-- Markdown 行宽。
-
-行宽校验命令：
+先运行结构校验器，覆盖章节齐全、AC/DR ID 格式与唯一性、Contract ID 引用完整性、
+Interfaces Change Summary 与详细契约互相枚举和行宽：
 
 ```bash
-node <clarifying-skill>/scripts/check-markdown-lines.mjs <path/to/design.md>
+node <clarifying-skill>/scripts/check-design-doc.mjs <path/to/design.md>
 ```
+
+再人工核对校验器无法判断的项：
+
+- 可选 Project Traceability 的路径、`WI-*` 和设计范围映射。
+- Data Model Change Summary 与详细子章节的语义映射。
+- Open Questions 是否仍含行为相关未决项。
 
 把同类格式问题合并为一个 D3 finding，并列出代表性行号；不要为每一行创建 finding。
 
@@ -149,10 +147,12 @@ node <clarifying-skill>/scripts/check-markdown-lines.mjs <path/to/design.md>
 1. 从原 Issue、Evidence 和期望结果独立执行每条 Closure test，不以当前 status 作为闭合证据。
 2. 复测 Finding Closure Proof 的原反例；仍成立时沿用原 finding ID 并设为 `reopened`。
 3. 核对影响矩阵、changed sections 和其中预先列出的关联章节。
-4. 检查成对契约的共享约束，以及有意差异对应的 Decision、Error Handling、AC 和 Testing。
-5. 验证相关 Decision 是否仍有效，`Revisit when` 是否触发。
-6. 只在满足 Origin gate 时创建新 finding。
-7. 无法归入允许 Origin 的自由优化建议不得进入 Findings。
+4. 对 changed sections 引入或废弃的标识符做全文抽查；残留表述与当前决定矛盾时，
+   与既有 finding 同根因的沿用原 ID 设为 `reopened`，否则按 `refine-regression` 创建新 finding。
+5. 检查成对契约的共享约束，以及有意差异对应的 Decision、Error Handling、AC 和 Testing。
+6. 验证相关 Decision 是否仍有效，`Revisit when` 是否触发。
+7. 只在满足 Origin gate 时创建新 finding。
+8. 无法归入允许 Origin 的自由优化建议不得进入 Findings。
 
 同一根因沿用原 `F-###`。新 ID 从历史最大编号递增，不复用已关闭编号。
 Closure 新 finding 必须写明 Origin 和因果证据。
@@ -201,13 +201,19 @@ Closure 已确认关闭的历史 finding 只进入紧凑 Closure。
 5. 语言修改是否增加了没有证据的 finding，或改变了已有 finding 的范围和 Closure 结果？
    IF 是，THEN 撤销该修改，并依据实际证据重新表述。
 
-语言检查完成后重新核对模板结构和 Current Readiness，再运行行宽校验器。review 自身存在
-非豁免超长行时，先换行再结束。
+语言检查完成后重新核对模板结构和 Current Readiness，再对 `review.md` 运行行宽校验：
+
+```bash
+node <clarifying-skill>/scripts/check-markdown-lines.mjs <path/to/review.md>
+```
+
+review 自身存在非豁免超长行时，先换行再结束。
 
 ### STEP 8: Recommend next step
 
 - Reject/Revise：运行 `design-refine`，完成后按 `Next review mode` 运行 Full 或 Closure Review。
-- Pass 且有 Minor：让用户选择修复或延期；全部终态后进入 `spec-plan`。
+- Pass 且有 Minor：让用户选择修复或延期，默认建议延期不改变行为契约的 Minor；
+  全部终态后进入 `spec-plan`。
 - 无 finding：进入 `spec-plan`。
 
 只推荐，不自动调用下游 skill。

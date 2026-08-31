@@ -50,6 +50,7 @@ Closure Review 的语义检查范围限于：
 - `Current Readiness` 记录的 changed sections。
 - 这些变化对 Goals、Non-Goals、Components、Data Flow、Error Handling、
   Acceptance Criteria 和 Testing 的传播。
+- changed sections 引入或废弃的标识符在全文中的残留表述。
 
 文档结构、ID、引用完整性和格式等确定性检查仍然全量执行。
 
@@ -84,10 +85,12 @@ pre-closure audit 按以下关卡执行：
 3. 原反例是否已被设计阻止，或由用户确认的边界明确接受？IF 否，THEN 重新打开该 finding。
 4. 共享模型、身份、容量、错误或事务约束的相关契约是否一致？IF 否，THEN 回到 refine；
    有意差异必须有 Decision 和 AC。
-5. changed sections 是否触发 Full Review？IF 是，THEN 将 `Next review mode` 设为 `Full`，
+5. 本次引入、修改或废弃的标识符（字段、错误码、状态名、Contract ID、退役术语）是否已全文核对，
+   且无与当前决定矛盾的残留表述？IF 否，THEN 回到 refine 修复残留。
+6. changed sections 是否触发 Full Review？IF 是，THEN 将 `Next review mode` 设为 `Full`，
    并执行全维度 dry-run；IF 否，THEN 设为 `Closure`，只检查 finding、changed sections 和
    Impact matrix 中预先列出的关联章节。
-6. 对应 dry-run 是否无缺口？IF 否，THEN 保持 `in-progress`，修复后从第 1 项重跑。
+7. 对应 dry-run 是否无缺口？IF 否，THEN 保持 `in-progress`，修复后从第 1 项重跑。
 
 只有全部关卡通过，才能写入 `Pre-closure audit: Passed` 并进入 `ready-for-closure`。
 `rejected` 和 `accepted-risk` 不要求风险消失，但必须记录边界、影响、理由和 Revisit 条件。

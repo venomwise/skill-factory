@@ -11,6 +11,10 @@ Acceptance Criteria 和格式以
 每条 finding 必须记录具体位置、问题、证据、建议、严重性和 Origin。
 一个根因影响多个维度时只创建一个 finding，并在 Dimension Summary 中多处引用。
 
+每条 finding 的 Recommendation 写明最小修改面：需要改动的章节或契约、预期需要同步的传播
+章节，或必须由用户做出的具体决策。`design-refine` 据此直接落实，不需要重新推导影响范围；
+推荐写法缺失时，refine 容易修一处漏一处，把问题拖进下一轮评审。
+
 Full Review 在完成所有维度和根因合并后一次性冻结 finding 集合。
 Closure Review 不重新自由发散，只检查旧 finding、changed sections 和传播边界。
 

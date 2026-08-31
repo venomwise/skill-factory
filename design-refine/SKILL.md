@@ -182,7 +182,7 @@ Resolution ref 直接指向章节，不创建 Decision。
 
 ### STEP 7: Process Minor items
 
-只含 Minor 的可选项可以打包询问全部修复或全部延期。
+只含 Minor 的可选项可以打包询问全部修复或全部延期；默认建议延期不改变行为契约的 Minor。
 用户选择延期时，在 `Accepted / Deferred Risks` 记录 finding、理由和重新评估条件，
 状态设为 `deferred`。
 
@@ -197,6 +197,9 @@ Minor 与 Blocker/Major 共用同一个根因时，不得通过延期绕过阻�
 3. 行为、错误语义或边界变化时同步更新 AC。
 4. 更新 Testing 对 AC 的覆盖。
 5. 更新 Current Readiness 的 Status、Resolution ref 和 Changed sections。
+6. 对本次引入、修改或废弃的标识符（字段名、错误码、状态名、Contract ID、退役术语）在
+   `design.md` 全文检索，确认每处残留表述与更新后的决定一致；不一致处在本轮一并修复，
+   不留给下一轮评审。
 
 Decision 准入条件：
 
@@ -277,13 +280,15 @@ Current Readiness 的本次更新及其相邻段落；用户明确要求清理�
    相关契约。对 preview/commit、create/update、forward/rollback、producer/consumer 等成对契约检查对称性；
    有意差异必须由 Decision、Error Handling、AC 和 Testing 共同说明。
 3. 用原 finding 的证据场景或最小反例复测当前设计。反例仍成立时重新打开原 finding，不创建同根新 finding。
-4. 在 dry-run 前按 lifecycle 判定下一轮模式。Goals、Non-Goals、核心架构、数据所有权、公共契约、安全、
+4. 对本次引入、修改或废弃的标识符做全文核对；残留表述与当前决定矛盾时，回到 STEP 8
+   作为直接修复处理，修复后重跑核对。
+5. 在 dry-run 前按 lifecycle 判定下一轮模式。Goals、Non-Goals、核心架构、数据所有权、公共契约、安全、
    权限、外部集成、迁移边界或相关项目事实变化时，记录 `Next review mode: Full` 并执行全维度 dry-run；
    其余情况记录 `Next review mode: Closure`，只检查 finding、changed sections 和
    Impact matrix 中预先列出的关联章节。
-5. 任一检查失败时保持 `in-progress`，把缺口放回当前 resolution queue；直接修复批量处理，需要用户决定的事项
+6. 任一检查失败时保持 `in-progress`，把缺口放回当前 resolution queue；直接修复批量处理，需要用户决定的事项
    继续逐项确认。修复后从第 1 项重跑，不在中间启动独立 review。
-6. 全部通过后，按 lifecycle 的固定字段写入 audit 结果、模式依据、影响矩阵和 Finding Closure Proof，
+7. 全部通过后，按 lifecycle 的固定字段写入 audit 结果、模式依据、影响矩阵和 Finding Closure Proof，
    再将 Current Readiness 设为 `ready-for-closure`。
 
 `design-review` 必须独立复核这些证明；pre-closure audit 不能替代 Full 或 Closure Review。
@@ -293,10 +298,11 @@ Current Readiness 的本次更新及其相邻段落；用户明确要求清理�
 运行：
 
 ```bash
-node <clarifying-skill>/scripts/check-markdown-lines.mjs <design.md> <review.md>
+node <clarifying-skill>/scripts/check-design-doc.mjs <design.md>
+node <clarifying-skill>/scripts/check-markdown-lines.mjs <review.md>
 ```
 
-修复所有非豁免超长行。然后更新 Current Readiness 的 Next step 和报告末尾的
+修复全部违规项。然后更新 Current Readiness 的 Next step 和报告末尾的
 Recommended Next Step：
 
 - `ready-for-closure`：按 `Next review mode` 运行 `design-review` Full 或 Closure Review。
@@ -327,6 +333,7 @@ Recommended Next Step：
 - [ ] design 中没有新增 `Review Resolution` 或 `Revised` 块。
 - [ ] Data Model 和 Interfaces 符合 canonical schema。
 - [ ] AC、Testing 和受影响章节已完成传播。
+- [ ] 本次引入、修改或废弃的标识符已全文核对，无与当前决定矛盾的残留表述。
 - [ ] 每条 finding 都有 Closure test、Resolution evidence、Counterexample check 和结果。
 - [ ] 成对契约的共享约束一致，或差异已有 Decision、AC 和 Testing。
 - [ ] Next review mode、Mode trigger 与 lifecycle 条件一致，对应 dry-run 已通过。
@@ -334,7 +341,7 @@ Recommended Next Step：
 - [ ] Current Readiness 状态、证据、changed sections 和下一步一致。
 - [ ] 已检查本次改动及相邻段落的语言，没有为统一文风修改无关章节。
 - [ ] 语言修改没有改变 Decision、finding、状态、契约、风险、AC 或 Closure 结论。
-- [ ] design.md 与 review.md 行宽校验通过。
+- [ ] design.md 通过结构校验器，review.md 行宽校验通过。
 
 ## References
 

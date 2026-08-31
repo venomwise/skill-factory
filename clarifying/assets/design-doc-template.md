@@ -8,7 +8,7 @@ Formatting rules:
 - Wrap ordinary Markdown lines at 120 Unicode characters.
 - Keep tables to 5-6 short columns; move explanations below the table.
 - Fenced code blocks and standalone unbreakable URLs/hashes may exceed the limit.
-- Validate the completed document with scripts/check-markdown-lines.mjs from the clarifying skill.
+- Validate the completed document with scripts/check-design-doc.mjs from the clarifying skill.
 
 Writing rules:
 - 中文正文写清参与者、条件、动作、结果和失败行为，不用抽象名词代替设计关系。

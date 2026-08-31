@@ -95,7 +95,7 @@ handoff 关卡只验证项目准入，不替代下面的需求与技术澄清。
 
 - `Problem unclear`：重新界定实际要解决的问题。
 - `Direction unclear`：探索几个有代表性的方向。
-- `Boundaries unclear`：检查与领域相关的盲点。
+- `Boundaries unclear`：按 [clarifying guide](references/clarifying-guide.md) 的盲点清单排查领域盲点。
 - `Solution unclear`：确认意图和约束后再比较技术方案。
 
 每个需要用户输入的回合只问一个原子问题并等待回答。这是节奏控制，
@@ -108,7 +108,8 @@ handoff 关卡只验证项目准入，不替代下面的需求与技术澄清。
 
 1. 能说明用户想要什么、为什么需要、明确不要什么。不满足时，继续本步骤。
 2. 关键约束和成功标准已知。不满足时，继续本步骤。
-3. 适用的关键假设和盲点已确认或明确排除。不满足时，继续本步骤。
+3. 适用的关键假设和盲点已确认或明确排除；盲点清单的适用项已逐项处置为设计覆盖、
+   写入 Non-Goals 或确认不适用，不允许沉默跳过。不满足时，继续本步骤。
 
 ### STEP 5: Converge and propose
 
@@ -159,16 +160,20 @@ handoff 关卡只验证项目准入，不替代下面的需求与技术澄清。
 4. 输入来自项目 work item 时，填写 Project Traceability 的 Project、Backlog 和 Work item；
    独立请求删除该可选章节。
 5. 重新读取实际讨论、项目文档和项目证据并据此填写；不要凭记忆补写或编造选项。
-6. 只把持久且非显然的选择写入稳定 `DR-<semantic-topic>`。
-7. 用户明确驳回且可能被重复提出的边界，写入带 `Rejected concern` 和
+6. 设计中引用的既有列、字段、错误码、配置和既有行为必须来自本次会话的实际检索结果；
+   无法核实的事实写入 Open Questions，不作为设计前提。
+7. 枚举 Data Flow 中的每个跨边界调用，为每个调用分配 Contract ID，并写清请求、响应和错误定义；
+   缺契约的调用先补齐再写文件。
+8. 只把持久且非显然的选择写入稳定 `DR-<semantic-topic>`。
+9. 用户明确驳回且可能被重复提出的边界，写入带 `Rejected concern` 和
    `Revisit when` 的 Decision。
-8. 事实修正、格式处理和章节传播不写入 Decision Record。
-9. 数据或契约发生变化时，按模板填写 Data Model / Interfaces Change Summary。
-10. 在 Acceptance Criteria 中写入用户确认的可观察行为。
-11. 重新读取实际写入的完整 `design.md`，执行下面的文档语言关卡。
-12. 语言修改后重新检查 Goals、Decision、Data Model、Interfaces、Data Flow、Error Handling、
+10. 事实修正、格式处理和章节传播不写入 Decision Record。
+11. 数据或契约发生变化时，按模板填写 Data Model / Interfaces Change Summary。
+12. 在 Acceptance Criteria 中写入用户确认的可观察行为。
+13. 重新读取实际写入的完整 `design.md`，执行下面的文档语言关卡。
+14. 语言修改后重新检查 Goals、Decision、Data Model、Interfaces、Data Flow、Error Handling、
     Acceptance Criteria 和 Testing 的对应关系。
-13. 运行只读格式校验器，修复所有非豁免超长行。
+15. 运行结构校验器，修复全部违规项。
 
 **文档语言关卡：**
 
@@ -183,11 +188,26 @@ handoff 关卡只验证项目准入，不替代下面的需求与技术澄清。
 5. 语言修改是否新增、删除、弱化或扩大了 Goals、Non-Goals、风险、契约、错误行为或 AC？
    IF 是，THEN 撤销该修改，并依据已确认设计重新表述。
 
-格式校验命令：
+结构校验命令：
 
 ```bash
-node <clarifying-skill>/scripts/check-markdown-lines.mjs specs/<topic>/design.md
+node <clarifying-skill>/scripts/check-design-doc.mjs specs/<topic>/design.md
 ```
+
+**Shadow review：**
+
+中等或复杂设计通过结构校验后，在推荐 `design-review` 前，启动一个隔离的只读子代理对
+`design.md` 执行影子评审，把高信号问题在交付前消灭。启动契约、评审范围和候选项格式见
+[shadow review contract](references/shadow-review.md)。
+
+1. 运行环境无法启动只读子代理时，跳过本环节并在最终响应说明；不由主流程自我评审替代。
+2. 候选项没有设计位置或项目证据时直接丢弃，不进入修复。
+3. 候选项改变意图、范围或需要新的用户决策时，向用户呈现并等待确认；确认后回到 STEP 4 或 STEP 5。
+4. 候选项属于一致性缺失、传播缺口或格式问题时，作为直接修复应用，并在最终响应中汇总。
+5. 修复后重新执行文档语言关卡和结构校验器。
+
+影子评审只做交付前预检，不替代 `design-review` 的独立评审，不写入 `review.md`，也不生成
+finding ID。简单设计没有设计文档，跳过本环节。
 
 设计写入文件后推荐运行 `design-review`。用户明确要求进入 `spec-plan` 或实施时，
 仍以用户指令为准，但不得绕过未解决的设计问题。
@@ -227,9 +247,13 @@ project_handoff:
 - [ ] AC 不包含实现步骤、验证命令、被拒方案或未经确认的内容。
 - [ ] Open Questions 不包含仍会改变行为、范围或 Acceptance Criteria 的未决项。
 - [ ] 项目 work item 的最终响应包含完整 project handoff，backlog 未被本技能修改。
+- [ ] 盲点清单的适用项已逐项处置为设计覆盖、Non-Goals 或不适用。
+- [ ] 设计中引用的项目事实均有本次会话的检索证据；无法核实项在 Open Questions。
+- [ ] 每个跨边界调用有 Contract ID 与请求、响应、错误定义。
+- [ ] 中等或复杂设计已执行影子评审，或已说明跳过原因。
 - [ ] 已重新读取完整 `design.md` 并通过文档语言关卡，抽象说法能够对应具体设计关系。
 - [ ] 语言修改没有改变事实、Decision、字段、Contract ID、错误语义或 AC 行为。
-- [ ] 行宽校验通过，无非豁免的 120 字符超长行。
+- [ ] 结构校验器通过：章节、AC、DR、Contract ID 和行宽均无违规。
 
 ## Safety & guardrails
 
@@ -248,4 +272,5 @@ project_handoff:
 
 - [Clarifying guide](references/clarifying-guide.md)
 - [Canonical design document template](assets/design-doc-template.md)
-- [Markdown line-width validator](scripts/check-markdown-lines.mjs)
+- [Shadow review contract](references/shadow-review.md)
+- [Design document validator](scripts/check-design-doc.mjs)
