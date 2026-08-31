@@ -91,24 +91,25 @@ IF 历史 review 缺少 `## Current Readiness`，或只使用 severity-coded fin
 
 ### STEP 3: Explore project evidence
 
-Full Review 按以下优先级探索：
-
-1. README、CLAUDE.md、AGENTS.md。
-2. 项目配置和依赖。
-3. 与设计相关的入口、组件、接口和持久化代码。
-4. 需要理解近期变化时，查看最近 10 个提交。
-5. 相关现有 specs 和机器可读契约。
-6. Project Traceability 指向的项目规划和 work item。
-
-Closure Review 复用上一轮证据，只重新核实 changed sections 影响的项目区域，
+Closure Review 复用上一轮证据，在主线程执行：只重新核实 changed sections 影响的项目区域，
 以及 `context-change` 所指向的新事实。
 
 refine 后的 review 开始前读取 pre-closure audit、影响矩阵和 Finding Closure Proof。
 它们用于定位核查范围，但不构成评审结论；reviewer 必须从原 Issue、Evidence 和期望结果
 重新执行 Closure test 和反例检查，不强制采用原 Recommendation 的具体修法。
 
-设计依赖真实数据库时使用 `db-explorer`。能通过代码、配置、数据库或历史核实的声明，
-必须主动核实，不把可检索事实交给用户回答。
+Full Review 将证据探索和维度检查拆给并行的只读维度子代理，主代理负责统一裁决；
+启动契约、分工和候选项格式见 [axis agents contract](references/axis-agents.md)。
+
+1. 当前运行环境能否启动只读子代理？IF 能，THEN 并行启动**项目证据代理**（D4/D5）和
+   **设计一致性代理**（D1/D2/D6/D7），主代理同时执行 D3 确定性 preflight 和追踪关系核对。
+   IF 不能，THEN 主代理按下述探索优先级串行执行全部维度，并在响应中说明使用了串行模式。
+2. 探索优先级（子代理契约与串行降级共用）：README、CLAUDE.md、AGENTS.md；项目配置和依赖；
+   与设计相关的入口、组件、接口和持久化代码；需要理解近期变化时查看最近 10 个提交；
+   相关现有 specs 和机器可读契约；Project Traceability 指向的项目规划和 work item。
+3. 设计依赖真实数据库时使用 `db-explorer`。能通过代码、配置、数据库或历史核实的声明，
+   必须主动核实，不把可检索事实交给用户回答。
+4. 任一子代理失败、超时或只返回无证据内容时，主代理串行补跑该维度组，不降低检查范围。
 
 STOP when 每个候选 finding 都能指向设计位置、项目证据或明确的契约缺口。
 
@@ -134,13 +135,13 @@ node <clarifying-skill>/scripts/check-design-doc.mjs <path/to/design.md>
 **Full Review:**
 
 1. refine 后升级为 Full 时，先独立复测 Finding Closure Proof；原反例仍成立时沿用原 finding ID。
-2. 按 rubric 的 7 个维度建立候选 finding ledger。
-3. 建立 Goal -> Solution -> AC 覆盖关系。
-4. 单独检查 Data Model、Interfaces、迁移、并发和错误契约。
-5. 检查共享模型、身份、容量、错误或事务约束在成对契约间是否一致；有意差异是否有 Decision 和 AC。
-6. 检查项目契合度、适用盲点和 YAGNI。
-7. 按根因合并跨维度候选项，校准严重性。
-8. 对最终集合再做一次交叉检查，然后冻结本轮 findings。
+2. 汇总维度子代理的候选项；串行模式汇总主代理自查结果。没有位置或证据的候选项直接丢弃。
+3. 对每条候选独立核验：证据是否可复现，位置是否在评审范围内；Goal -> Solution -> AC 覆盖、
+   Data Model、Interfaces、迁移、并发和错误契约，以及成对契约的共享模型、身份、容量、错误或
+   事务约束是否一致，有意差异是否有 Decision 和 AC。
+4. 核验项目契合度、适用盲点和 YAGNI 类候选时，对照项目事实和 rubric 的严重性规则校准。
+5. 按根因合并跨维度候选项，校准严重性。
+6. 对最终集合再做一次交叉检查，然后冻结本轮 findings。
 
 **Closure Review:**
 
@@ -243,6 +244,8 @@ review 自身存在非豁免超长行时，先换行再结束。
 - [ ] Next review mode 已按实际 changed sections 独立核对，模式差异已记录。
 - [ ] Finding Closure Proof 已从原 finding 独立复测，未使用当前 status 代替证据。
 - [ ] 成对契约的共享约束已检查，有意差异存在 Decision 和 AC。
+- [ ] Full Review 已并行启动两个只读维度子代理，或已说明串行降级及原因。
+- [ ] 维度子代理候选项已由主代理独立裁决，`F-###` 只在裁决通过后分配。
 - [ ] Full Review 已在冻结前完成全部维度和根因合并。
 - [ ] Closure Review 只检查旧 finding、changed sections 和 Impact matrix 中预先列出的关联章节。
 - [ ] Closure 新 finding 有允许的 Origin 和因果证据。
@@ -275,3 +278,4 @@ review 自身存在非豁免超长行时，先换行再结束。
 - [Review lifecycle contract](references/review-lifecycle.md)
 - [Review rubric](references/review-rubric.md)
 - [Review template](assets/review-template.md)
+- [Axis agents contract](references/axis-agents.md)
