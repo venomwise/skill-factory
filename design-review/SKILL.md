@@ -101,9 +101,10 @@ refine 后的 review 开始前读取 pre-closure audit、影响矩阵和 Finding
 Full Review 将证据探索和维度检查拆给并行的只读维度子代理，主代理负责统一裁决；
 启动契约、分工和候选项格式见 [axis agents contract](references/axis-agents.md)。
 
-1. 当前运行环境能否启动只读子代理？IF 能，THEN 并行启动**项目证据代理**（D4/D5）和
-   **设计一致性代理**（D1/D2/D6/D7），主代理同时执行 D3 确定性 preflight 和追踪关系核对。
-   IF 不能，THEN 主代理按下述探索优先级串行执行全部维度，并在响应中说明使用了串行模式。
+1. 直接尝试并行启动**项目证据代理**（D4/D5）和**设计一致性代理**（D1/D2/D6/D7），主代理
+   同时执行 D3 确定性 preflight 和追踪关系核对。不要先自评运行时是否支持子代理：工具清单里
+   没有名字显眼的代理工具，不等于没有可用机制。只有实际启动失败后，主代理才按下述探索
+   优先级串行执行全部维度，并在响应中记录尝试过的机制和具体失败原因。
 2. 探索优先级（子代理契约与串行降级共用）：README、CLAUDE.md、AGENTS.md；项目配置和依赖；
    与设计相关的入口、组件、接口和持久化代码；需要理解近期变化时查看最近 10 个提交；
    相关现有 specs 和机器可读契约；Project Traceability 指向的项目规划和 work item。
@@ -244,7 +245,7 @@ review 自身存在非豁免超长行时，先换行再结束。
 - [ ] Next review mode 已按实际 changed sections 独立核对，模式差异已记录。
 - [ ] Finding Closure Proof 已从原 finding 独立复测，未使用当前 status 代替证据。
 - [ ] 成对契约的共享约束已检查，有意差异存在 Decision 和 AC。
-- [ ] Full Review 已并行启动两个只读维度子代理，或已说明串行降级及原因。
+- [ ] Full Review 已实际尝试并行启动两个只读维度子代理；串行降级附有尝试过的机制和失败原因。
 - [ ] 维度子代理候选项已由主代理独立裁决，`F-###` 只在裁决通过后分配。
 - [ ] Full Review 已在冻结前完成全部维度和根因合并。
 - [ ] Closure Review 只检查旧 finding、changed sections 和 Impact matrix 中预先列出的关联章节。
