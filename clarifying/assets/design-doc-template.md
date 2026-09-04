@@ -91,7 +91,7 @@ Decision 使用稳定的语义 ID；同一主题发生变化时原位更新，�
 
 <!--
 出现实体、表、字段、序列化模型、迁移或并发控制变化时保留本节。
-只生成适用的子章节。可执行 DDL/DML 放在独立 sql/ 文件中，本节只引用路径和总结语义。
+只生成适用的子章节。可执行 DDL/DML 放在独立 sql/ 文件中，本节只引用脚本路径、执行顺序和变更语义。
 -->
 
 #### Change Summary
@@ -125,12 +125,16 @@ Decision 使用稳定的语义 ID；同一主题发生变化时原位更新，�
 
 - 描述唯一性、索引、关联、归属和必须由存储层保证的约束。
 
-#### Migration / Backfill / Rollback
+#### Migration / SQL
 
-- **Forward SQL**: `<path/to/forward.sql>`
-- **Rollback SQL**: `<path/to/rollback.sql>`
+- **SQL scripts**:
+  1. `<path/to/001-forward.sql>` — <DDL/DML 变更及执行顺序>
 - **Backfill**: <数据转换或 None>。
-- **Rollback guard**: <阻止数据丢失的前置条件>。
+- **Execution notes**: <执行窗口、依赖条件、数据风险和人工确认事项>。
+
+脚本列表以已确认的正向变更为准；需要额外恢复或检查动作时，在此处明确列出其路径、触发条件和责任人。
+
+已有 spec 若仍使用旧版迁移小节，只有本轮涉及该小节时才迁移到本格式；其余章节沿用原批准内容。
 
 #### Concurrency and Consistency
 
@@ -226,7 +230,7 @@ Data Flow 中的跨边界调用必须引用 Interfaces 中的 Contract ID。
 
 ## Error Handling
 
-列出失败的触发条件、检测位置、受影响对象、返回语义，以及适用的重试或回滚行为。
+列出失败的触发条件、检测位置、受影响对象、返回语义，以及适用的重试、恢复或补偿行为。
 
 ## Acceptance Criteria
 

@@ -34,7 +34,7 @@
    正常流、错误流和关键边界是否覆盖。
 2. 契约完整性：跨边界调用是否都有 Contract ID 与请求、响应、错误定义；
    preview/commit、create/update 等成对契约的身份、容量、校验和事务约束是否一致。
-3. Data Model 与 Interfaces：Change Summary 是否覆盖全部变化，迁移、回填和回滚是否闭环。
+3. Data Model 与 Interfaces：Change Summary 是否覆盖全部变化，正向 SQL、迁移、回填和执行风险是否闭环。
 4. D5 盲点：设计是否覆盖适用的容量、并发、权限、失败和运营风险；
    声明的既有列、字段、错误码和行为是否与项目事实一致。
 5. 过度设计：是否存在无法追溯到 Goal 的组件、配置或机制。

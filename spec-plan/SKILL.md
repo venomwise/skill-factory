@@ -72,7 +72,9 @@ description: >
 4. **处理可选评审。** 检查 `design.md` 同目录是否存在 `review.md`。
    - IF 不存在，THEN 继续。
    - IF 存在，THEN 读取 `## Current Readiness`，不得使用评审时 Verdict 代替当前状态。
-   - IF `Overall` 为 `ready` 且 `spec-plan readiness` 为 `Go`，THEN 执行以下关卡：
+   - IF `Overall` 为 `ready` 且 `spec-plan readiness` 为 `Go`，THEN 执行以下关卡。该状态可以来自
+     `design-review` 独立放行，也可以来自 `design-refine` 的 `Refine validation: Passed` 且
+     `Next review mode: None`：
      1. Current Readiness 中的每个 finding 都是终态：`resolved`、`rejected`、
         `accepted-risk` 或 `deferred`。
      2. 每个 `Resolution ref` 都能解析到 `design.md` 中实际存在的 `DR-*`、设计章节，
@@ -90,7 +92,8 @@ description: >
 6. **生成 tasks.md。** 使用 `assets/tasks.template.md`。保留英文结构标题、
    checkbox/task 编号、`Phase`、`Checkpoint`、可选 `*` 语法、
    `_Acceptance:` 和 `_Design:` 标签；生成内容使用步骤 2 确定的语言。
-   - 任务写明具体文件路径和函数、类或交付物。
+   - 任务写明具体文件路径和函数、类或交付物。涉及 Data Model 时，新版 `Migration / SQL` 的任务来源限定为设计列出的正向
+     SQL 脚本和执行说明；历史 spec 已批准的迁移产物按原设计处理，发生迁移改动时再按新版契约更新。
    - 每个功能阶段包含适用的测试任务。
    - 关键里程碑添加 Checkpoint，列出验证命令、引用的 AC 和明确通过条件。Checkpoint 是执行 Agent 的验证任务，不是用户批准门。
    - 非必要测试、验证、文档收尾和 nice-to-have 功能使用 `- [ ]*`；不要使用“可选”或 `Optional:` 文本标签代替。
@@ -109,6 +112,7 @@ description: >
 - [ ] Phase 使用 `- [ ] N. Phase N:`，任务描述使用缩进 bullets
 - [ ] 所有非必要步骤使用 `- [ ]*`，可选 Phase 的子任务继承可选性
 - [ ] 任务未引入被拒方案、未来想法、Non-Goals 或设计外行为
+- [ ] SQL 任务来源与设计列出的正向 DDL/DML 脚本一致；设计明确的额外恢复或检查动作才进入任务
 
 ## Safety & guardrails
 

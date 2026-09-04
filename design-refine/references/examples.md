@@ -83,7 +83,7 @@ F-012 状态设为 `rejected`，Resolution ref 指向 `DR-preview-remains-statel
 ## Finding Closure Proof
 
 F-014 指出两个连续接口共享同一批数据，但只定义了第一个接口的容量边界。refine 补充第二个接口后，
-不能仅凭章节已修改就标记闭合。pre-closure audit 应记录：
+不能仅凭章节已修改就标记闭合。refine validation 应记录：
 
 | Finding | Closure test | Resolution evidence | Counterexample check | Result |
 |---------|--------------|---------------------|----------------------|--------|
@@ -93,10 +93,23 @@ F-014 指出两个连续接口共享同一批数据，但只定义了第一个�
 
 ## Next review mode
 
-refine 只补充遗漏的 Error Handling 和 Testing 时，`Next review mode` 为 `Closure`，按 changed sections
-执行范围化语义预检。
+refine 补充遗漏的 Error Handling 和 Testing 时，若改动跨组件边界，`Next review mode` 为 `Closure`，按 changed sections
+执行范围化语义预检；局部传播且仍在既有边界内时，validation 通过后可设为 `None`。
 
-refine 改变 Goals、Non-Goals 或公共容量契约时，`Next review mode` 为 `Full`。pre-closure audit 必须
+如果 refine 只依据既有 Decision、项目事实或 AC 做章节传播、引用和格式修正，且没有改变行为契约，
+则 validation 通过后 `Next review mode` 为 `None`，直接进入 `ready / Go`。
+
+对应的 `Current Readiness` 记录为：
+
+```text
+Refine validation: Passed
+Change class: direct-repair
+Next review mode: None
+Overall: ready
+spec-plan readiness: Go
+```
+
+refine 改变 Goals、Non-Goals 或公共容量契约时，`Next review mode` 为 `Full`。refine validation 必须
 先执行全维度 dry-run，再交给 `design-review` 独立 Full Review；不能因为原 finding 已终态而缩小范围。
 
 ## Updating an existing decision
@@ -136,7 +149,7 @@ F-030 的修复新增状态 `RECONCILING`，但 State Machines 没有该状态�
 
 ### dependency-unlocked
 
-F-031 先确定数据以哪个存储为准。只有该决策完成后，才能判断回滚是否需要 backfill 版本。
+F-031 先确定数据以哪个存储为准。只有该决策完成后，才能判断恢复动作是否需要 backfill 版本。
 后续 finding 可以使用 `dependency-unlocked`，并说明依赖关系。
 
 ### baseline-miss

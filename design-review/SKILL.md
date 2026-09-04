@@ -9,8 +9,8 @@ description: >
 
 # Design Review
 
-对 `design.md` 执行独立质量关卡。首轮执行 Full Review；完成 refine 后默认执行
-Closure Review。唯一写入产物是同目录的 `review.md`。
+对 `design.md` 执行独立质量关卡。首轮执行 Full Review；完成 refine 后按 `Current Readiness`
+记录的风险边界决定是否执行 Closure 或 Full Review。唯一写入产物是同目录的 `review.md`。
 
 ## When to use
 
@@ -70,6 +70,9 @@ IF 历史 review 缺少 `## Current Readiness`，或只使用 severity-coded fin
 将其标记为 legacy review：保留一行迁移说明，但不猜测旧状态；本轮执行 Full Review，
 按当前协议重新分配 `F-###` 并生成双视图报告。
 
+IF `Current Readiness` 使用历史 `Pre-closure audit` 字段，THEN 按 lifecycle 的兼容规则映射为
+`Refine validation`，保留迁移说明后再选择复审模式。
+
 ### STEP 2: Select review mode
 
 根据 review lifecycle 选择模式：
@@ -79,12 +82,13 @@ IF 历史 review 缺少 `## Current Readiness`，或只使用 severity-coded fin
 - 用户明确要求完整评审：Full Review。
 - 自动复审时，Current Readiness 为 `not-started`、`in-progress` 或 `blocked`：
   停止并建议继续 `design-refine`，不得评审处理中设计。
-- 自动复审时，Current Readiness 已为 `ready / Go`：说明无需再次评审。
-- 自动复审时，Current Readiness 为 `ready-for-closure` 但 pre-closure audit 缺失或失败：
+- 自动复审时，Current Readiness 已为 `ready / Go` 且没有新的 Full Review 触发条件：说明无需再次评审；
+  用户明确要求或检测到新的 Full Review 触发条件时执行 Full Review。
+- 自动复审时，Current Readiness 为 `ready-for-closure` 但 refine validation 缺失或失败：
   停止并返回 `design-refine`，不得开始独立 review。
-- audit 通过后，Goals、Non-Goals、核心架构、数据所有权、公共契约、安全、权限、外部集成、
-  迁移边界或相关项目事实变化：升级为 Full Review。
-- audit 通过且未触发 Full 条件：Closure Review。
+- refine validation 通过且 `Next review mode` 为 `Full`：执行 Full Review。
+- refine validation 通过且 `Next review mode` 为 `Closure`：执行 Closure Review。
+- refine validation 通过且 `Next review mode` 为 `None`：说明设计已由 refine 验证放行，无需再次执行 review。
 
 `Next review mode` 是 refine 的预判，不是评审结论。独立核对实际 changed sections 和 lifecycle 触发条件；
 不一致时按实际条件选择模式，并在 Mode reason 记录差异。不要把每次复审默认当作新的全量审计。
@@ -94,7 +98,7 @@ IF 历史 review 缺少 `## Current Readiness`，或只使用 severity-coded fin
 Closure Review 复用上一轮证据，在主线程执行：只重新核实 changed sections 影响的项目区域，
 以及 `context-change` 所指向的新事实。
 
-refine 后的 review 开始前读取 pre-closure audit、影响矩阵和 Finding Closure Proof。
+refine 后的 review 开始前读取 refine validation、变更分类、影响矩阵和 Finding Closure Proof。
 它们用于定位核查范围，但不构成评审结论；reviewer 必须从原 Issue、Evidence 和期望结果
 重新执行 Closure test 和反例检查，不强制采用原 Recommendation 的具体修法。
 
@@ -135,7 +139,7 @@ node <clarifying-skill>/scripts/check-design-doc.mjs <path/to/design.md>
 
 **Full Review:**
 
-1. refine 后升级为 Full 时，先独立复测 Finding Closure Proof；原反例仍成立时沿用原 finding ID。
+1. refine 后执行 Full 或 Closure 时，先独立复测 Finding Closure Proof；原反例仍成立时沿用原 finding ID。
 2. 汇总维度子代理的候选项；串行模式汇总主代理自查结果。没有位置或证据的候选项直接丢弃。
 3. 对每条候选独立核验：证据是否可复现，位置是否在评审范围内；Goal -> Solution -> AC 覆盖、
    Data Model、Interfaces、迁移、并发和错误契约，以及成对契约的共享模型、身份、容量、错误或
@@ -184,7 +188,7 @@ Closure 已确认关闭的历史 finding 只进入紧凑 Closure。
 
 - Review Snapshot 使用设计当前语言，结构标题和固定枚举保持英文。
 - 每条 finding 包含 Severity、Introduced in、Origin、Location、Issue、Evidence 和 Recommendation。
-- Current Readiness 包含状态、Resolution ref、audit、下一轮模式、影响矩阵、Finding Closure Proof 和当前下一步。
+- Current Readiness 包含状态、Resolution ref、refine validation、变更分类、下一轮模式、影响矩阵、Finding Closure Proof 和当前下一步。
 - Closure 不复制上一轮完整 finding 文本。
 - Accepted / Deferred Risks 原样携带并根据当前设计重新核实。
 
@@ -213,7 +217,7 @@ review 自身存在非豁免超长行时，先换行再结束。
 
 ### STEP 8: Recommend next step
 
-- Reject/Revise：运行 `design-refine`，完成后按 `Next review mode` 运行 Full 或 Closure Review。
+- Reject/Revise：运行 `design-refine`，完成后按 `Next review mode` 决定直接进入 `spec-plan`，或运行 Full / Closure Review。
 - Pass 且有 Minor：让用户选择修复或延期，默认建议延期不改变行为契约的 Minor；
   全部终态后进入 `spec-plan`。
 - 无 finding：进入 `spec-plan`。
@@ -239,10 +243,11 @@ review 自身存在非豁免超长行时，先换行再结束。
 - [ ] 已读取 canonical design template、review lifecycle 和 rubric。
 - [ ] 已正确选择 Full 或 Closure，并记录升级原因。
 - [ ] Legacy review 已通过 Full Review migration 转换，未猜测旧状态。
-- [ ] refine 后自动复审已有通过的 pre-closure audit；用户明确要求 Full 的例外已记录。
-- [ ] Closure 只在 Current Readiness 为 ready-for-closure 时执行。
-- [ ] Closure 开始前已存在通过的 pre-closure audit；该审计未被当作独立评审结论。
+- [ ] refine 后执行 Full 或 Closure 时已读取并独立复测 refine validation；用户明确要求 Full 的例外已记录。
+- [ ] Closure 只在 Current Readiness 为 ready-for-closure 且 Next review mode 为 Closure 时执行。
+- [ ] 独立复审开始前已存在通过的 refine validation；该验证未被当作独立评审结论。
 - [ ] Next review mode 已按实际 changed sections 独立核对，模式差异已记录。
+- [ ] refine 后的报告已记录 Refine validation、Change class 和 Next review mode；Next review mode 为 None 时不重复启动 review。
 - [ ] Finding Closure Proof 已从原 finding 独立复测，未使用当前 status 代替证据。
 - [ ] 成对契约的共享约束已检查，有意差异存在 Decision 和 AC。
 - [ ] Full Review 已实际尝试并行启动两个只读维度子代理；串行降级附有尝试过的机制和失败原因。

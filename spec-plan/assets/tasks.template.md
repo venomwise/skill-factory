@@ -71,3 +71,4 @@ This implementation plan is driven by the approved design and Acceptance Criteri
 - Tasks marked with `*` may be skipped in MVP mode.
 - Keep task numbering stable after execution begins.
 - `design.md` is the source of truth; do not copy full AC text into this file.
+- 涉及数据库变更时，任务来源限定为 `design.md` 列出的正向 SQL 脚本和执行说明；设计明确的额外恢复或检查动作才进入任务。

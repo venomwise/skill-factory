@@ -47,6 +47,7 @@ Closure Review 不重新自由发散，只检查旧 finding、changed sections �
 ## D3: Conformance
 
 - 章节和按需子章节符合 canonical template。
+- 已批准的历史 spec 若未修改迁移小节，可沿用旧版格式；本轮涉及迁移时采用 `Migration / SQL`。
 - spec 位于 `specs/<topic>/`，topic 使用 kebab-case。
 - Decision 使用稳定 `DR-<semantic-topic>`，同一主题没有重复或 `Revised` 堆叠。
 - AC ID 唯一，符合 `AC-<domain>-<behavior>`。
@@ -75,7 +76,7 @@ Closure Review 不重新自由发散，只检查旧 finding、changed sections �
 
 **Data:**
 
-- 迁移、回填和回滚保护。
+- 迁移、回填和恢复边界。
 - 一致性、并发、幂等和冲突处理。
 - 保留、清理、隐私、备份和恢复。
 
@@ -111,11 +112,12 @@ D7 通常是 Minor；与真实风险重叠时按风险影响定级。
 设计包含数据变化时，检查：
 
 - Change Summary 枚举全部 ADD/MODIFY/REMOVE 对象。
+- 已批准且本轮未修改迁移小节的历史 spec 可沿用原脚本契约；本轮新增或修改的迁移按 `Migration / SQL` 检查。
 - 新对象给出完整目标模型；已有对象只描述变化字段。
 - Persistence、Domain/Serialized、Migration 和 Concurrency 内容归属正确。
 - 约束和索引明确，说明数据以哪里为准以及由谁负责。
-- 可执行 SQL 位于独立文件，design 引用路径且不维护第二份 DDL/DML。
-- 正向、回填、回滚和数据保护规则相互一致且完整。
+- 可执行 SQL 位于独立文件，design 引用脚本路径、执行顺序和变更语义；脚本文件是 DDL/DML 的唯一执行来源。
+- 正向变更、回填、执行前提和数据风险说明相互一致且完整；恢复动作仅在设计明确纳入时记录其边界和脚本。
 - Data Model 没有混入接口请求、资源流程或无关实现叙述。
 
 ## Interfaces checks
@@ -130,7 +132,7 @@ D7 通常是 Minor；与真实风险重叠时按风险影响定级。
 - `MODIFY` 说明原契约到新契约变化；`REMOVE` 说明迁移和失败行为。
 - 机器可读契约存在时，design 引用它而不复制第二份完整 schema。
 - Data Flow 的跨边界调用能映射到 Contract ID。
-- preview/commit、create/update、forward/rollback、producer/consumer 等成对契约共享的身份、容量、校验、
+- preview/commit、create/update、producer/consumer 等成对契约共享的身份、容量、校验、
   错误和事务约束一致；有意差异由 Decision、Error Handling、AC 和 Testing 共同说明。
 
 缺少实现关键的请求、响应或消息语义通常是 Major；导致调用方无法实现时可定为 Blocker。
@@ -163,11 +165,11 @@ D7 通常是 Minor；与真实风险重叠时按风险影响定级。
 5. 成对契约的共享约束是否完成对称性检查？IF 否，THEN 补完。
 6. 最终集合是否经过交叉检查？IF 否，THEN 不得写报告。
 
-## Closure Review admission gate
+## Independent Review admission gate
 
-开始语义复核前检查：
+开始 Closure 或 Full 语义复核前检查：
 
-1. pre-closure audit 是否为 Passed？IF 否，THEN 返回 `design-refine`。
+1. refine validation 是否为 Passed？IF 否，THEN 返回 `design-refine`。
 2. 每条历史 finding 是否有 Closure test 和原反例检查？IF 否，THEN 返回 `design-refine`。
 3. Next review mode 是否与实际 changed sections 一致？IF 否，THEN 按 lifecycle 重新选择模式并记录原因。
 

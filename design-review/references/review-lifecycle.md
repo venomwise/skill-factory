@@ -8,7 +8,7 @@
 
 - `Review Snapshot` 由 `design-review` 写入，表示本轮评审发生时的事实，不由 refine 改写。
 - `Current Readiness` 由 `design-review` 初始化，由 `design-refine` 更新当前状态和下一步。
-- `Current Readiness` 在进入独立复审前还记录 pre-closure audit、下一轮模式、影响矩阵和逐 finding 闭合证明。
+- `Current Readiness` 记录 refine validation、变更分类、下一轮模式、影响矩阵和逐 finding 闭合证明；只有需要独立复审时才进入 ready-for-closure。
 - `Closure` 由下一轮 `design-review` 更新，只保留紧凑的跨轮闭合证据。
 - `Accepted / Deferred Risks` 由 `design-refine` 更新。
 - `Recommended Next Step` 从 Current Readiness 派生，可由两个 skill 更新。
@@ -24,6 +24,9 @@
 重新生成 `F-###`、Review Snapshot 和 Current Readiness，并在 Closure 保留一行 legacy 说明。
 `design-refine` 不直接处理 legacy review。
 
+历史 `Current Readiness` 使用 `Pre-closure audit` 字段时，视为旧版 validation 字段；进入新流程时由
+`design-review` 将其映射为 `Refine validation` 并保留迁移说明，其他状态和 finding 证据按原文核对。
+
 ### Full Review
 
 以下任一条件成立时执行：
@@ -36,13 +39,13 @@
 - 与设计相关的代码、数据库或外部事实在上一轮后发生变化。
 
 Full Review 完整执行 7 个维度，合并同根问题后冻结本轮 findings。
-refine 后自动升级为 Full Review 时，仍须先通过 pre-closure audit；用户明确要求重新 Full Review 不受此限制。
+refine 后需要 Full Review 时，仍须先通过 refine validation；用户明确要求重新 Full Review 不受此限制。
 
 ### Closure Review
 
-已有 review、Current Readiness 为 `ready-for-closure`、pre-closure audit 已通过，且 refine 未触发 Full Review 条件时执行。
+已有 review、Current Readiness 为 `ready-for-closure`、refine validation 已通过，且下一轮模式为 `Closure` 时执行。
 `not-started`、`in-progress` 或 `blocked` 表示 refine 尚未完成，不得启动 Closure Review。
-`ready / Go` 表示已经放行，除非用户明确要求，否则不重复评审。
+`ready / Go` 表示已经放行；在没有新的 Full Review 触发条件时，除非用户明确要求，否则不重复评审。
 
 Closure Review 的语义检查范围限于：
 
@@ -54,17 +57,38 @@ Closure Review 的语义检查范围限于：
 
 文档结构、ID、引用完整性和格式等确定性检查仍然全量执行。
 
-`design-refine` 必须提供本次 pre-closure audit 的通过记录和 changed-sections 影响矩阵。
-该记录只用于确定 Closure 的核查范围和复用已核实事实，不能替代独立复核；Closure 仍须自行判断
-已处理 finding 是否真正闭合，并可按 Origin gate 创建新的 finding。
+`design-refine` 必须提供本次 refine validation 的通过记录和 changed-sections 影响矩阵。
+该记录用于决定是否需要独立复审和确定核查范围；进入 `Closure` 或 `Full` 时不能替代独立复核。
 
-## Pre-closure Audit Contract
+## Refine validation and review admission
 
-`design-refine` 负责执行 pre-closure audit，`design-review` 负责独立复核。Current Readiness 必须记录：
+refine 完成所有 finding 处置后只执行一次 validation。它验证每条 finding 的闭合条件、传播关系、标识符一致性、
+结构和行宽，并记录变更分类：
 
-- `Pre-closure audit`: `Not run`、`Passed` 或 `Failed`。
-- `Next review mode`: `Full` 或 `Closure`；未执行 audit 时为 `Not determined`。
-- `Mode trigger`: 命中的 Full Review 条件；Closure 时写 `None`。
+- `direct-repair`：依据现有 Decision、项目事实或既有 AC 唯一修正章节、引用和格式。
+- `behavior-propagation`：同步已确认行为、错误语义、AC 或 Testing，但没有改变高风险设计边界。
+- `high-risk-design`：改变 Goals、Non-Goals、核心 Architecture、数据所有权、公共契约、安全、权限、外部集成、
+  迁移语义或相关项目事实。
+
+按变更边界和证据选择出口：
+
+1. 全部 finding 已终态、validation 通过，且改动仍在既有组件和契约边界内时，`Next review mode` 设为 `None`，
+   Current Readiness 直接进入 `ready / Go`。这包括依据既有 Decision 的 direct repair，以及局部的 behavior-propagation。
+2. validation 通过但改动跨越组件边界、改变可观察行为传播，或需要独立确认传播结果时，设为 `Closure`，进入
+   `ready-for-closure`。
+3. 变更属于 `high-risk-design` 或用户明确要求独立复审时，设为 `Full`，进入 `ready-for-closure`。
+   validation 发现新的设计缺口时，先回到 resolution queue；完成处置后按最终变更分类重新选择出口。
+
+Severity 用于评估影响，不单独决定复审模式。validation 未通过时保持 `in-progress`，修复后从 validation 重新开始。
+
+## Refine Validation Contract
+
+`design-refine` 负责执行 refine validation，`design-review` 负责需要时的独立复核。Current Readiness 必须记录：
+
+- `Refine validation`: `Not run`、`Passed` 或 `Failed`。
+- `Change class`: `direct-repair`、`behavior-propagation` 或 `high-risk-design`。
+- `Next review mode`: `None`、`Full` 或 `Closure`；未执行 validation 时为 `Not determined`。
+- `Mode trigger`: 触发独立复审的边界或用户要求；无需独立复审时写 `None`。
 - `Impact matrix`: changed sections 到预先列出的关联章节和相关契约的映射。
 - `Finding Closure Proof`: 每条 finding 的闭合测试、证据、原反例复测和结果。
 
@@ -78,7 +102,7 @@ Finding Closure Proof 使用以下字段：
 | Counterexample check | 原证据场景或最小反例在当前设计下的结果 |
 | Result | `passed` 或 `failed` |
 
-pre-closure audit 按以下关卡执行：
+refine validation 按以下关卡执行：
 
 1. 每条 finding 是否有不依赖当前状态标签的 Closure test？IF 否，THEN 保持 `in-progress` 并补齐测试。
 2. Resolution evidence 是否能解析并覆盖原根因？IF 否，THEN 重新打开该 finding。
@@ -87,12 +111,13 @@ pre-closure audit 按以下关卡执行：
    有意差异必须有 Decision 和 AC。
 5. 本次引入、修改或废弃的标识符（字段、错误码、状态名、Contract ID、退役术语）是否已全文核对，
    且无与当前决定矛盾的残留表述？IF 否，THEN 回到 refine 修复残留。
-6. changed sections 是否触发 Full Review？IF 是，THEN 将 `Next review mode` 设为 `Full`，
-   并执行全维度 dry-run；IF 否，THEN 设为 `Closure`，只检查 finding、changed sections 和
-   Impact matrix 中预先列出的关联章节。
-7. 对应 dry-run 是否无缺口？IF 否，THEN 保持 `in-progress`，修复后从第 1 项重跑。
+6. 根据变更边界选择 `Next review mode`：既有边界内的 direct repair 或局部 behavior-propagation 为 `None`；
+   跨组件的行为传播或需要独立确认的中风险改动为 `Closure`；high-risk-design 或用户要求独立复审为 `Full`。
+   validation 发现新的设计缺口时，先回到 resolution queue，修复后重新执行本关卡。
+7. 对应 validation 或 dry-run 是否无缺口？IF 否，THEN 保持 `in-progress`，修复后从第 1 项重跑。
 
-只有全部关卡通过，才能写入 `Pre-closure audit: Passed` 并进入 `ready-for-closure`。
+只有全部关卡通过，才能写入 `Refine validation: Passed`。`Next review mode` 为 `None` 时进入 `ready / Go`；
+为 `Full` 或 `Closure` 时进入 `ready-for-closure`。
 `rejected` 和 `accepted-risk` 不要求风险消失，但必须记录边界、影响、理由和 Revisit 条件。
 Closure test 验证原根因和可观察结果；用户选择其他可行方案或明确接受边界时，不要求采用 reviewer 推荐的实现。
 
@@ -146,26 +171,26 @@ R2 及后续评审的新 finding 必须说明 Origin 的因果证据。Closure R
 | `not-started` | 当前 findings 尚未开始处理 |
 | `in-progress` | 至少一条 finding 正在处理 |
 | `blocked` | 当前处理缺少必要输入 |
-| `ready-for-closure` | Blocker/Major 已处理且 audit 通过，等待 `Next review mode` 指定的独立复审 |
+| `ready-for-closure` | 所有 finding 已处理且 validation 通过，等待 `Next review mode` 指定的独立复审 |
 | `ready` | 当前设计可以进入 `spec-plan` |
 
 `spec-plan readiness` 使用 `Go`、`Conditional`、`No-Go`：
 
 - `Go`: Overall 为 `ready`，所有 finding 已终态，且没有行为相关 Open Question。
-- `Conditional`: 仍有 Major、Minor 待处置，或已完成 refine 但等待独立复审。
+- `Conditional`: 仍有待处置 finding，或已完成 refine validation 但等待独立复审。
 - `No-Go`: 存在 Blocker、状态不完整或独立复审发现新的阻断问题。
 
-Pass 但存在 Minor 时，用户必须选择修复或延期。所有 Minor 终态后才设置 `ready / Go`。
-经过 Blocker/Major refine 的设计必须先完成 pre-closure audit，再进入 `ready-for-closure`，不得直接设置 `Go`。
+Pass 但存在 Minor 时，用户必须选择修复或延期。所有 finding 终态且 validation 通过后，按变更分类设置 `ready / Go`
+或 `ready-for-closure`。
 
 ## State Transitions
 
 1. `design-review` 创建 Review Snapshot，并把当前 finding 初始化为 `pending`。
 2. `design-refine` 处理 finding，更新 Status、Resolution ref 和 Changed sections。
-3. 全部 Blocker/Major 终态后，`design-refine` 执行 pre-closure audit；失败则保持 `in-progress` 并继续 refine，
-   通过后 Current Readiness 进入 `ready-for-closure`，并记录下一轮 Full 或 Closure。
-4. `design-review` 按独立判断执行 Full 或 Closure Review，将历史结果写入 Closure。
-5. 无未解决 Blocker/Major，且 Minor 已处理时，Current Readiness 进入 `ready / Go`。
+3. 所有 finding 终态后，`design-refine` 执行一次 refine validation；失败则保持 `in-progress` 并继续 refine，
+   通过后按变更分类将 Current Readiness 设为 `ready / Go` 或 `ready-for-closure`。
+4. `design-review` 仅在 `Next review mode` 为 `Full` 或 `Closure` 时执行独立复审，并将历史结果写入 Closure。
+5. 独立复审通过且所有 finding 终态后，Current Readiness 进入 `ready / Go`。
 
 Refine run 使用 `R<n>-refine-<n>`，不复用 finding 的 `F` 前缀。
 

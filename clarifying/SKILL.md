@@ -134,7 +134,7 @@ handoff 关卡只验证项目准入，不替代下面的需求与技术澄清。
 - 遵循项目既有模式。
 - 不涉及数据迁移、外部集成、安全、权限、并发或可靠性问题。
 - 不改变公共契约。
-- 测试和回滚直接。
+- 测试和变更验证直接。
 - 没有未解决问题。
 
 任一条件为 false 或不确定时，归类为中等或复杂。
@@ -169,6 +169,7 @@ handoff 关卡只验证项目准入，不替代下面的需求与技术澄清。
    `Revisit when` 的 Decision。
 10. 事实修正、格式处理和章节传播不写入 Decision Record。
 11. 数据或契约发生变化时，按模板填写 Data Model / Interfaces Change Summary。
+    Data Model 的 `Migration / SQL` 只列出按顺序执行的正向 DDL/DML 脚本；执行前提、数据风险和恢复边界写在设计说明中。
 12. 在 Acceptance Criteria 中写入用户确认的可观察行为。
 13. 重新读取实际写入的完整 `design.md`，执行下面的文档语言关卡。
 14. 语言修改后重新检查 Goals、Decision、Data Model、Interfaces、Data Flow、Error Handling、
@@ -239,7 +240,7 @@ project_handoff:
 - [ ] Decision 只包含符合准入条件的持久选择，并使用稳定语义 ID。
 - [ ] 用户明确驳回的持久边界包含 `Rejected concern` 和 `Revisit when`。
 - [ ] 涉及数据变化时，Data Model 使用 Change Summary 和适用的固定子章节。
-- [ ] 可执行 DDL/DML 位于独立 SQL 文件，设计只引用路径和迁移语义。
+- [ ] 可执行 DDL/DML 位于独立 SQL 文件，`Migration / SQL` 列出正向脚本的顺序、用途和执行说明；脚本集合与设计明确列出的变更一致。
 - [ ] 涉及契约变化时，Interfaces 枚举全部 ADD/MODIFY/REMOVE 契约。
 - [ ] Data Flow 的跨边界调用均能映射到 Contract ID。
 - [ ] 每个核心 Goal 至少有一条 AC，ID 唯一且符合 kebab-case 约定。

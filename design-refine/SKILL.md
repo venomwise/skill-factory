@@ -2,7 +2,7 @@
 name: design-refine
 description: >
   根据 design-review 的 review.md 与用户逐项确认设计决策、边界驳回和风险，
-  批量处理无需新决策的直接修复，并同步更新 design.md 和 Current Readiness。
+  批量处理无需新决策的直接修复，执行 Refine validation，并按变更边界同步更新 design.md 和 Current Readiness。
   当用户说“根据 review 改设计”“处理评审意见”“优化 design.md”
   “review findings 怎么落地”时必须调用。
 ---
@@ -21,6 +21,7 @@ description: >
 5. 直接修复不进入 Decision Record。
 6. 只更新 `review.md` 的 Current Readiness、风险和当前下一步，不改写 Review Snapshot。
 7. finding 终态必须有 design 章节、Decision 或风险记录作为证据。
+8. 由 refine validation 根据变更边界决定是否进入独立 review；Severity 用于评估影响，不单独触发复审。
 
 ## When to use
 
@@ -46,7 +47,7 @@ description: >
 **Outputs:**
 
 - 更新后的 `design.md`。
-- 更新后的 `review.md` Current Readiness、风险和下一步。
+- 更新后的 `review.md` Current Readiness、风险、变更分类和下一步。
 - Review Snapshot 的 Verdict、Findings 和 Dimension Summary 保持不变。
 
 ## Authoritative contracts
@@ -72,6 +73,8 @@ description: >
 完整读取 `design.md`、`review.md` 和两个 authoritative contracts。
 确认 review 包含 Verdict、Findings、Dimension Summary 和 Current Readiness。
 缺少必要结构时，提示先重新运行 `design-review`，不要猜测状态。
+若 Current Readiness 仍使用历史 `Pre-closure audit` 字段，先按 lifecycle 兼容规则读取并在本次更新中采用
+`Refine validation` 字段；不改变已有 finding 证据或 Review Snapshot。
 
 从现有文件读取：
 
@@ -222,10 +225,11 @@ Decision 准入条件：
 **Data Model:**
 
 - Change Summary 覆盖所有 ADD/MODIFY/REMOVE 数据对象。
+- 已批准且本轮未修改迁移小节的历史 spec 沿用原脚本契约；本轮涉及迁移时按 `Migration / SQL` 整理脚本与执行说明。
 - 新对象是完整目标模型，已有对象只描述变化。
 - Persistence、Domain、Migration 和 Concurrency 内容归属正确。
-- SQL 路径存在，design 没有复制第二份完整 DDL/DML。
-- 迁移、回填、回滚和数据保护一致。
+- SQL 脚本路径存在，脚本文件承载完整 DDL/DML，design 保留路径与语义摘要。
+- 正向变更、回填、执行前提和数据风险说明一致；恢复动作按设计明确的边界记录。
 
 **Interfaces:**
 
@@ -238,13 +242,12 @@ Decision 准入条件：
 
 - 每个当前 finding 有有效状态和证据引用。
 - 任一非终态存在时，Overall 为 `in-progress` 或 `blocked`。
-- Blocker/Major 全部终态且 pre-closure audit 通过后，Overall 为 `ready-for-closure`。
-- 仅处理 Pass 的 Minor 且全部终态时，可以设置 `ready / Go`。
-- 经 Blocker/Major refine 后不得直接设置 `Go`。
+- 所有 finding 终态且 refine validation 通过后，按变更分类将 Overall 设为 `ready / Go` 或 `ready-for-closure`。
+- 只有跨组件的 `behavior-propagation`、`high-risk-design`，以及用户明确要求独立复审的变更，才进入 `ready-for-closure`。
 
 ### STEP 10: Check language of changed content
 
-在 pre-closure audit 前重新读取实际 `design.md` 和 `review.md`。默认只检查本次 changed sections、
+在 refine validation 前重新读取实际 `design.md` 和 `review.md`。默认只检查本次 changed sections、
 Current Readiness 的本次更新及其相邻段落；用户明确要求清理全文时才扩大范围，不为统一文风
 改写其他内容。
 
@@ -261,37 +264,37 @@ Current Readiness 的本次更新及其相邻段落；用户明确要求清理�
 5. 语言修改是否新增、删除、弱化或扩大了设计边界、风险、契约、finding 或 Closure 结论？
    IF 是，THEN 撤销该修改，并依据已确认内容重新表述。
 
-任一语言修改完成后重新执行 STEP 9。检查通过后才能进入 pre-closure audit。
+任一语言修改完成后重新执行 STEP 9。检查通过后才能进入 refine validation。
 
-### STEP 11: Run pre-closure audit
+### STEP 11: Run refine validation
 
-在设置 `ready-for-closure` 之前，执行一次 pre-closure audit。它是进入独立 review 的准入检查，
-不是新的 Verdict，也不能替代 `design-review` 的独立判断。
+在完成所有 finding 处置后执行一次 refine validation。它负责确认修复已经闭合、传播完整，并决定是否需要独立 review；
+它不是新的 Verdict，也不能替代需要执行的 `design-review` 独立判断。
 
-同一 refine run 只启动这一套 audit 流程；audit 发现的问题回到当前 resolution queue，
-不会在中间启动新的 Closure Review。
+同一 refine run 只执行这一套 validation；validation 发现的问题回到当前 resolution queue，
+修复完成前不启动独立 review。
 
-执行 [review lifecycle](../design-review/references/review-lifecycle.md) 的 Pre-closure Audit Contract：
+执行 [review lifecycle](../design-review/references/review-lifecycle.md) 的 Refine Validation Contract：
 
 1. 从 Review Snapshot 的原 Issue、Evidence 和期望结果为每条 finding 提炼 Closure test；Recommendation
    只提供候选修法，不把其中某个实现绑定为唯一通过条件。
    IF 无法写成可验证条件，THEN 保持 `in-progress`，不得用当前 `resolved` 标签代替证明。
 2. 根据本次 `Changed sections` 建立影响矩阵，覆盖预先列出的关联章节和共享同一模型、身份、容量、错误或事务约束的
-   相关契约。对 preview/commit、create/update、forward/rollback、producer/consumer 等成对契约检查对称性；
+   相关契约。对 preview/commit、create/update、producer/consumer 等成对契约检查对称性；
    有意差异必须由 Decision、Error Handling、AC 和 Testing 共同说明。
 3. 用原 finding 的证据场景或最小反例复测当前设计。反例仍成立时重新打开原 finding，不创建同根新 finding。
 4. 对本次引入、修改或废弃的标识符做全文核对；残留表述与当前决定矛盾时，回到 STEP 8
    作为直接修复处理，修复后重跑核对。
-5. 在 dry-run 前按 lifecycle 判定下一轮模式。Goals、Non-Goals、核心架构、数据所有权、公共契约、安全、
-   权限、外部集成、迁移边界或相关项目事实变化时，记录 `Next review mode: Full` 并执行全维度 dry-run；
-   其余情况记录 `Next review mode: Closure`，只检查 finding、changed sections 和
-   Impact matrix 中预先列出的关联章节。
+5. 根据变更边界判定下一轮模式：既有边界内的 direct repair 或局部 behavior-propagation 为 `None`；
+   跨组件的行为传播或需要独立确认的中风险改动为 `Closure`；high-risk-design 或用户要求独立复审为 `Full`。
+   validation 发现新的设计缺口时，先回到 resolution queue，修复后重新执行本关卡。
 6. 任一检查失败时保持 `in-progress`，把缺口放回当前 resolution queue；直接修复批量处理，需要用户决定的事项
    继续逐项确认。修复后从第 1 项重跑，不在中间启动独立 review。
-7. 全部通过后，按 lifecycle 的固定字段写入 audit 结果、模式依据、影响矩阵和 Finding Closure Proof，
-   再将 Current Readiness 设为 `ready-for-closure`。
+7. 全部通过后，按 lifecycle 的固定字段写入 validation 结果、变更分类、模式依据、影响矩阵和 Finding Closure Proof。
+   `Next review mode` 为 `None` 时将 Current Readiness 设为 `ready / Go`；为 `Full` 或 `Closure` 时设为
+   `ready-for-closure`。
 
-`design-review` 必须独立复核这些证明；pre-closure audit 不能替代 Full 或 Closure Review。
+只有 `Next review mode` 为 `Full` 或 `Closure` 时才进入 `design-review` 独立复核；validation 不能替代该复核。
 
 ### STEP 12: Validate format and route
 
@@ -336,7 +339,7 @@ Recommended Next Step：
 - [ ] 本次引入、修改或废弃的标识符已全文核对，无与当前决定矛盾的残留表述。
 - [ ] 每条 finding 都有 Closure test、Resolution evidence、Counterexample check 和结果。
 - [ ] 成对契约的共享约束一致，或差异已有 Decision、AC 和 Testing。
-- [ ] Next review mode、Mode trigger 与 lifecycle 条件一致，对应 dry-run 已通过。
+- [ ] Refine validation、Change class、Next review mode 与 lifecycle 条件一致，对应 validation 或 dry-run 已通过。
 - [ ] Review Snapshot 未被修改。
 - [ ] Current Readiness 状态、证据、changed sections 和下一步一致。
 - [ ] 已检查本次改动及相邻段落的语言，没有为统一文风修改无关章节。
